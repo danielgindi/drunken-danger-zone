@@ -146,7 +146,7 @@
 {
     if ([image isKindOfClass:self]) return (id)image;
     
-	return [DGGrayScaleImage alloc] initWithImage:image withMode:colorMode andAlphaMultiplier:alphaMultiplier];
+	return [[DGGrayScaleImage alloc] initWithImage:image withMode:colorMode andAlphaMultiplier:alphaMultiplier];
 }
 
 @end
