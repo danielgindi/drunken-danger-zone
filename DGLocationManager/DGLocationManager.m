@@ -3,6 +3,7 @@
 //  DGLocationManager
 //
 //  Created by Daniel Cohen Gindi on 11/23/12.
+//  Copyright (c) 2012 danielgindi@gmail.com. All rights reserved.
 //
 //  General Location Manager Class.
 //  Thread safe.
@@ -22,16 +23,26 @@
 
 @implementation DGLocationManager
 
-static NSMutableArray * s_locationDelegates = nil;
-static NSMutableArray * s_headingDelegates = nil;
-static CLLocation * s_oldLocation = nil;
-static CLLocation * s_newLocation = nil;
-static NSString * s_purpose = nil;
-static CLActivityType s_activityType = CLActivityTypeOther;
+static NSMutableArray * s_DGLocationManager_locationDelegates = nil;
+static NSMutableArray * s_DGLocationManager_headingDelegates = nil;
+static CLLocation * s_DGLocationManager_oldLocation = nil;
+static CLLocation * s_DGLocationManager_newLocation = nil;
+static NSString * s_DGLocationManager_purpose = nil;
+static CLActivityType s_DGLocationManager_activityType = CLActivityTypeOther;
 
-static double s_magneticHeading = 0.0;
-static double s_trueHeading = 0.0;
-static CLLocationDirection s_headingAccuracy = 0.0;
+static double s_DGLocationManager_magneticHeading = 0.0;
+static double s_DGLocationManager_trueHeading = 0.0;
+static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
+
+#define s_locationDelegates s_DGLocationManager_locationDelegates
+#define s_headingDelegates s_DGLocationManager_headingDelegates
+#define s_oldLocation s_DGLocationManager_oldLocation
+#define s_newLocation s_DGLocationManager_newLocation
+#define s_purpose s_DGLocationManager_purpose
+#define s_activityType s_DGLocationManager_activityType
+#define s_magneticHeading s_DGLocationManager_magneticHeading
+#define s_trueHeading s_DGLocationManager_trueHeading
+#define s_headingAccuracy s_DGLocationManager_headingAccuracy
 
 + (DGLocationManager*)instance
 {
@@ -95,7 +106,7 @@ static CLLocationDirection s_headingAccuracy = 0.0;
     [[self instance]->locationManager stopUpdatingHeading];
 }
 
-+ (void)addLocationDelegate:(__unsafe_unretained id<DGLocationManagerDelegate>)delegate
++ (void)addLocationDelegate:(__weak id<DGLocationManagerDelegate>)delegate
 {
     if (![NSThread isMainThread])
     {
@@ -116,7 +127,7 @@ static CLLocationDirection s_headingAccuracy = 0.0;
     [self startUpdatingLocation];
 }
 
-+ (void)removeLocationDelegate:(__unsafe_unretained id<DGLocationManagerDelegate>)delegate
++ (void)removeLocationDelegate:(__weak id<DGLocationManagerDelegate>)delegate
 {
     if (![NSThread isMainThread])
     {
@@ -147,7 +158,7 @@ static CLLocationDirection s_headingAccuracy = 0.0;
     [self stopUpdatingLocation];
 }
 
-+ (void)addHeadingDelegate:(__unsafe_unretained id<DGLocationManagerDelegate>)delegate
++ (void)addHeadingDelegate:(__weak id<DGLocationManagerDelegate>)delegate
 {
     if (![NSThread isMainThread])
     {
@@ -168,7 +179,7 @@ static CLLocationDirection s_headingAccuracy = 0.0;
     [self startUpdatingHeading];
 }
 
-+ (void)removeHeadingDelegate:(__unsafe_unretained id<DGLocationManagerDelegate>)delegate
++ (void)removeHeadingDelegate:(__weak id<DGLocationManagerDelegate>)delegate
 {
     if (![NSThread isMainThread])
     {

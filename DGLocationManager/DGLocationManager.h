@@ -3,6 +3,7 @@
 //  DGLocationManager
 //
 //  Created by Daniel Cohen Gindi on 11/23/12.
+//  Copyright (c) 2012 danielgindi@gmail.com. All rights reserved.
 //
 //  General Location Manager Class.
 //  Thread safe.
@@ -34,12 +35,12 @@
 + (void)startUpdatingHeading;
 + (void)stopUpdatingHeading;
 
-+ (void)addLocationDelegate:(__unsafe_unretained id<DGLocationManagerDelegate>)delegate;
-+ (void)removeLocationDelegate:(__unsafe_unretained id<DGLocationManagerDelegate>)delegate;
++ (void)addLocationDelegate:(__weak id<DGLocationManagerDelegate>)delegate;
++ (void)removeLocationDelegate:(__weak id<DGLocationManagerDelegate>)delegate;
 + (void)removeAllLocationDelegates;
 
-+ (void)addHeadingDelegate:(__unsafe_unretained id<DGLocationManagerDelegate>)delegate;
-+ (void)removeHeadingDelegate:(__unsafe_unretained id<DGLocationManagerDelegate>)delegate;
++ (void)addHeadingDelegate:(__weak id<DGLocationManagerDelegate>)delegate;
++ (void)removeHeadingDelegate:(__weak id<DGLocationManagerDelegate>)delegate;
 + (void)removeAllHeadingDelegates;
 
 + (void)setLocationPurpose:(NSString*)purpose;
