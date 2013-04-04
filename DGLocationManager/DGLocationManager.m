@@ -106,7 +106,7 @@ static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
     [[self instance]->locationManager stopUpdatingHeading];
 }
 
-+ (void)addLocationDelegate:(__weak id<DGLocationManagerDelegate>)delegate
++ (void)addLocationDelegate:(__unsafe_unretained id<DGLocationManagerDelegate>)delegate
 {
     if (![NSThread isMainThread])
     {
@@ -127,7 +127,7 @@ static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
     [self startUpdatingLocation];
 }
 
-+ (void)removeLocationDelegate:(__weak id<DGLocationManagerDelegate>)delegate
++ (void)removeLocationDelegate:(__unsafe_unretained id<DGLocationManagerDelegate>)delegate
 {
     if (![NSThread isMainThread])
     {
@@ -158,7 +158,7 @@ static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
     [self stopUpdatingLocation];
 }
 
-+ (void)addHeadingDelegate:(__weak id<DGLocationManagerDelegate>)delegate
++ (void)addHeadingDelegate:(__unsafe_unretained id<DGLocationManagerDelegate>)delegate
 {
     if (![NSThread isMainThread])
     {
@@ -179,7 +179,7 @@ static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
     [self startUpdatingHeading];
 }
 
-+ (void)removeHeadingDelegate:(__weak id<DGLocationManagerDelegate>)delegate
++ (void)removeHeadingDelegate:(__unsafe_unretained id<DGLocationManagerDelegate>)delegate
 {
     if (![NSThread isMainThread])
     {
