@@ -7,6 +7,9 @@
 //
 
 #import "DGNumberBadgeView.h"
+#import <objc/runtime.h>
+
+#define ASSOCIATED_OBJECT_KEY @"DGNumberBadgeView"
 
 @interface DGNumberBadgeView ()
 {
@@ -71,30 +74,16 @@
     }
 }
 
-+ (NSMutableDictionary*)badgeViewMapDictionary
-{
-    static NSMutableDictionary * dict = nil;
-    if (!dict)
-    {
-        @synchronized(self)
-        {
-            dict = [[NSMutableDictionary alloc] init];
-        }
-    }
-    return dict;
-}
-
 + (DGNumberBadgeView*)badgeForView:(UIView *)view
 {
-    NSMutableDictionary * dict = self.class.badgeViewMapDictionary;
-    DGNumberBadgeView * badge = dict[view];
+    DGNumberBadgeView * badge = objc_getAssociatedObject(view, ASSOCIATED_OBJECT_KEY);
     if (!badge)
     {
         badge = [[DGNumberBadgeView alloc] init];
         badge.hidden = badge.hideWhenZero && badge.value == 0;
         badge.attachedToView = view;
         [view addSubview:badge];
-        dict[[@((NSInteger)(id)view) stringValue]] = badge;
+        objc_setAssociatedObject(view, ASSOCIATED_OBJECT_KEY, badge, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
     return badge;
 }
@@ -104,8 +93,10 @@
     [super removeFromSuperview];
     if (_attachedToView)
     {
-        NSMutableDictionary * dict = self.class.badgeViewMapDictionary;
-        [dict removeObjectForKey:[@((NSInteger)(id)_attachedToView) stringValue]];
+        if (_attachedToView)
+        {
+            objc_setAssociatedObject(_attachedToView, ASSOCIATED_OBJECT_KEY, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
         _attachedToView = nil;
     }
 }
@@ -118,9 +109,11 @@
     }
     if (attachedToView != _attachedToView)
     {
+        objc_setAssociatedObject(_attachedToView, ASSOCIATED_OBJECT_KEY, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        
         _attachedToView = attachedToView;
-        NSMutableDictionary * dict = self.class.badgeViewMapDictionary;
-        dict[[@((NSInteger)(id)_attachedToView) stringValue]] = self;
+        
+        objc_setAssociatedObject(_attachedToView, ASSOCIATED_OBJECT_KEY, self, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
     [attachedToView addSubview:self];
 }
