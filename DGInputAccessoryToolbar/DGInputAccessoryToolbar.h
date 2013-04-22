@@ -2,6 +2,7 @@
 //  DGInputAccessoryToolbar.h
 //
 //  Created by Daniel Cohen Gindi on 2/7/13.
+//  Copyright (c) 2013 danielgindi@gmail.com. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>

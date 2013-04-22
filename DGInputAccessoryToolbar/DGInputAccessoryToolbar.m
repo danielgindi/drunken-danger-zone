@@ -2,6 +2,7 @@
 //  DGInputAccessoryToolbar.m
 //
 //  Created by Daniel Cohen Gindi on 2/7/13.
+//  Copyright (c) 2013 danielgindi@gmail.com. All rights reserved.
 //
 
 #import "DGInputAccessoryToolbar.h"
@@ -29,7 +30,7 @@
     
     NSString * prevString, * nextString;
     
-    NSString * localeId = [NSBundle mainBundle].preferredLocalizations[0];
+    NSString * localeId = NSBundle.mainBundle.preferredLocalizations[0];
     if ([localeId hasPrefix:@"he"])
     {
         prevString = @"הקודם";
