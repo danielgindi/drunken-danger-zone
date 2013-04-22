@@ -13,7 +13,7 @@ typedef void (^DGGeocodingAddressResultBlock)(NSArray *addressResults, NSString 
 typedef void (^DGGeocodingErrorBlock)(NSError *error);
 
 #define DGGeocodingServiceGoogle @"google"
-#define DGGeocodingServiceBing @"bind"
+#define DGGeocodingServiceBing @"bing"
 
 @interface DGGeocoding : NSObject
 
