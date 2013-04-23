@@ -48,6 +48,7 @@
     NSMutableArray * groupsArray;
     
     NSIndexPath * selectedCellIp;
+    NSString *selectedItem, *selectedGroup;
 }
 
 @property (nonatomic, strong) UIView * shield;
@@ -329,11 +330,14 @@
             int section = [groupsArray indexOfObject:groupsMap[identifier]];
             if (selectedCellIp.section>=section)
             {
-                selectedCellIp = [NSIndexPath indexPathForRow:selectedCellIp.row inSection:selectedCellIp.section - 1];
-            }
-            else
-            {
-                selectedCellIp = nil;
+                if (selectedCellIp.section == 0)
+                {
+                    selectedCellIp = nil;
+                }
+                else
+                {
+                    selectedCellIp = [NSIndexPath indexPathForRow:selectedCellIp.row inSection:selectedCellIp.section - 1];
+                }
             }
         }
         [groupsArray removeObject:groupsMap[identifier]];
@@ -360,11 +364,14 @@
                 int row = [itemsArray indexOfObject:itemsMap[item]];
                 if (selectedCellIp.row>=row)
                 {
-                    selectedCellIp = [NSIndexPath indexPathForRow:selectedCellIp.row - 1 inSection:selectedCellIp.section];
-                }
-                else
-                {
-                    selectedCellIp = nil;
+                    if (selectedCellIp.row == 0)
+                    {
+                        selectedCellIp = nil;
+                    }
+                    else
+                    {
+                        selectedCellIp = [NSIndexPath indexPathForRow:selectedCellIp.row - 1 inSection:selectedCellIp.section];
+                    }
                 }
             }
             [itemsArray removeObject:itemsMap[item]];
@@ -708,6 +715,11 @@
         return groupsArray[selectedCellIp.section][kKeyArray][selectedCellIp.row][kKeyIdentifier];
     }
     return nil;
+}
+
+- (UIViewController*)selectedViewController
+{
+    return selectedViewController;
 }
 
 @end

@@ -46,5 +46,6 @@
 
 - (NSString*)highlightedGroup;
 - (NSString*)highlightedItem;
+- (UIViewController*)selectedViewController;
 
 @end
