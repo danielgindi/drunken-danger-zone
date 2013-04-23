@@ -93,7 +93,7 @@
 
 + (NSString*)urlEncodedString:(NSString*)component
 {
-    return (__bridge NSString *)CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)component, NULL, (CFStringRef)@"!*'();:@&=+$,/?%#[]", kCFStringEncodingUTF8);
+    return (NSString *)CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)component, NULL, (CFStringRef)@"!*'();:@&=+$,/?%#[]", kCFStringEncodingUTF8));
 }
 
 #pragma mark - NSURLConnectionDelegate, NSURLConnectionDataDelegate
