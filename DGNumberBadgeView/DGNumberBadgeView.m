@@ -83,7 +83,10 @@
         badge.hidden = badge.hideWhenZero && badge.value == 0;
         badge.attachedToView = view;
         [view addSubview:badge];
-        objc_setAssociatedObject(view, ASSOCIATED_OBJECT_KEY, badge, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        if (view)
+        {
+            objc_setAssociatedObject(view, ASSOCIATED_OBJECT_KEY, badge, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
     }
     return badge;
 }
