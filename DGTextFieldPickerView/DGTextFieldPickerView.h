@@ -10,7 +10,7 @@
 
 @class DGTextFieldPickerView, DGTextFieldPickerCellView;
 
-@protocol DGTextFieldPickerViewDelegate
+@protocol DGTextFieldPickerViewDelegate <NSObject>
 @required
 - (void)textFieldPickerView:(DGTextFieldPickerView*)textField showSearchTable:(BOOL)show;
 - (BOOL)textFieldPickerView:(DGTextFieldPickerView*)textField search:(NSString*)keywords;
@@ -22,6 +22,8 @@
 - (void)textFieldPickerView:(DGTextFieldPickerView*)textField didAddCellAtIndex:(NSUInteger)index;
 - (void)textFieldPickerView:(DGTextFieldPickerView*)textField didRemoveCellAtIndex:(NSUInteger)index;
 - (void)textFieldPickerView:(DGTextFieldPickerView*)textField returnRequestedWithText:(NSString*)text;
+- (void)textFieldPickerViewDidBeginEditing:(DGTextFieldPickerView*)textField;
+- (void)textFieldPickerViewDidEndEditing:(DGTextFieldPickerView*)textField;
 @end
 
 @interface DGTextFieldPickerView : UITextField <UITextFieldDelegate, UIAppearance>

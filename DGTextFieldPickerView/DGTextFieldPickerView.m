@@ -181,7 +181,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
         
         [self setNeedsDisplay];
         
-        if ([(id)_searchDelegate respondsToSelector:@selector(textFieldPickerViewDidResize:)]) 
+        if ([_searchDelegate respondsToSelector:@selector(textFieldPickerViewDidResize:)])
         {
             [_searchDelegate textFieldPickerViewDidResize:self];
         }
@@ -218,7 +218,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
 - (NSString*)labelForObject:(id)object 
 {
     NSString* label = nil;
-    if ([(id)_searchDelegate respondsToSelector:@selector(textFieldPickerView:labelForObject:)]) 
+    if ([_searchDelegate respondsToSelector:@selector(textFieldPickerView:labelForObject:)])
     {
         label = [_searchDelegate textFieldPickerView:self labelForObject:object];
     }
@@ -416,7 +416,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
     // Reset text so the cursor moves to be at the end of the cellViews
     self.text = kEmpty;
     
-    if ([(id)_searchDelegate respondsToSelector:@selector(textFieldPickerView:didAddCellAtIndex:)]) 
+    if ([_searchDelegate respondsToSelector:@selector(textFieldPickerView:didAddCellAtIndex:)])
     {
         [_searchDelegate textFieldPickerView:self didAddCellAtIndex:(_cellViews.count-1)];
     }
@@ -437,7 +437,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
                 self.selectedCell = nil;
             }
             
-            if ([(id)_searchDelegate respondsToSelector:@selector(textFieldPickerView:didRemoveCellAtIndex:)]) 
+            if ([_searchDelegate respondsToSelector:@selector(textFieldPickerView:didRemoveCellAtIndex:)])
             {
                 [_searchDelegate textFieldPickerView:self didRemoveCellAtIndex:i];
             }
@@ -707,9 +707,13 @@ static const CGFloat kMinCursorWidth  = 50.f;
             [self showSearchResults:YES];
         }
     }
+    if (_searchDelegate && [_searchDelegate respondsToSelector:@selector(textFieldPickerViewDidBeginEditing:)])
+    {
+        [_searchDelegate textFieldPickerViewDidBeginEditing:self];
+    }
 }
 
-- (void)textFieldDidEndEditing:(UITextField*)textField 
+- (void)textFieldDidEndEditing:(UITextField*)textField
 {
     if (_selectedCell) 
     {
@@ -718,6 +722,10 @@ static const CGFloat kMinCursorWidth  = 50.f;
     if (_searchDelegate) 
     {
         [self showSearchResults:NO];
+    }
+    if (_searchDelegate && [_searchDelegate respondsToSelector:@selector(textFieldPickerViewDidEndEditing:)])
+    {
+        [_searchDelegate textFieldPickerViewDidEndEditing:self];
     }
 }
 
@@ -802,7 +810,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
     else 
     {
         [_searchDelegate textFieldPickerView:self showSearchTable:NO];
-        if (self.hasText && [((id)_searchDelegate) respondsToSelector:@selector(textFieldPickerView:returnRequestedWithText:)])
+        if (self.hasText && [_searchDelegate respondsToSelector:@selector(textFieldPickerView:returnRequestedWithText:)])
         {
             [_searchDelegate textFieldPickerView:self returnRequestedWithText:self.searchText];
         }
