@@ -17,32 +17,22 @@
 
 @interface DGLocationManager ()
 {
-    CLLocationManager * locationManager;
+    CLLocationManager *locationManager;
+    
+    NSMutableArray *locationDelegates;
+    NSMutableArray *headingDelegates;
+    CLLocation *oldLocation;
+    CLLocation *newLocation;
+    NSString *purpose;
+    CLActivityType activityType;
+    
+    double magneticHeading;
+    double trueHeading;
+    CLLocationDirection headingAccuracy;
 }
 @end
 
 @implementation DGLocationManager
-
-static NSMutableArray * s_DGLocationManager_locationDelegates = nil;
-static NSMutableArray * s_DGLocationManager_headingDelegates = nil;
-static CLLocation * s_DGLocationManager_oldLocation = nil;
-static CLLocation * s_DGLocationManager_newLocation = nil;
-static NSString * s_DGLocationManager_purpose = nil;
-static CLActivityType s_DGLocationManager_activityType = CLActivityTypeOther;
-
-static double s_DGLocationManager_magneticHeading = 0.0;
-static double s_DGLocationManager_trueHeading = 0.0;
-static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
-
-#define s_locationDelegates s_DGLocationManager_locationDelegates
-#define s_headingDelegates s_DGLocationManager_headingDelegates
-#define s_oldLocation s_DGLocationManager_oldLocation
-#define s_newLocation s_DGLocationManager_newLocation
-#define s_purpose s_DGLocationManager_purpose
-#define s_activityType s_DGLocationManager_activityType
-#define s_magneticHeading s_DGLocationManager_magneticHeading
-#define s_trueHeading s_DGLocationManager_trueHeading
-#define s_headingAccuracy s_DGLocationManager_headingAccuracy
 
 + (DGLocationManager*)instance
 {
@@ -55,29 +45,25 @@ static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
         sharedInstance->locationManager.desiredAccuracy = kCLLocationAccuracyBest;
         sharedInstance->locationManager.headingFilter = kCLHeadingFilterNone;
         sharedInstance->locationManager.delegate = sharedInstance;
+        sharedInstance->activityType = CLActivityTypeOther;
+        sharedInstance->locationDelegates = [[NSMutableArray alloc] init];
+        sharedInstance->headingDelegates = [[NSMutableArray alloc] init];
     });
     return sharedInstance;
 }
 
-+ (void)initializeDelegates
-{
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        s_locationDelegates = [[NSMutableArray alloc] init];
-        s_headingDelegates = [[NSMutableArray alloc] init];
-    });
-}
-
 + (void)startUpdatingLocation
 {
-    DGLocationManager * instance = [DGLocationManager instance];
+    DGLocationManager *instance = DGLocationManager.instance;
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
     if ([instance->locationManager respondsToSelector:@selector(setPurpose:)])
     {
-        instance->locationManager.purpose = s_purpose;
+        instance->locationManager.purpose = instance->purpose;
     }
+#endif
     if ([instance->locationManager respondsToSelector:@selector(setActivityType:)])
     {
-        instance->locationManager.activityType = s_activityType;
+        instance->locationManager.activityType = instance->activityType;
     }
     [instance->locationManager startUpdatingLocation];
 }
@@ -89,14 +75,16 @@ static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
 
 + (void)startUpdatingHeading
 {
-    DGLocationManager * instance = [DGLocationManager instance];
+    DGLocationManager *instance = DGLocationManager.instance;
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
     if ([instance->locationManager respondsToSelector:@selector(setPurpose:)])
     {
-        instance->locationManager.purpose = s_purpose;
+        instance->locationManager.purpose = instance->purpose;
     }
+#endif
     if ([instance->locationManager respondsToSelector:@selector(setActivityType:)])
     {
-        instance->locationManager.activityType = s_activityType;
+        instance->locationManager.activityType = instance->activityType;
     }
     [instance->locationManager startUpdatingHeading];
 }
@@ -116,13 +104,9 @@ static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
         });
     }
     
-    if (!s_locationDelegates)
-    {
-        [self initializeDelegates];
-    }
-    
-    if ([s_locationDelegates containsObject:delegate]) return;
-    [s_locationDelegates addObject:delegate];
+    DGLocationManager *instance = DGLocationManager.instance;
+    if ([instance->locationDelegates containsObject:delegate]) return;
+    [instance->locationDelegates addObject:delegate];
     
     [self startUpdatingLocation];
 }
@@ -137,8 +121,9 @@ static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
         });
     }
     
-    [s_locationDelegates removeObject:delegate];
-    if (s_locationDelegates.count == 0)
+    DGLocationManager *instance = DGLocationManager.instance;
+    [instance->locationDelegates removeObject:delegate];
+    if (instance->locationDelegates.count == 0)
     {
         [self stopUpdatingLocation];
     }
@@ -154,7 +139,8 @@ static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
         });
     }
     
-    [s_locationDelegates removeAllObjects];
+    DGLocationManager *instance = DGLocationManager.instance;
+    [instance->locationDelegates removeAllObjects];
     [self stopUpdatingLocation];
 }
 
@@ -168,13 +154,9 @@ static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
         });
     }
     
-    if (!s_headingDelegates)
-    {
-        [self initializeDelegates];
-    }
-    
-    if ([s_headingDelegates containsObject:delegate]) return;
-    [s_headingDelegates addObject:delegate];
+    DGLocationManager *instance = DGLocationManager.instance;
+    if ([instance->headingDelegates containsObject:delegate]) return;
+    [instance->headingDelegates addObject:delegate];
     
     [self startUpdatingHeading];
 }
@@ -189,8 +171,9 @@ static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
         });
     }
     
-    [s_headingDelegates removeObject:delegate];
-    if (s_headingDelegates.count == 0)
+    DGLocationManager *instance = DGLocationManager.instance;
+    [instance->headingDelegates removeObject:delegate];
+    if (instance->headingDelegates.count == 0)
     {
         [self stopUpdatingHeading];
     }
@@ -206,43 +189,44 @@ static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
         });
     }
     
-    [s_headingDelegates removeAllObjects];
+    DGLocationManager *instance = DGLocationManager.instance;
+    [instance->headingDelegates removeAllObjects];
     [self stopUpdatingHeading];
 }
 
 + (void)setLocationPurpose:(NSString*)purpose
 {
-    s_purpose = [purpose copy];
+    DGLocationManager.instance->purpose = [purpose copy];
 }
 
 + (void)setLocationActivityType:(CLActivityType)activityType
 {
-    s_activityType = activityType;
+    DGLocationManager.instance->activityType = activityType;
 }
 
 + (CLLocation*)location
 {
-    return s_newLocation;
+    return DGLocationManager.instance->newLocation;
 }
 
 + (CLLocation*)previousLocation
 {
-    return s_oldLocation;
+    return DGLocationManager.instance->oldLocation;
 }
 
 + (double)magneticHeading
 {
-    return s_magneticHeading;
+    return DGLocationManager.instance->magneticHeading;
 }
 
 + (double)trueHeading
 {
-    return s_trueHeading;
+    return DGLocationManager.instance->trueHeading;
 }
 
 + (double)headingAccuracy
 {
-    return s_headingAccuracy;
+    return DGLocationManager.instance->headingAccuracy;
 }
 
 + (CLAuthorizationStatus)authorizationStatus
@@ -253,19 +237,19 @@ static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
 #pragma mark - CLLocationManagerDelegate
 
 - (void)locationManager:(CLLocationManager *)manager
-    didUpdateToLocation:(CLLocation *)newLocation
-           fromLocation:(CLLocation *)oldLocation
+    didUpdateToLocation:(CLLocation *)theNewLocation
+           fromLocation:(CLLocation *)theOldLocation
 {
-    s_newLocation = newLocation;
-    s_oldLocation = oldLocation;
+    newLocation = theNewLocation;
+    oldLocation = theOldLocation;
     
     // NSMutableArray is NOT threadsafe! So only work with the delegates on main queue
     dispatch_async(dispatch_get_main_queue(), ^{
-        for (id<DGLocationManagerDelegate> delegate in s_locationDelegates)
+        for (id<DGLocationManagerDelegate> delegate in locationDelegates)
         {
             if ([delegate respondsToSelector:@selector(locationManagerDidUpdateToLocation:fromLocation:)])
             {
-                [delegate locationManagerDidUpdateToLocation:newLocation fromLocation:oldLocation];
+                [delegate locationManagerDidUpdateToLocation:theNewLocation fromLocation:theOldLocation];
             }
         }
     });
@@ -273,13 +257,13 @@ static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
 
 - (void)locationManager:(CLLocationManager *)manager didUpdateHeading:(CLHeading *)newHeading
 {
-    s_magneticHeading = [newHeading magneticHeading];
-    s_trueHeading = [newHeading trueHeading];
-    s_headingAccuracy = [newHeading headingAccuracy];
+    magneticHeading = newHeading.magneticHeading;
+    trueHeading = newHeading.trueHeading;
+    headingAccuracy = newHeading.headingAccuracy;
     
     // NSMutableArray is NOT threadsafe! So only work with the delegates on main queue
     dispatch_async(dispatch_get_main_queue(), ^{
-        for (id<DGLocationManagerDelegate> delegate in s_headingDelegates)
+        for (id<DGLocationManagerDelegate> delegate in headingDelegates)
         {
             if ([delegate respondsToSelector:@selector(locationManagerDidUpdateHeading:)])
             {
@@ -293,14 +277,14 @@ static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
 {
     // NSMutableArray is NOT threadsafe! So only work with the delegates on main queue
     dispatch_async(dispatch_get_main_queue(), ^{
-        for (id<DGLocationManagerDelegate> delegate in s_locationDelegates)
+        for (id<DGLocationManagerDelegate> delegate in locationDelegates)
         {
             if ([delegate respondsToSelector:@selector(locationManagerDidFailWithError:)])
             {
                 [delegate locationManagerDidFailWithError:error];
             }
         }
-        for (id<DGLocationManagerDelegate> delegate in s_headingDelegates)
+        for (id<DGLocationManagerDelegate> delegate in headingDelegates)
         {
             if ([delegate respondsToSelector:@selector(locationManagerDidFailWithError:)])
             {
@@ -314,14 +298,14 @@ static CLLocationDirection s_DGLocationManager_headingAccuracy = 0.0;
 {
     // NSMutableArray is NOT threadsafe! So only work with the delegates on main queue
     dispatch_async(dispatch_get_main_queue(), ^{
-        for (id<DGLocationManagerDelegate> delegate in s_locationDelegates)
+        for (id<DGLocationManagerDelegate> delegate in locationDelegates)
         {
             if ([delegate respondsToSelector:@selector(locationManagerDidChangeAuthorizationStatus:)])
             {
                 [delegate locationManagerDidChangeAuthorizationStatus:status];
             }
         }
-        for (id<DGLocationManagerDelegate> delegate in s_headingDelegates)
+        for (id<DGLocationManagerDelegate> delegate in headingDelegates)
         {
             if ([delegate respondsToSelector:@selector(locationManagerDidChangeAuthorizationStatus:)])
             {
