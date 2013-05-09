@@ -42,8 +42,6 @@
     struct sockaddr_in reachabilityAddress;
     BOOL hasReachabilityAddress;
     NSString *reachabilityHost;
-    BOOL isReachable;
-    BOOL isReachableOnWifi;
     dispatch_queue_t reachabilityQueue;
 }
 @end
@@ -82,7 +80,6 @@
         sharedInstance->locationManager.headingFilter = kCLHeadingFilterNone;
         sharedInstance->locationManager.delegate = sharedInstance;
         sharedInstance->locationActivityType = CLActivityTypeOther;
-        sharedInstance->isReachable = YES;
     });
     return sharedInstance;
 }
@@ -97,7 +94,7 @@
         });
     }
     
-    DGStateBroadcaster *instance = DGStateBroadcaster.instance;
+    DGStateBroadcaster *instance = self.instance;
     if ([instance->delegates containsObject:delegate]) return;
     [instance->delegates addObject:delegate];
     
@@ -114,7 +111,7 @@
         });
     }
     
-    DGStateBroadcaster *instance = DGStateBroadcaster.instance;
+    DGStateBroadcaster *instance = self.instance;
     [instance->delegates removeObject:delegate];
     if (instance->delegates.count == 0)
     {
@@ -132,14 +129,14 @@
         });
     }
     
-    DGStateBroadcaster *instance = DGStateBroadcaster.instance;
+    DGStateBroadcaster *instance = self.instance;
     [instance->delegates removeAllObjects];
     [self stopUpdatingLocationIfNotNeeded];
 }
 
 + (void)startUpdatingLocationIfNeeded
 {
-    DGStateBroadcaster *instance = DGStateBroadcaster.instance;
+    DGStateBroadcaster *instance = self.instance;
     if (instance->isListeningToDistanceTravelled || instance->isListeningToLocationAccuracy)
     {
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
@@ -158,7 +155,7 @@
 
 + (void)stopUpdatingLocationIfNotNeeded
 {
-    DGStateBroadcaster *instance = DGStateBroadcaster.instance;
+    DGStateBroadcaster *instance = self.instance;
     if (!instance->isListeningToDistanceTravelled && !instance->isListeningToLocationAccuracy)
     {
         [instance->locationManager stopUpdatingLocation];
@@ -167,7 +164,7 @@
 
 + (void)startListeningTo:(DGStateBroadcasterState)states
 {
-    DGStateBroadcaster *instance = DGStateBroadcaster.instance;
+    DGStateBroadcaster *instance = self.instance;
     if ((states & DGStateBroadcasterLowBattery) == DGStateBroadcasterLowBattery)
     {
         UIDevice.currentDevice.batteryMonitoringEnabled = YES;
@@ -198,7 +195,7 @@
 
 + (void)stopListeningTo:(DGStateBroadcasterState)states
 {
-    DGStateBroadcaster *instance = DGStateBroadcaster.instance;
+    DGStateBroadcaster *instance = self.instance;
     if ((states & DGStateBroadcasterLowBattery) == DGStateBroadcasterLowBattery)
     {
         UIDevice.currentDevice.batteryMonitoringEnabled = YES;
@@ -357,8 +354,8 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
         reachable = reachable && (isCellularConnection || !!wifiAddress.length);
     }
     
-    isReachable = reachable;
-    isReachableOnWifi = !!wifiAddress.length;
+    BOOL isReachable = reachable;
+    BOOL isReachableOnWifi = !!wifiAddress.length;
     
     // NSMutableArray is NOT threadsafe! So only work with the delegates on main queue
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -374,12 +371,39 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
 
 + (BOOL)isReachable
 {
-    return self.instance->isReachable;
+    DGStateBroadcaster *instance = self.instance;
+	if (instance->reachabilityRef)
+	{
+		SCNetworkReachabilityFlags flags = 0;
+		if(SCNetworkReachabilityGetFlags(self.instance->reachabilityRef, &flags))
+		{
+			BOOL reachable = ((flags & kSCNetworkFlagsReachable) != 0);
+			BOOL needsConnection = ((flags & kSCNetworkFlagsConnectionRequired) != 0);
+			reachable = reachable && !needsConnection;
+			
+			NSString *wifiAddress = self.wifiIpAddress;
+			
+			if (reachable)
+			{
+				BOOL isCellularConnection = ((flags & kSCNetworkReachabilityFlagsIsWWAN) != 0);
+				reachable = reachable && (isCellularConnection || !!wifiAddress.length);
+			}
+    
+			return reachable;
+		}
+		else
+		{
+			return NO;
+		}
+	}
+    return NO;
 }
 
 + (BOOL)isOnWifi
 {
-    return self.instance->isReachableOnWifi;
+    DGStateBroadcaster *instance = self.instance;
+	NSString *wifiAddress = self.wifiIpAddress;
+	return !!wifiAddress.length;
 }
 
 + (NSString*)wifiIpAddress
@@ -409,7 +433,7 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
 
 + (void)setReachabilityWithHostname:(NSString*)hostname
 {
-    DGStateBroadcaster *instance = DGStateBroadcaster.instance;
+    DGStateBroadcaster *instance = self.instance;
     instance->hasReachabilityAddress = NO;
     instance->reachabilityHost = hostname;
     instance->isReachabilityWifiOnly = NO;
@@ -418,7 +442,7 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
 
 + (void)setReachabilityWithAddress:(const struct sockaddr_in*)hostAddress
 {
-    DGStateBroadcaster *instance = DGStateBroadcaster.instance;
+    DGStateBroadcaster *instance = self.instance;
     instance->reachabilityAddress = *hostAddress;
     instance->hasReachabilityAddress = YES;
     instance->reachabilityHost = nil;
@@ -428,7 +452,7 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
 
 + (void)setReachabilityForInternetConnection
 {
-    DGStateBroadcaster *instance = DGStateBroadcaster.instance;
+    DGStateBroadcaster *instance = self.instance;
     instance->hasReachabilityAddress = NO;
     instance->reachabilityHost = nil;
     instance->isReachabilityWifiOnly = NO;
@@ -437,7 +461,7 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
 
 + (void)setReachabilityForWifiInternetConnection
 {
-    DGStateBroadcaster *instance = DGStateBroadcaster.instance;
+    DGStateBroadcaster *instance = self.instance;
     instance->hasReachabilityAddress = NO;
     instance->reachabilityHost = nil;
     instance->isReachabilityWifiOnly = YES;
@@ -463,7 +487,7 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
 
 + (BOOL)isBatteryCurrentlyLow
 {
-    DGStateBroadcaster *instance = DGStateBroadcaster.instance;
+    DGStateBroadcaster *instance = self.instance;
     BOOL enabled = UIDevice.currentDevice.batteryMonitoringEnabled;
     if (!enabled)
     {

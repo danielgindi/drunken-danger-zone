@@ -54,7 +54,7 @@
 
 + (void)startUpdatingLocation
 {
-    DGLocationManager *instance = DGLocationManager.instance;
+    DGLocationManager *instance = self.instance;
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
     if ([instance->locationManager respondsToSelector:@selector(setPurpose:)])
     {
@@ -75,7 +75,7 @@
 
 + (void)startUpdatingHeading
 {
-    DGLocationManager *instance = DGLocationManager.instance;
+    DGLocationManager *instance = self.instance;
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
     if ([instance->locationManager respondsToSelector:@selector(setPurpose:)])
     {
@@ -104,7 +104,7 @@
         });
     }
     
-    DGLocationManager *instance = DGLocationManager.instance;
+    DGLocationManager *instance = self.instance;
     if ([instance->locationDelegates containsObject:delegate]) return;
     [instance->locationDelegates addObject:delegate];
     
@@ -121,7 +121,7 @@
         });
     }
     
-    DGLocationManager *instance = DGLocationManager.instance;
+    DGLocationManager *instance = self.instance;
     [instance->locationDelegates removeObject:delegate];
     if (instance->locationDelegates.count == 0)
     {
@@ -139,7 +139,7 @@
         });
     }
     
-    DGLocationManager *instance = DGLocationManager.instance;
+    DGLocationManager *instance = self.instance;
     [instance->locationDelegates removeAllObjects];
     [self stopUpdatingLocation];
 }
@@ -154,7 +154,7 @@
         });
     }
     
-    DGLocationManager *instance = DGLocationManager.instance;
+    DGLocationManager *instance = self.instance;
     if ([instance->headingDelegates containsObject:delegate]) return;
     [instance->headingDelegates addObject:delegate];
     
@@ -171,7 +171,7 @@
         });
     }
     
-    DGLocationManager *instance = DGLocationManager.instance;
+    DGLocationManager *instance = self.instance;
     [instance->headingDelegates removeObject:delegate];
     if (instance->headingDelegates.count == 0)
     {
@@ -189,44 +189,44 @@
         });
     }
     
-    DGLocationManager *instance = DGLocationManager.instance;
+    DGLocationManager *instance = self.instance;
     [instance->headingDelegates removeAllObjects];
     [self stopUpdatingHeading];
 }
 
 + (void)setLocationPurpose:(NSString*)purpose
 {
-    DGLocationManager.instance->purpose = [purpose copy];
+    self.instance->purpose = [purpose copy];
 }
 
 + (void)setLocationActivityType:(CLActivityType)activityType
 {
-    DGLocationManager.instance->activityType = activityType;
+    self.instance->activityType = activityType;
 }
 
 + (CLLocation*)location
 {
-    return DGLocationManager.instance->newLocation;
+    return self.instance->newLocation;
 }
 
 + (CLLocation*)previousLocation
 {
-    return DGLocationManager.instance->oldLocation;
+    return self.instance->oldLocation;
 }
 
 + (double)magneticHeading
 {
-    return DGLocationManager.instance->magneticHeading;
+    return self.instance->magneticHeading;
 }
 
 + (double)trueHeading
 {
-    return DGLocationManager.instance->trueHeading;
+    return self.instance->trueHeading;
 }
 
 + (double)headingAccuracy
 {
-    return DGLocationManager.instance->headingAccuracy;
+    return self.instance->headingAccuracy;
 }
 
 + (CLAuthorizationStatus)authorizationStatus
