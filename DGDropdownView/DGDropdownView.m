@@ -328,11 +328,11 @@
         
         if (vAlign == UIControlContentVerticalAlignmentBottom)
         {
-            totalLabelsHeight = availableSpace.size.height - totalLabelsHeight;
+            totalLabelsHeight = bounds.size.height - totalLabelsHeight;
         }
         else if (vAlign == UIControlContentVerticalAlignmentCenter)
         {
-            totalLabelsHeight = (availableSpace.size.height - totalLabelsHeight) / 2.f;
+            totalLabelsHeight = (bounds.size.height - totalLabelsHeight) / 2.f;
         }
         
         if (hasTitle)

@@ -35,6 +35,7 @@
     
     BOOL isListeningToLocationAccuracy;
     double locationAccuracyMetersBar;
+    int lastLocationAccurateEnough;
     
     BOOL isListeningToNetworkReachability;
     SCNetworkReachabilityRef reachabilityRef;
@@ -80,6 +81,7 @@
         sharedInstance->locationManager.headingFilter = kCLHeadingFilterNone;
         sharedInstance->locationManager.delegate = sharedInstance;
         sharedInstance->locationActivityType = CLActivityTypeOther;
+        sharedInstance->lastLocationAccurateEnough = -1;
     });
     return sharedInstance;
 }
@@ -211,6 +213,7 @@
     {
         [self stopUpdatingLocationIfNotNeeded];
         instance->isListeningToLocationAccuracy = NO;
+        instance->lastLocationAccurateEnough = -1;
     }
     if ((states & DGStateBroadcasterNetworkReachability) == DGStateBroadcasterNetworkReachability)
     {
@@ -318,6 +321,7 @@ static NSString *s_DGStateBroadcaster_RechabilitySync = @"s_DGStateBroadcaster_R
         }
         else
         {
+            SCNetworkReachabilitySetCallback(reachabilityRef, NULL, NULL);
             NSLog(@"DGStateBroadcaster: Reachability- can't set callback!");
         }
     }
@@ -348,13 +352,6 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
     
     NSString *wifiAddress = self.class.wifiIpAddress;
     
-    if (reachable)
-    {
-        BOOL isCellularConnection = ((flags & kSCNetworkReachabilityFlagsIsWWAN) != 0);
-        reachable = reachable && (isCellularConnection || !!wifiAddress.length);
-    }
-    
-    BOOL isReachable = reachable;
     BOOL isReachableOnWifi = !!wifiAddress.length;
     
     // NSMutableArray is NOT threadsafe! So only work with the delegates on main queue
@@ -363,7 +360,7 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
         {
             if ([delegate respondsToSelector:@selector(stateBroadcasterNetworkReachable:isOnWifi:)])
             {
-                [delegate stateBroadcasterNetworkReachable:isReachable isOnWifi:isReachableOnWifi];
+                [delegate stateBroadcasterNetworkReachable:reachable isOnWifi:isReachableOnWifi];
             }
         }
     });
@@ -380,14 +377,6 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
 			BOOL reachable = ((flags & kSCNetworkFlagsReachable) != 0);
 			BOOL needsConnection = ((flags & kSCNetworkFlagsConnectionRequired) != 0);
 			reachable = reachable && !needsConnection;
-			
-			NSString *wifiAddress = self.wifiIpAddress;
-			
-			if (reachable)
-			{
-				BOOL isCellularConnection = ((flags & kSCNetworkReachabilityFlagsIsWWAN) != 0);
-				reachable = reachable && (isCellularConnection || !!wifiAddress.length);
-			}
     
 			return reachable;
 		}
@@ -401,7 +390,6 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
 
 + (BOOL)isOnWifi
 {
-    DGStateBroadcaster *instance = self.instance;
 	NSString *wifiAddress = self.wifiIpAddress;
 	return !!wifiAddress.length;
 }
@@ -591,17 +579,21 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
     }
     if (isListeningToLocationAccuracy)
     {
-        BOOL isAcurateEnough = newLocation.horizontalAccuracy > locationAccuracyMetersBar;
-        // NSMutableArray is NOT threadsafe! So only work with the delegates on main queue
-        dispatch_async(dispatch_get_main_queue(), ^{
-            for (id<DGStateBroadcasterDelegate> delegate in delegates)
-            {
-                if ([delegate respondsToSelector:@selector(stateBroadcasterLocationAccurateEnough:)])
+        BOOL isAccurateEnough = newLocation.horizontalAccuracy < locationAccuracyMetersBar;
+        if (lastLocationAccurateEnough == -1 || isAccurateEnough != lastLocationAccurateEnough)
+        {
+            lastLocationAccurateEnough = isAccurateEnough;
+            // NSMutableArray is NOT threadsafe! So only work with the delegates on main queue
+            dispatch_async(dispatch_get_main_queue(), ^{
+                for (id<DGStateBroadcasterDelegate> delegate in delegates)
                 {
-                    [delegate stateBroadcasterLocationAccurateEnough:isAcurateEnough];
+                    if ([delegate respondsToSelector:@selector(stateBroadcasterLocationAccurateEnough:)])
+                    {
+                        [delegate stateBroadcasterLocationAccurateEnough:isAccurateEnough];
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 }
 
