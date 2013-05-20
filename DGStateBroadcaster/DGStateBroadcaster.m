@@ -206,13 +206,13 @@
     }
     if ((states & DGStateBroadcasterDistanceTravelled) == DGStateBroadcasterDistanceTravelled && instance->isListeningToDistanceTravelled)
     {
-        [self stopUpdatingLocationIfNotNeeded];
         instance->isListeningToDistanceTravelled = NO;
+        [self stopUpdatingLocationIfNotNeeded];
     }
     if ((states & DGStateBroadcasterLocationAccuracy) == DGStateBroadcasterLocationAccuracy && instance->isListeningToLocationAccuracy)
     {
-        [self stopUpdatingLocationIfNotNeeded];
         instance->isListeningToLocationAccuracy = NO;
+        [self stopUpdatingLocationIfNotNeeded];
         instance->lastLocationAccurateEnough = -1;
     }
     if ((states & DGStateBroadcasterNetworkReachability) == DGStateBroadcasterNetworkReachability)
