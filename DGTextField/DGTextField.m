@@ -5,6 +5,8 @@
 //  Created by Daniel Cohen Gindi on 10/19/12.
 //  Copyright (c) 2012 danielgindi@gmail.com. All rights reserved.
 //
+//  https://github.com/danielgindi/drunken-danger-zone
+//
 
 #import "DGTextField.h"
 
@@ -68,7 +70,7 @@
 {
     _placeholderColor = placeholderColor;
     //[self setNeedsDisplay]; // this doesn't refresh placeholder color
-    NSString * placeholder = self.placeholder;
+    NSString *placeholder = self.placeholder;
     self.placeholder = @"";
     self.placeholder = placeholder;
 }

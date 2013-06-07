@@ -1,8 +1,11 @@
 //
 //  DGDropdownView.m
+//  DGDropdownView
 //
 //  Created by Daniel Cohen Gindi on 3/10/13.
 //  Copyright (c) 2013 Daniel Cohen Gindi. All rights reserved.
+//
+//  https://github.com/danielgindi/drunken-danger-zone
 //
 
 #import "DGDropdownView.h"
@@ -14,15 +17,15 @@
 
 @interface DGDropdownView ()
 {
-    CAGradientLayer * backgroundLayer;
-    CALayer * bottomBorderLayer;
-    UIImageView * imageView;
-    UILabel * titleLabel, * detailLabel;
+    CAGradientLayer *backgroundLayer;
+    CALayer *bottomBorderLayer;
+    UIImageView *imageView;
+    UILabel *titleLabel, *detailLabel;
     id actionTarget;
     SEL actionSelector;
     NSTimeInterval intervalToHideAfter;
     BOOL showAnimated;
-    UIView * showInView;
+    UIView *showInView;
 }
 
 @end
@@ -72,7 +75,7 @@
     
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleBottomMargin;
     
-    UITapGestureRecognizer * tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapGestureRecognized:)];
+    UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapGestureRecognized:)];
     [self addGestureRecognizer:tapGestureRecognizer];
 }
 
@@ -96,11 +99,11 @@
     return self;
 }
 
-+ (void)safeAddDropdownToArray:(DGDropdownView*)dropdown forView:(UIView*)view
++ (void)safeAddDropdownToArray:(DGDropdownView *)dropdown forView:(UIView *)view
 {
     @synchronized(self)
     {
-        NSMutableArray * array = objc_getAssociatedObject(view, ASSOCIATED_KEY);
+        NSMutableArray *array = objc_getAssociatedObject(view, ASSOCIATED_KEY);
         if (array == nil)
         {
             array = [[NSMutableArray alloc] init];
@@ -110,11 +113,11 @@
     }
 }
 
-+ (void)safeRemoveDropdownFromArray:(DGDropdownView*)dropdown forView:(UIView*)view
++ (void)safeRemoveDropdownFromArray:(DGDropdownView *)dropdown forView:(UIView *)view
 {
     @synchronized(self)
     {
-        NSMutableArray * array = objc_getAssociatedObject(view, ASSOCIATED_KEY);
+        NSMutableArray *array = objc_getAssociatedObject(view, ASSOCIATED_KEY);
         if (array == nil)
         {
             array = [[NSMutableArray alloc] init];
@@ -124,11 +127,11 @@
     }
 }
 
-+ (DGDropdownView*)safePeekDropdownFromArrayForView:(UIView*)view
++ (DGDropdownView *)safePeekDropdownFromArrayForView:(UIView *)view
 {
     @synchronized(self)
     {
-        NSMutableArray * array = objc_getAssociatedObject(view, ASSOCIATED_KEY);
+        NSMutableArray *array = objc_getAssociatedObject(view, ASSOCIATED_KEY);
         if (array == nil)
         {
             array = [[NSMutableArray alloc] init];
@@ -140,11 +143,11 @@
     }
 }
 
-+ (DGDropdownView*)safePopViewFromArrayForView:(UIView*)view
++ (DGDropdownView *)safePopViewFromArrayForView:(UIView *)view
 {
     @synchronized(self)
     {
-        NSMutableArray * array = objc_getAssociatedObject(view, ASSOCIATED_KEY);
+        NSMutableArray *array = objc_getAssociatedObject(view, ASSOCIATED_KEY);
         if (array == nil)
         {
             array = [[NSMutableArray alloc] init];
@@ -152,16 +155,16 @@
         }
         
         if (!array.count) return nil;
-        DGDropdownView * dropdown = array[0];
+        DGDropdownView *dropdown = array[0];
         [array removeObjectAtIndex:0];
         return dropdown;
     }
 }
 
-- (NSArray*)colorsForGradientLayerWithColors:(NSArray*)colors
+- (NSArray *)colorsForGradientLayerWithColors:(NSArray *)colors
 {
-    NSMutableArray * array = [[NSMutableArray alloc] init];
-    for (UIColor * color in colors)
+    NSMutableArray *array = [[NSMutableArray alloc] init];
+    for (UIColor *color in colors)
     {
         [array addObject:(id)color.CGColor];
     }
@@ -510,7 +513,7 @@
         if (bounds.width <= 0.f)
         {
             bounds.height = MIN(bounds.height, size.height);
-            bounds.width = bounds.height * ratio;
+            bounds.width = bounds.height *ratio;
         }
         else if (bounds.height <= 0.f)
         {
@@ -523,7 +526,7 @@
             
             if (newRatio > ratio)
             {
-                bounds.width = bounds.height * ratio;
+                bounds.width = bounds.height *ratio;
             }
             else if (newRatio < ratio)
             {
@@ -719,7 +722,7 @@
 
 #pragma mark - Actions
 
-- (void)tapGestureRecognized:(UITapGestureRecognizer*)recognizer
+- (void)tapGestureRecognized:(UITapGestureRecognizer *)recognizer
 {
     if (actionTarget && actionSelector)
     {
@@ -794,7 +797,7 @@
     if (intervalToHideAfter != kDGDropdownViewHideNever)
     {
         double delayInSeconds = self.animationDuration + intervalToHideAfter;
-        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds *NSEC_PER_SEC));
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
             
             [self hideDropDownAnimated:showAnimated];
@@ -882,16 +885,16 @@
     }
 }
 
-+ (DGDropdownView*)visibleDropdownInView:(UIView *)view
++ (DGDropdownView *)visibleDropdownInView:(UIView *)view
 {
     return [self safePeekDropdownFromArrayForView:view];
 }
 
-+ (DGDropdownView*)dropdownViewWithTitle:(NSString*)title
-                                  detail:(NSString*)detail
-                                   image:(UIImage*)image
++ (DGDropdownView *)dropdownViewWithTitle:(NSString *)title
+                                  detail:(NSString *)detail
+                                   image:(UIImage *)image
 {
-    DGDropdownView * dropdown = [[DGDropdownView alloc] init];
+    DGDropdownView *dropdown = [[DGDropdownView alloc] init];
     dropdown.title = title;
     dropdown.detail = detail;
     dropdown.image = image;
@@ -960,13 +963,13 @@
 }
 
 + (DGDropdownView *)showDropdownInView:(UIView *)view
-                                 title:(NSString*)title
-                                detail:(NSString*)detail
-                                 image:(UIImage*)image
+                                 title:(NSString *)title
+                                detail:(NSString *)detail
+                                 image:(UIImage *)image
                               animated:(BOOL)animated
                              hideAfter:(NSTimeInterval)hideAfter
 {
-    DGDropdownView * dropdown = [[DGDropdownView alloc] init];
+    DGDropdownView *dropdown = [[DGDropdownView alloc] init];
     dropdown.title = title;
     dropdown.detail = detail;
     dropdown.image = image;
@@ -974,59 +977,59 @@
 }
 
 + (DGDropdownView *)showDropdownInView:(UIView *)view
-                                 title:(NSString*)title
-                                detail:(NSString*)detail
-                                 image:(UIImage*)image
+                                 title:(NSString *)title
+                                detail:(NSString *)detail
+                                 image:(UIImage *)image
                              hideAfter:(NSTimeInterval)hideAfter
 {
     return [self showDropdownInView:view title:title detail:detail image:image animated:YES hideAfter:hideAfter];
 }
 
 + (DGDropdownView *)showDropdownInView:(UIView *)view
-                                 title:(NSString*)title
-                                detail:(NSString*)detail
-                                 image:(UIImage*)image
+                                 title:(NSString *)title
+                                detail:(NSString *)detail
+                                 image:(UIImage *)image
                               animated:(BOOL)animated
 {
     return [self showDropdownInView:view title:title detail:detail image:image animated:animated hideAfter:kDGDropdownViewHideNever];
 }
 
 + (DGDropdownView *)showDropdownInView:(UIView *)view
-                                 title:(NSString*)title
-                                detail:(NSString*)detail
-                                 image:(UIImage*)image
+                                 title:(NSString *)title
+                                detail:(NSString *)detail
+                                 image:(UIImage *)image
 {
     return [self showDropdownInView:view title:title detail:detail image:image animated:YES hideAfter:kDGDropdownViewHideNever];
 }
 
-+ (DGDropdownView *)showDropdownWithTitle:(NSString*)title
-                                   detail:(NSString*)detail
-                                    image:(UIImage*)image
++ (DGDropdownView *)showDropdownWithTitle:(NSString *)title
+                                   detail:(NSString *)detail
+                                    image:(UIImage *)image
                                  animated:(BOOL)animated
                                 hideAfter:(NSTimeInterval)hideAfter
 {
     return [self showDropdownInView:nil title:title detail:detail image:image animated:animated hideAfter:hideAfter];
 }
 
-+ (DGDropdownView *)showDropdownWithTitle:(NSString*)title
-                                   detail:(NSString*)detail
-                                    image:(UIImage*)image
++ (DGDropdownView *)showDropdownWithTitle:(NSString *)title
+                                   detail:(NSString *)detail
+                                    image:(UIImage *)image
                                 hideAfter:(NSTimeInterval)hideAfter
 {
     return [self showDropdownInView:nil title:title detail:detail image:image animated:YES hideAfter:hideAfter];
 }
 
-+ (DGDropdownView *)showDropdownWithTitle:(NSString*)title
-                                   detail:(NSString*)detail
-                                    image:(UIImage*)image
++ (DGDropdownView *)showDropdownWithTitle:(NSString *)title
+                                   detail:(NSString *)detail
+                                    image:(UIImage *)image
                                  animated:(BOOL)animated
 {
     return [self showDropdownInView:nil title:title detail:detail image:image animated:animated hideAfter:kDGDropdownViewHideNever];
 }
 
-+ (DGDropdownView *)showDropdownWithTitle:(NSString*)title
-                                   detail:(NSString*)detail
-                                    image:(UIImage*)image
++ (DGDropdownView *)showDropdownWithTitle:(NSString *)title
+                                   detail:(NSString *)detail
+                                    image:(UIImage *)image
 {
     return [self showDropdownInView:nil title:title detail:detail image:image animated:YES hideAfter:kDGDropdownViewHideNever];
 }
@@ -1108,16 +1111,16 @@
     return self;
 }
 
-+ (DGDropdownView *)hideDropDownInView:(UIView*)view
++ (DGDropdownView *)hideDropDownInView:(UIView *)view
 {
-    DGDropdownView * dropdown = [self safePeekDropdownFromArrayForView:view];
+    DGDropdownView *dropdown = [self safePeekDropdownFromArrayForView:view];
     [dropdown hideDropDown];
     return dropdown;
 }
 
-+ (DGDropdownView *)hideDropDownInView:(UIView*)view animated:(BOOL)animated
++ (DGDropdownView *)hideDropDownInView:(UIView *)view animated:(BOOL)animated
 {
-    DGDropdownView * dropdown = [self safePeekDropdownFromArrayForView:view];
+    DGDropdownView *dropdown = [self safePeekDropdownFromArrayForView:view];
     [dropdown hideDropDownAnimated:animated];
     return dropdown;
 }
@@ -1132,7 +1135,7 @@
     return [self hideDropDownInView:nil animated:animated];
 }
 
-- (DGDropdownView*)setTouchUpInsideTarget:(id)target action:(SEL)action
+- (DGDropdownView *)setTouchUpInsideTarget:(id)target action:(SEL)action
 {
     actionTarget = target;
     actionSelector = action;

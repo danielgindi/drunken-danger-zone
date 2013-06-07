@@ -5,16 +5,18 @@
 //  Created by Daniel Cohen Gindi on 11/23/12.
 //  Copyright (c) 2012 danielgindi@gmail.com. All rights reserved.
 //
+//  https://github.com/danielgindi/drunken-danger-zone
+//
 
 #import "DGSlideMenuTableCell.h"
 
 @interface DGSlideMenuTableCell ()
-{
-    UIImageView * iconView;
-}
 @end
 
 @implementation DGSlideMenuTableCell
+{
+    UIImageView *iconView;
+}
 
 - (id)init
 {

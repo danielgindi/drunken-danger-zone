@@ -5,6 +5,8 @@
 //  Created by Daniel Cohen Gindi on 11/23/12.
 //  Copyright (c) 2012 danielgindi@gmail.com. All rights reserved.
 //
+//  https://github.com/danielgindi/drunken-danger-zone
+//
 
 #import <QuartzCore/QuartzCore.h>
 #import "DGSlideMenuViewController.h"
@@ -37,27 +39,26 @@
 #define kMenuTableSize 255
 
 @interface DGSlideMenuViewController ()
-{
-    UIViewController * selectedViewController;
-    BOOL isFirstViewWillAppear;
-    BOOL isSwitchingToViewController;
-    
-    UITableView * _tableView;
-    
-    NSMutableDictionary * groupsMap;
-    NSMutableArray * groupsArray;
-    
-    NSIndexPath * selectedCellIp;
-    NSString *selectedItem, *selectedGroup;
-}
-
-@property (nonatomic, strong) UIView * shield;
 
 @end
 
 @implementation DGSlideMenuViewController
+{
+    UIViewController *selectedViewController;
+    BOOL isFirstViewWillAppear;
+    BOOL isSwitchingToViewController;
+    
+    UITableView *tableView;
+    UIView *shield;
+    
+    NSMutableDictionary *groupsMap;
+    NSMutableArray *groupsArray;
+    
+    NSIndexPath *selectedCellIp;
+    NSString *selectedItem, *selectedGroup;
+}
 
-- (id)initWithRootViewController:(UIViewController*)rootViewController
+- (id)initWithRootViewController:(UIViewController *)rootViewController
 {
     self = [super init];
     if (self)
@@ -93,44 +94,61 @@
 
 #pragma mark - SlideMenuViewController
 
-- (void)tapItem:(UIPanGestureRecognizer*)gesture
+- (void)tapGestureRecognized:(UIPanGestureRecognizer *)gesture
 {
     [self switchToViewController:selectedViewController];
 }
 
-- (void)panItem:(UIPanGestureRecognizer*)gesture
+- (void)panGestureRecognized:(UIPanGestureRecognizer *)gesture
 {
-    UIView* panningView = gesture.view;
+    UIView *panningView = gesture.view;
     CGPoint translation = [gesture translationInView:panningView];
-    UIView* movingView = selectedViewController.view;
+    UIView *movingView = selectedViewController.view;
     
     if (movingView.frame.origin.x + translation.x<0)
     {
         translation.x=0.0;
     }
-    [movingView setCenter:CGPointMake([movingView center].x + translation.x, [movingView center].y)];
+	
+    movingView.center = CGPointMake([movingView center].x + translation.x, [movingView center].y);
     [gesture setTranslation:CGPointZero inView:[panningView superview]];
     
     if ([gesture state] == UIGestureRecognizerStateEnded)
     {
-        CGFloat pcenterx = movingView.center.x;
         CGRect bounds = self.view.bounds;
         CGSize size = bounds.size;
         
-        if (pcenterx > size.width )
+        CGFloat velocity = [gesture velocityInView:panningView].x;
+        
+        BOOL shouldOpen = NO;
+        
+        if (velocity > 0.f)
         {
-            [self doSlideOut];
+            shouldOpen = YES;
+        }
+        else if (velocity < 0.f)
+        {
+            shouldOpen = NO;
         }
         else
         {
-
-            [UIView animateWithDuration:kSlideInInterval delay:0.f options:UIViewAnimationCurveEaseInOut animations:^ {
+            shouldOpen = movingView.center.x > size.width;
+        }
+        
+        if (shouldOpen)
+        {
+            [self slideOut];
+        }
+        else
+        {
+            
+            [UIView animateWithDuration:kSlideInInterval delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^ {
                 
                 selectedViewController.view.frame = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
                 
             } completion:^(BOOL completed) {
                 
-                [self.shield removeFromSuperview];
+                [shield removeFromSuperview];
                 
             }];
             
@@ -138,12 +156,12 @@
 	}
 }
 
-- (void)switchToViewController:(UIViewController*)viewController
+- (void)switchToViewController:(UIViewController *)viewController
 {
     [self switchToViewController:viewController animated:YES];
 }
 
-- (void)switchToViewController:(UIViewController*)viewController animated:(BOOL)animated
+- (void)switchToViewController:(UIViewController *)viewController animated:(BOOL)animated
 {
     CGRect bounds = self.view.bounds;
     self.view.userInteractionEnabled = NO;
@@ -186,7 +204,7 @@
                 {
                     [viewController didMoveToParentViewController:self];
                 }
-                [self.shield removeFromSuperview];
+                [shield removeFromSuperview];
                 self.view.userInteractionEnabled = YES;
                 isSwitchingToViewController = NO;
                 
@@ -194,7 +212,7 @@
             
             if (animated)
             {
-                [UIView animateWithDuration:kSlideInInterval delay:0.0 options:UIViewAnimationCurveEaseInOut animations:^{
+                [UIView animateWithDuration:kSlideInInterval delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                     
                     viewController.view.frame = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
                     
@@ -213,7 +231,7 @@
         
         if (animated)
         {
-            [UIView animateWithDuration:kSlideOutInterval delay:0.0 options:UIViewAnimationCurveEaseInOut animations:^{
+            [UIView animateWithDuration:kSlideOutInterval delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                 
                 selectedViewController.view.frame = CGRectMake(bounds.size.width, 0, bounds.size.width, bounds.size.height);
                 
@@ -237,7 +255,7 @@
         [self setupViewControllerShadow:viewController];
         [self.view addSubview:viewController.view];
         selectedViewController = viewController;
-        [self.shield removeFromSuperview];
+        [shield removeFromSuperview];
         if ([viewController respondsToSelector:@selector(didMoveToParentViewController:)])
         {
             [viewController didMoveToParentViewController:self];
@@ -247,9 +265,9 @@
     }
 }
 
-- (void)setupViewControllerShadow:(UIViewController*)viewController
+- (void)setupViewControllerShadow:(UIViewController *)viewController
 {
-    CALayer* layer = viewController.view.layer;
+    CALayer *layer = viewController.view.layer;
     layer.shadowColor = [UIColor blackColor].CGColor;
     layer.shadowOpacity = .8f;
     layer.shadowOffset = CGSizeMake(-15, 0);
@@ -258,27 +276,27 @@
     layer.shadowPath = [UIBezierPath bezierPathWithRect:self.view.bounds].CGPath;
 }
 
-- (void)doSlideOut
+- (void)slideOut
 {
     CGRect bounds = self.view.bounds;
     
-    if (![selectedViewController.view.subviews containsObject:self.shield])
+    if (![selectedViewController.view.subviews containsObject:shield])
     {
-        self.shield.frame = bounds;
-        [selectedViewController.view addSubview:self.shield];
+        shield.frame = bounds;
+        [selectedViewController.view addSubview:shield];
     }
     [self setupViewControllerShadow:selectedViewController];
     
-    [UIView animateWithDuration:kSlideInInterval delay:0.0 options:UIViewAnimationCurveEaseInOut animations:^{
+    [UIView animateWithDuration:kSlideInInterval delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         
         selectedViewController.view.frame = CGRectMake(kMenuTableSize, 0, bounds.size.width, bounds.size.height);
         
     } completion:nil];
 }
 
-- (NSObject*)_createGroupWithTitle:(NSString*)title withIdentifier:(NSString*)identifier
+- (NSObject *)_createGroupWithTitle:(NSString *)title withIdentifier:(NSString *)identifier
 {
-    NSMutableDictionary * group = [NSMutableDictionary dictionary];
+    NSMutableDictionary *group = [NSMutableDictionary dictionary];
     
     [group setObject:identifier forKey:kKeyIdentifier];
     if (title) [group setObject:title forKey:kKeyTitle];
@@ -292,9 +310,9 @@
     return group;
 }
 
-- (NSObject*)_createItemWithTitle:(NSString*)title andViewController:(UIViewController*)viewController andIcon:(UIImage*)icon andSelectedIcon:(UIImage*)selectedIcon andTitleColor:(UIColor*)titleColor andSelectedTitleColor:(UIColor*)selectedTitleColor andTitleFont:(UIFont*)titleFont withIdentifier:(NSString*)identifier
+- (NSObject *)_createItemWithTitle:(NSString *)title andViewController:(UIViewController *)viewController andIcon:(UIImage *)icon andSelectedIcon:(UIImage *)selectedIcon andTitleColor:(UIColor *)titleColor andSelectedTitleColor:(UIColor *)selectedTitleColor andTitleFont:(UIFont *)titleFont withIdentifier:(NSString *)identifier
 {
-    NSMutableDictionary * item = [NSMutableDictionary dictionary];
+    NSMutableDictionary *item = [NSMutableDictionary dictionary];
     
     [item setObject:identifier forKey:kKeyIdentifier];
     if (title) [item setObject:title forKey:kKeyTitle];
@@ -343,7 +361,7 @@
         [groupsArray removeObject:groupsMap[identifier]];
         [groupsMap removeObjectForKey:identifier];
     }
-    [_tableView reloadData];
+    [tableView reloadData];
 }
 
 - (void)removeItem:(NSString *)item inGroup:(NSString *)groupIdentifier
@@ -352,11 +370,11 @@
     {
         groupIdentifier = kDefaultGroup;
     }
-    NSDictionary * group = groupsMap[groupIdentifier];
+    NSDictionary *group = groupsMap[groupIdentifier];
     if (group)
     {
-        NSMutableDictionary * itemsMap = [group objectForKey:kKeyMap];
-        NSMutableArray * itemsArray = [group objectForKey:kKeyArray];
+        NSMutableDictionary *itemsMap = [group objectForKey:kKeyMap];
+        NSMutableArray *itemsArray = [group objectForKey:kKeyArray];
         if (itemsMap[item])
         {
             if (selectedCellIp && selectedCellIp.section == [groupsArray indexOfObject:group])
@@ -378,17 +396,17 @@
             [itemsMap removeObjectForKey:item];
         }
     }
-    [_tableView reloadData];
+    [tableView reloadData];
 }
 
-- (void)addGroupWithTitle:(NSString*)title withIdentifier:(NSString*)identifier
+- (void)addGroupWithTitle:(NSString *)title withIdentifier:(NSString *)identifier
 {
     [self addGroupWithTitle:title withIdentifier:identifier atIndex:-1];
 }
 
-- (void)addGroupWithTitle:(NSString*)title withIdentifier:(NSString*)identifier atIndex:(NSInteger)index
+- (void)addGroupWithTitle:(NSString *)title withIdentifier:(NSString *)identifier atIndex:(NSInteger)index
 {
-    NSObject * group = [self _createGroupWithTitle:title withIdentifier:identifier];
+    NSObject *group = [self _createGroupWithTitle:title withIdentifier:identifier];
     if (index < 0)
     {
         [groupsArray addObject:group];
@@ -401,22 +419,22 @@
             selectedCellIp = [NSIndexPath indexPathForRow:selectedCellIp.row inSection:selectedCellIp.section + 1];
         }
     }
-    [_tableView reloadData];
+    [tableView reloadData];
 }
 
-- (void)addItemWithTitle:(NSString*)title andViewController:(UIViewController*)viewController withIdentifier:(NSString*)identifier andIcon:(UIImage*)icon andSelectedIcon:(UIImage*)selectedIcon andTitleColor:(UIColor*)titleColor andSelectedTitleColor:(UIColor*)selectedTitleColor andTitleFont:(UIFont*)titleFont inGroup:(NSString*)groupIdentifier
+- (void)addItemWithTitle:(NSString *)title andViewController:(UIViewController *)viewController withIdentifier:(NSString *)identifier andIcon:(UIImage *)icon andSelectedIcon:(UIImage *)selectedIcon andTitleColor:(UIColor *)titleColor andSelectedTitleColor:(UIColor *)selectedTitleColor andTitleFont:(UIFont *)titleFont inGroup:(NSString *)groupIdentifier
 {
     [self addItemWithTitle:title andViewController:viewController withIdentifier:identifier andIcon:icon andSelectedIcon:selectedIcon andTitleColor:titleColor andSelectedTitleColor:selectedTitleColor andTitleFont:titleFont inGroup:groupIdentifier atIndex:-1];
 }
 
-- (void)addItemWithTitle:(NSString*)title andViewController:(UIViewController*)viewController withIdentifier:(NSString*)identifier andIcon:(UIImage*)icon andSelectedIcon:(UIImage*)selectedIcon andTitleColor:(UIColor*)titleColor andSelectedTitleColor:(UIColor*)selectedTitleColor andTitleFont:(UIFont*)titleFont inGroup:(NSString*)groupIdentifier atIndex:(NSInteger)index
+- (void)addItemWithTitle:(NSString *)title andViewController:(UIViewController *)viewController withIdentifier:(NSString *)identifier andIcon:(UIImage *)icon andSelectedIcon:(UIImage *)selectedIcon andTitleColor:(UIColor *)titleColor andSelectedTitleColor:(UIColor *)selectedTitleColor andTitleFont:(UIFont *)titleFont inGroup:(NSString *)groupIdentifier atIndex:(NSInteger)index
 {
     if (!groupIdentifier) groupIdentifier = kDefaultGroup;
-    NSMutableDictionary * group = [groupsMap objectForKey:groupIdentifier];
+    NSMutableDictionary *group = [groupsMap objectForKey:groupIdentifier];
     if (group)
     {
-        NSMutableDictionary * itemsMap = [group objectForKey:kKeyMap];
-        NSMutableArray * itemsArray = [group objectForKey:kKeyArray];
+        NSMutableDictionary *itemsMap = [group objectForKey:kKeyMap];
+        NSMutableArray *itemsArray = [group objectForKey:kKeyArray];
         if (!itemsMap)
         {
             [group setObject:itemsMap = [NSMutableDictionary dictionary] forKey:kKeyMap];
@@ -429,7 +447,7 @@
         {
             [itemsArray removeObject:[itemsMap objectForKey:identifier]];
         }
-        NSObject * item = [self _createItemWithTitle:title andViewController:viewController andIcon:icon andSelectedIcon:selectedIcon andTitleColor:titleColor andSelectedTitleColor:selectedTitleColor andTitleFont:titleFont withIdentifier:identifier];
+        NSObject *item = [self _createItemWithTitle:title andViewController:viewController andIcon:icon andSelectedIcon:selectedIcon andTitleColor:titleColor andSelectedTitleColor:selectedTitleColor andTitleFont:titleFont withIdentifier:identifier];
         [itemsMap setObject:item forKey:identifier];
         if (index < 0)
         {
@@ -443,49 +461,49 @@
                 selectedCellIp = [NSIndexPath indexPathForRow:selectedCellIp.row + 1 inSection:selectedCellIp.section];
             }
         }
-        [_tableView reloadData];
+        [tableView reloadData];
     }
 }
 
-- (NSMutableDictionary*)getItem:(NSString*)identifier inGroup:(NSString*)groupIdentifier
+- (NSMutableDictionary *)getItem:(NSString *)identifier inGroup:(NSString *)groupIdentifier
 {
     if (!groupIdentifier) groupIdentifier = kDefaultGroup;
-    NSMutableDictionary * group = [groupsMap objectForKey:groupIdentifier];
+    NSMutableDictionary *group = [groupsMap objectForKey:groupIdentifier];
     if (group)
     {
-        NSMutableDictionary * itemsMap = [group objectForKey:kKeyMap];
+        NSMutableDictionary *itemsMap = [group objectForKey:kKeyMap];
         return itemsMap[identifier];
     }
     return nil;
 }
 
-- (void)setTitle:(NSString*)title forItem:(NSString*)identifier inGroup:(NSString*)groupIdentifier
+- (void)setTitle:(NSString *)title forItem:(NSString *)identifier inGroup:(NSString *)groupIdentifier
 {
-    NSMutableDictionary * item = [self getItem:identifier inGroup:groupIdentifier];
+    NSMutableDictionary *item = [self getItem:identifier inGroup:groupIdentifier];
     if (!item) return;
     
     item[kKeyTitle] = title;
     [self reloadRowForItem:identifier inGroup:groupIdentifier];
 }
 
-- (void)setViewController:(UIViewController*)viewController forItem:(NSString*)identifier inGroup:(NSString*)groupIdentifier
+- (void)setViewController:(UIViewController *)viewController forItem:(NSString *)identifier inGroup:(NSString *)groupIdentifier
 {
-    NSMutableDictionary * item = [self getItem:identifier inGroup:groupIdentifier];
+    NSMutableDictionary *item = [self getItem:identifier inGroup:groupIdentifier];
     if (!item) return;
     
     item[kKeyContent] = viewController;
     [self reloadRowForItem:identifier inGroup:groupIdentifier];
 }
 
-- (void)reloadRowForItem:(NSString*)identifier inGroup:(NSString*)groupIdentifier
+- (void)reloadRowForItem:(NSString *)identifier inGroup:(NSString *)groupIdentifier
 {
     if (!groupIdentifier) groupIdentifier = kDefaultGroup;
-    NSMutableDictionary * group = [groupsMap objectForKey:groupIdentifier];
+    NSMutableDictionary *group = [groupsMap objectForKey:groupIdentifier];
     if (group)
     {
         int groupIdx = [groupsArray indexOfObject:group];
         int itemIdx = [[group objectForKey:kKeyArray] indexOfObject:[group objectForKey:kKeyMap][identifier]];
-        [_tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:itemIdx inSection:groupIdx]] withRowAnimation:UITableViewRowAnimationNone];
+        [tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:itemIdx inSection:groupIdx]] withRowAnimation:UITableViewRowAnimationNone];
     }
 }
 
@@ -494,7 +512,7 @@
 - (void)loadView
 {
     CGRect viewFrame = [[UIScreen mainScreen] applicationFrame];
-    UIView * view = [[UIView alloc] initWithFrame:viewFrame];
+    UIView *view = [[UIView alloc] initWithFrame:viewFrame];
     view.autoresizesSubviews = YES;
     
     self.view = view;
@@ -509,13 +527,13 @@
         [self switchToViewController:selectedViewController animated:NO];
         isFirstViewWillAppear = NO;
         
-        _tableView.delegate = self;
-        _tableView.dataSource = self;
-        [_tableView reloadData];
+        tableView.delegate = self;
+        tableView.dataSource = self;
+        [tableView reloadData];
         
-        if (selectedCellIp)
+        if (_retainSelection && selectedCellIp)
         {
-            [_tableView selectRowAtIndexPath:selectedCellIp animated:NO scrollPosition:UITableViewScrollPositionNone];
+            [tableView selectRowAtIndexPath:selectedCellIp animated:NO scrollPosition:UITableViewScrollPositionNone];
         }
     }
 }
@@ -526,50 +544,51 @@
 
     isFirstViewWillAppear = YES;
     
-    _tableView = [[UITableView alloc] init];
-    _tableView.backgroundColor = TABLE_BACKGROUND_COLOR;
-    _tableView.rowHeight = SlideMenuTableCellHeight;
-    _tableView.sectionHeaderHeight = SECTION_HEADER_HEIGHT;
-    _tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
-    _tableView.frame = CGRectMake(0.f, 0.f, self.view.frame.size.width, self.view.frame.size.height);
-    _tableView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleRightMargin;
-    _tableView.scrollsToTop = NO;
-    [self.view addSubview:_tableView];
+    tableView = [[UITableView alloc] init];
+    tableView.backgroundColor = TABLE_BACKGROUND_COLOR;
+    tableView.rowHeight = SlideMenuTableCellHeight;
+    tableView.sectionHeaderHeight = SECTION_HEADER_HEIGHT;
+    tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    tableView.frame = CGRectMake(0.f, 0.f, self.view.frame.size.width, self.view.frame.size.height);
+    tableView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleRightMargin;
+    tableView.scrollsToTop = NO;
+    [self.view addSubview:tableView];
     
     
-    self.shield = [[UIView alloc] initWithFrame:CGRectZero];
+    shield = [[UIView alloc] initWithFrame:CGRectZero];
     
-    UITapGestureRecognizer * tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapItem:)];
-    [self.shield addGestureRecognizer:tapGesture];
+    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapGestureRecognized:)];
+    [shield addGestureRecognizer:tapGesture];
     
-    UIPanGestureRecognizer* panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panItem:)];
+    UIPanGestureRecognizer *panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGestureRecognized:)];
     [panGesture setMaximumNumberOfTouches:2];
     [panGesture setDelegate:self];
-    [self.shield addGestureRecognizer:panGesture];
+    [shield addGestureRecognizer:panGesture];
 }
 
 - (void)viewDidUnload
 {
     [super viewDidUnload];
     
-    _tableView = nil;
+    tableView = nil;
 }
          
 #pragma mark - UITableViewDelegate, UITableViewDataSource
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+- (void)tableView:(UITableView *)aTableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+	if (aTableView != tableView) return;
     if (isSwitchingToViewController) return;
     
-    NSDictionary * group = [groupsArray objectAtIndex:indexPath.section];
-    NSDictionary * item = [[group objectForKey:kKeyArray] objectAtIndex:indexPath.row];
+    NSDictionary *group = [groupsArray objectAtIndex:indexPath.section];
+    NSDictionary *item = [[group objectForKey:kKeyArray] objectAtIndex:indexPath.row];
     
     BOOL defaultAction = [self _highlightItem:item inGroup:group moveToViewController:YES animated:YES];
 
     if (!defaultAction)
     {
         [tableView deselectRowAtIndexPath:indexPath animated:YES];
-        if (selectedCellIp)
+        if (_retainSelection && selectedCellIp)
         {
             [tableView selectRowAtIndexPath:selectedCellIp animated:NO scrollPosition:UITableViewScrollPositionNone];
         }
@@ -577,30 +596,37 @@
     else
     {
         selectedCellIp = indexPath;
+        if (!_retainSelection)
+        {
+            [tableView deselectRowAtIndexPath:indexPath animated:YES];
+        }
     }
 }
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)aTableView
 {
+	if (aTableView != tableView) return 0;
     return groupsArray.count;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+- (NSInteger)tableView:(UITableView *)aTableView numberOfRowsInSection:(NSInteger)section
 {
+	if (aTableView != tableView) return 0;
     return [[[groupsArray objectAtIndex:section] objectForKey:kKeyArray] count];
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+- (UITableViewCell *)tableView:(UITableView *)aTableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString * CellIdentifier = @"Cell";
-    DGSlideMenuTableCell * cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+	if (aTableView != tableView) return nil;
+    static NSString *CellIdentifier = @"Cell";
+    DGSlideMenuTableCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     if (!cell)
     {
         cell = [[DGSlideMenuTableCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
     }
     
-    NSDictionary * group = [groupsArray objectAtIndex:indexPath.section];
-    NSDictionary * item = [[group objectForKey:kKeyArray] objectAtIndex:indexPath.row];
+    NSDictionary *group = [groupsArray objectAtIndex:indexPath.section];
+    NSDictionary *item = [[group objectForKey:kKeyArray] objectAtIndex:indexPath.row];
     
     cell.icon = [item objectForKey:kKeyIcon];
     cell.selectedIcon = [item objectForKey:kKeySelectedIcon];
@@ -612,38 +638,40 @@
     return cell;
 }
 
-- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+- (CGFloat)tableView:(UITableView *)aTableView heightForHeaderInSection:(NSInteger)section
 {
-    NSDictionary * group = [groupsArray objectAtIndex:section];
-    NSString * title = [group objectForKey:kKeyTitle];
+	if (aTableView != tableView) return 0.f;
+    NSDictionary *group = [groupsArray objectAtIndex:section];
+    NSString *title = [group objectForKey:kKeyTitle];
     if (!title.length) return 0;
     return SECTION_HEADER_HEIGHT;
 }
 
-- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+- (UIView *)tableView:(UITableView *)aTableView viewForHeaderInSection:(NSInteger)section
 {
-    NSDictionary * group = [groupsArray objectAtIndex:section];
-    NSString * title = [group objectForKey:kKeyTitle];
+	if (aTableView != tableView) return nil;
+    NSDictionary *group = [groupsArray objectAtIndex:section];
+    NSString *title = [group objectForKey:kKeyTitle];
     if (!title.length) return nil;
     return [self customSectionHeaderViewWithTitle:title];
 }
 
-- (UIView*)customSectionHeaderViewWithTitle:(NSString*)title
+- (UIView *)customSectionHeaderViewWithTitle:(NSString *)title
 {
-    CGFloat width = _tableView.frame.size.width;
+    CGFloat width = tableView.frame.size.width;
     
-    UIView * header = [[UIView alloc] initWithFrame:CGRectMake(0.f, 0.f, width, SECTION_HEADER_HEIGHT)];
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0.f, 0.f, width, SECTION_HEADER_HEIGHT)];
     
     CGRect labelFrame = CGRectMake(SECTION_HEADER_PADDING_LEFT, 0.f, width - SECTION_HEADER_PADDING_LEFT, SECTION_HEADER_HEIGHT);
     
-    UILabel * label = [[UILabel alloc] initWithFrame:labelFrame];
+    UILabel *label = [[UILabel alloc] initWithFrame:labelFrame];
     label.backgroundColor = [UIColor clearColor];
     label.textAlignment = UITextAlignmentLeft;
     label.font = [UIFont boldSystemFontOfSize:SECTION_HEADER_FONT_SIZE];
     label.textColor = SECTION_HEADER_TEXT_COLOR;
     label.text = title;
     
-    CAGradientLayer * gradient = [[CAGradientLayer alloc] init];
+    CAGradientLayer *gradient = [[CAGradientLayer alloc] init];
     gradient.colors = @[(id)SECTION_HEADER_COLOR_TOP.CGColor, (id)SECTION_HEADER_COLOR_BOTTOM.CGColor];
     gradient.frame = header.bounds;
     [header.layer addSublayer:gradient];
@@ -653,24 +681,24 @@
     return header;
 }
 
-- (void)highlightItem:(NSString*)item inGroup:(NSString*)group
+- (void)highlightItem:(NSString *)item inGroup:(NSString *)group
 {
     [self highlightItem:item inGroup:group moveToViewController:YES animated:YES];
 }
 
-- (void)highlightItem:(NSString*)item inGroup:(NSString*)group moveToViewController:(BOOL)moveToViewController animated:(BOOL)animated
+- (void)highlightItem:(NSString *)item inGroup:(NSString *)group moveToViewController:(BOOL)moveToViewController animated:(BOOL)animated
 {
     if (!group.length) group = kDefaultGroup;
     
-    NSDictionary * actualGroup = groupsMap[group];
-    NSDictionary * actualItem = ((NSDictionary*)actualGroup[kKeyMap])[item];
+    NSDictionary *actualGroup = groupsMap[group];
+    NSDictionary *actualItem = ((NSDictionary *)actualGroup[kKeyMap])[item];
     
     if (!actualGroup || !actualItem) return;
     
     [self _highlightItem:actualItem inGroup:actualGroup moveToViewController:moveToViewController animated:animated];
 }
 
-- (BOOL)_highlightItem:(NSDictionary*)item inGroup:(NSDictionary*)group moveToViewController:(BOOL)moveToViewController animated:(BOOL)animated
+- (BOOL)_highlightItem:(NSDictionary *)item inGroup:(NSDictionary *)group moveToViewController:(BOOL)moveToViewController animated:(BOOL)animated
 {
     if (!group || !item) return NO;
     
@@ -681,10 +709,10 @@
     }
     if (defaultAction && !isSwitchingToViewController)
     {
-        UIViewController * vc = [item objectForKey:kKeyContent];
+        UIViewController *vc = [item objectForKey:kKeyContent];
         if ([vc isKindOfClass:[UINavigationController class]])
         {
-            [((UINavigationController*)vc) popToRootViewControllerAnimated:selectedViewController ? YES : NO];
+            [((UINavigationController *)vc) popToRootViewControllerAnimated:selectedViewController ? YES : NO];
         }
         if (vc) [self switchToViewController:vc animated:animated];
         else [self switchToViewController:selectedViewController animated:animated];
@@ -693,13 +721,13 @@
     if (defaultAction)
     {
         selectedCellIp = [NSIndexPath indexPathForRow:[[group objectForKey:kKeyArray] indexOfObject:item] inSection:[groupsArray indexOfObject:group]];
-        [_tableView selectRowAtIndexPath:selectedCellIp animated:YES scrollPosition:UITableViewScrollPositionNone];
+        [tableView selectRowAtIndexPath:selectedCellIp animated:YES scrollPosition:UITableViewScrollPositionNone];
     }
     
     return defaultAction;
 }
 
-- (NSString*)highlightedGroup
+- (NSString *)highlightedGroup
 {
     if (selectedCellIp)
     {
@@ -708,7 +736,7 @@
     return nil;
 }
 
-- (NSString*)highlightedItem
+- (NSString *)highlightedItem
 {
     if (selectedCellIp)
     {
@@ -717,7 +745,7 @@
     return nil;
 }
 
-- (UIViewController*)selectedViewController
+- (UIViewController *)selectedViewController
 {
     return selectedViewController;
 }

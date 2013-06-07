@@ -5,6 +5,8 @@
 //  Created by Daniel Cohen Gindi on 11/23/12.
 //  Copyright (c) 2012 danielgindi@gmail.com. All rights reserved.
 //
+//  https://github.com/danielgindi/drunken-danger-zone
+//
 //  General Location Manager Class.
 //  Thread safe.
 //  No instances required.
@@ -44,12 +46,12 @@
 + (void)removeAllHeadingDelegates;
 
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
-+ (void)setLocationPurpose:(NSString*)purpose;
++ (void)setLocationPurpose:(NSString *)purpose;
 #endif
 + (void)setLocationActivityType:(CLActivityType)activityType;
 
-+ (CLLocation*)location;
-+ (CLLocation*)previousLocation;
++ (CLLocation *)location;
++ (CLLocation *)previousLocation;
 
 + (double)magneticHeading;
 + (double)trueHeading;

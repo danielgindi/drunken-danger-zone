@@ -5,6 +5,8 @@
 //  Created by Daniel Cohen Gindi on 4/18/12.
 //  Copyright (c) 2013 danielgindi@gmail.com. All rights reserved.
 //
+//  https://github.com/danielgindi/drunken-danger-zone
+//
 
 #import "DGTextFieldPickerView.h"
 #import "DGTextFieldPickerCellView.h"
@@ -15,20 +17,20 @@
 
 @interface DGTextFieldPickerView ()
 {
-    NSTimer *  _searchTimer;
+    NSTimer * _searchTimer;
     CGPoint _cursorOrigin;
-    UIView * textLabelHideCursorView;
-    UILabel * textLabelHideCursor;
+    UIView *textLabelHideCursorView;
+    UILabel *textLabelHideCursor;
     CGFloat requiredCellHeight;
 }
 
-@property (nonatomic, strong) DGTextFieldPickerInnerDelegate * _innerDelegate;
+@property (nonatomic, strong) DGTextFieldPickerInnerDelegate *_innerDelegate;
 
 @end
 
 @implementation DGTextFieldPickerView
 
-static NSString* kEmpty = @"\x001";
+static NSString *kEmpty = @"\x001";
 
 static const CGFloat kSpacingYY1      = 1.f;
 static const CGFloat kSpacingYY2      = 7.f;
@@ -117,7 +119,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
     [self setNeedsLayout];
 }
 
-- (void)textLabelHideCursorTapped:(UITapGestureRecognizer*)recognizer
+- (void)textLabelHideCursorTapped:(UITapGestureRecognizer *)recognizer
 {
     self.selectedCell = nil;
 }
@@ -136,7 +138,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
     
     if (self.frame.size.width) 
     {
-        for (DGTextFieldPickerCellView* cell in _cellViews)
+        for (DGTextFieldPickerCellView *cell in _cellViews)
         {
             [cell sizeToFit];
             
@@ -199,7 +201,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
     else 
     {
         CGFloat lineHeight = self.font.lineHeight;
-        return _contentInsets.top + (lineNumber-1 * lineHeight + kSpacingY);
+        return _contentInsets.top + (lineNumber-1 *lineHeight + kSpacingY);
     }
 }
 
@@ -215,9 +217,9 @@ static const CGFloat kMinCursorWidth  = 50.f;
     self.selectedCell = [_cellViews objectAtIndex:_cellViews.count-1];
 }
 
-- (NSString*)labelForObject:(id)object 
+- (NSString *)labelForObject:(id)object 
 {
-    NSString* label = nil;
+    NSString *label = nil;
     if ([_searchDelegate respondsToSelector:@selector(textFieldPickerView:labelForObject:)])
     {
         label = [_searchDelegate textFieldPickerView:self labelForObject:object];
@@ -225,7 +227,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
     return label ? label : [NSString stringWithFormat:@"%@", object];
 }
 
-- (NSString*)searchText 
+- (NSString *)searchText 
 {
     if (!self.hasText) 
     {
@@ -267,7 +269,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
             textLabelHideCursor.backgroundColor = [UIColor clearColor];
             textLabelHideCursor.userInteractionEnabled = YES;
             
-            UITapGestureRecognizer * tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(textLabelHideCursorTapped:)];
+            UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(textLabelHideCursorTapped:)];
             [textLabelHideCursor addGestureRecognizer:tapGestureRecognizer];
             
             [textLabelHideCursorView addSubview:textLabelHideCursor];
@@ -299,13 +301,13 @@ static const CGFloat kMinCursorWidth  = 50.f;
     return CGSizeMake(size.width, requiredCellHeight);
 }
 
-- (void)touchesBegan:(NSSet*)touches withEvent:(UIEvent*)event 
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event 
 {
     [super touchesBegan:touches withEvent:event];
     
     if (_searchDelegate) 
     {
-        UITouch* touch = [touches anyObject];
+        UITouch *touch = [touches anyObject];
         if (touch.view == self) 
         {
             self.selectedCell = nil;
@@ -314,7 +316,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
         {
             if ([touch.view isKindOfClass:[DGTextFieldPickerCellView class]])
             {
-                self.selectedCell = (DGTextFieldPickerCellView*)touch.view;
+                self.selectedCell = (DGTextFieldPickerCellView *)touch.view;
                 [self becomeFirstResponder];
             }
         }
@@ -381,10 +383,10 @@ static const CGFloat kMinCursorWidth  = 50.f;
 
 #pragma mark - Cells stuff
 
-- (NSArray*)cells 
+- (NSArray *)cells 
 {
-    NSMutableArray* cells = [NSMutableArray array];
-    for (DGTextFieldPickerCellView* cellView in _cellViews)
+    NSMutableArray *cells = [NSMutableArray array];
+    for (DGTextFieldPickerCellView *cellView in _cellViews)
     {
         [cells addObject:cellView.object ? cellView.object : [NSNull null]];
     }
@@ -393,9 +395,9 @@ static const CGFloat kMinCursorWidth  = 50.f;
 
 - (void)addCellWithObject:(id)object 
 {
-    DGTextFieldPickerCellView* cell = [[DGTextFieldPickerCellView alloc] init];
+    DGTextFieldPickerCellView *cell = [[DGTextFieldPickerCellView alloc] init];
     
-    NSString* label = [self labelForObject:object];
+    NSString *label = [self labelForObject:object];
     
     cell.object = object;
     cell.label = label;
@@ -410,7 +412,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
     if (_cellHighlightedBgColor2) cell.highlightedBgColor2 = _cellHighlightedBgColor2;
     if (_cellHighlightedBorderColor1) cell.highlightedBorderColor1 = _cellHighlightedBorderColor1;
     if (_cellHighlightedBorderColor2) cell.highlightedBorderColor2 = _cellHighlightedBorderColor2;
-    [((NSMutableArray*)_cellViews) addObject:cell];
+    [((NSMutableArray *)_cellViews) addObject:cell];
     [self addSubview:cell];
     
     // Reset text so the cursor moves to be at the end of the cellViews
@@ -426,10 +428,10 @@ static const CGFloat kMinCursorWidth  = 50.f;
 {
     for (int i = 0; i < _cellViews.count; ++i) 
     {
-        DGTextFieldPickerCellView* cell = [_cellViews objectAtIndex:i];
+        DGTextFieldPickerCellView *cell = [_cellViews objectAtIndex:i];
         if (cell.object == object) 
         {
-            [((NSMutableArray*)_cellViews) removeObjectAtIndex:i];
+            [((NSMutableArray *)_cellViews) removeObjectAtIndex:i];
             [cell removeFromSuperview];
             
             if (cell == _selectedCell)
@@ -453,15 +455,15 @@ static const CGFloat kMinCursorWidth  = 50.f;
 {
     while (_cellViews.count) 
     {
-        DGTextFieldPickerCellView* cell = [_cellViews objectAtIndex:0];
+        DGTextFieldPickerCellView *cell = [_cellViews objectAtIndex:0];
         [cell removeFromSuperview];
-        [((NSMutableArray*)_cellViews) removeObjectAtIndex:0];
+        [((NSMutableArray *)_cellViews) removeObjectAtIndex:0];
     }
     
     self.selectedCell = nil;
 }
 
-- (void)setSelectedCell:(DGTextFieldPickerCellView*)cell
+- (void)setSelectedCell:(DGTextFieldPickerCellView *)cell
 {
     if (_selectedCell) 
     {
@@ -493,7 +495,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
 {
     if (self.editing) 
     {
-        UIScrollView * scrollView = (self.superview && [self.superview isKindOfClass:[UIScrollView class]]) ? (UIScrollView*)self.superview : nil;
+        UIScrollView *scrollView = (self.superview && [self.superview isKindOfClass:[UIScrollView class]]) ? (UIScrollView *)self.superview : nil;
         if (scrollView) 
         {
             [scrollView setContentOffset:CGPointMake(0, self.frame.origin.y) animated:animated];
@@ -503,7 +505,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
 
 - (void)scrollToEditingLine:(BOOL)animated 
 {
-    UIScrollView * scrollView = (self.superview && [self.superview isKindOfClass:[UIScrollView class]]) ? (UIScrollView*)self.superview : nil;
+    UIScrollView *scrollView = (self.superview && [self.superview isKindOfClass:[UIScrollView class]]) ? (UIScrollView *)self.superview : nil;
     if (scrollView) 
     {
         CGFloat offset = _lineCount == 1 ? 0 : [self topOfLine:_lineCount-1];
@@ -519,7 +521,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
     }
 }
 
-- (void)dispatchUpdate:(NSTimer*)timer 
+- (void)dispatchUpdate:(NSTimer *)timer 
 {
     _searchTimer = nil;
     [self autoSearch];
@@ -541,7 +543,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
     return YES;
 }
 
-- (void)setText:(NSString*)text 
+- (void)setText:(NSString *)text 
 {
     if (_searchDelegate) 
     {
@@ -609,7 +611,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
 - (void)setCellTextColor:(UIColor *)cellTextColor
 {
     _cellTextColor = cellTextColor;
-    for (DGTextFieldPickerCellView * cell in _cellViews)
+    for (DGTextFieldPickerCellView *cell in _cellViews)
     {
         cell.textColor = _cellTextColor;
     }
@@ -618,7 +620,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
 - (void)setCellBgColor1:(UIColor *)cellBgColor1
 {
     _cellBgColor1 = cellBgColor1;
-    for (DGTextFieldPickerCellView * cell in _cellViews)
+    for (DGTextFieldPickerCellView *cell in _cellViews)
     {
         cell.bgColor1 = _cellBgColor1;
     }
@@ -627,7 +629,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
 - (void)setCellBgColor2:(UIColor *)cellBgColor2
 {
     _cellBgColor2 = cellBgColor2;
-    for (DGTextFieldPickerCellView * cell in _cellViews)
+    for (DGTextFieldPickerCellView *cell in _cellViews)
     {
         cell.bgColor2 = _cellBgColor2;
     }
@@ -636,7 +638,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
 - (void)setCellBorderColor1:(UIColor *)cellBorderColor1
 {
     _cellBorderColor1 = cellBorderColor1;
-    for (DGTextFieldPickerCellView * cell in _cellViews)
+    for (DGTextFieldPickerCellView *cell in _cellViews)
     {
         cell.borderColor1 = cellBorderColor1;
     }
@@ -645,7 +647,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
 - (void)setCellBorderColor2:(UIColor *)cellBorderColor2
 {
     _cellBorderColor2 = cellBorderColor2;
-    for (DGTextFieldPickerCellView * cell in _cellViews)
+    for (DGTextFieldPickerCellView *cell in _cellViews)
     {
         cell.borderColor2 = cellBorderColor2;
     }
@@ -654,7 +656,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
 - (void)setCellHighlightedTextColor:(UIColor *)cellHighlightedTextColor
 {
     _cellHighlightedTextColor = cellHighlightedTextColor;
-    for (DGTextFieldPickerCellView * cell in _cellViews)
+    for (DGTextFieldPickerCellView *cell in _cellViews)
     {
         cell.highlightedTextColor = _cellHighlightedTextColor;
     }
@@ -663,7 +665,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
 - (void)setCellHighlightedBgColor1:(UIColor *)cellHighlightedBgColor1
 {
     _cellHighlightedBgColor1 = cellHighlightedBgColor1;
-    for (DGTextFieldPickerCellView * cell in _cellViews)
+    for (DGTextFieldPickerCellView *cell in _cellViews)
     {
         cell.highlightedBgColor1 = _cellHighlightedBgColor1;
     }
@@ -672,7 +674,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
 - (void)setCellHighlightedBgColor2:(UIColor *)cellHighlightedBgColor2
 {
     _cellHighlightedBgColor2 = cellHighlightedBgColor2;
-    for (DGTextFieldPickerCellView * cell in _cellViews)
+    for (DGTextFieldPickerCellView *cell in _cellViews)
     {
         cell.highlightedBgColor2 = _cellHighlightedBgColor2;
     }
@@ -681,7 +683,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
 - (void)setCellHighlightedBorderColor1:(UIColor *)cellHighlightedBorderColor1
 {
     _cellHighlightedBorderColor1 = cellHighlightedBorderColor1;
-    for (DGTextFieldPickerCellView * cell in _cellViews)
+    for (DGTextFieldPickerCellView *cell in _cellViews)
     {
         cell.highlightedBorderColor1 = _cellHighlightedBorderColor1;
     }
@@ -690,7 +692,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
 - (void)setCellHighlightedBorderColor2:(UIColor *)cellHighlightedBorderColor2
 {
     _cellHighlightedBorderColor2 = cellHighlightedBorderColor2;
-    for (DGTextFieldPickerCellView * cell in _cellViews)
+    for (DGTextFieldPickerCellView *cell in _cellViews)
     {
         cell.highlightedBorderColor2 = _cellHighlightedBorderColor2;
     }
@@ -698,7 +700,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
 
 #pragma mark - UITextFieldDelegate
 
-- (void)textFieldDidBeginEditing:(UITextField*)textField 
+- (void)textFieldDidBeginEditing:(UITextField *)textField 
 {
     if (_searchDelegate) 
     {
@@ -713,7 +715,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
     }
 }
 
-- (void)textFieldDidEndEditing:(UITextField*)textField
+- (void)textFieldDidEndEditing:(UITextField *)textField
 {
     if (_selectedCell) 
     {
@@ -729,7 +731,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
     }
 }
 
-- (BOOL)textField:(UITextField*)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString*)string 
+- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string 
 {
     if (!string.length)
     {
@@ -746,7 +748,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
         }
         else if (self.hasText)
         {
-            NSString * finalText = [self.text stringByReplacingCharactersInRange:range withString:string];
+            NSString *finalText = [self.text stringByReplacingCharactersInRange:range withString:string];
             [self showSearchResults:NO];
             if (!finalText.length)
             {
@@ -783,14 +785,14 @@ static const CGFloat kMinCursorWidth  = 50.f;
     
     if (textLabelHideCursorView && !textLabelHideCursorView.hidden)
     {
-        NSString * newText = [self.text stringByReplacingCharactersInRange:range withString:string];
+        NSString *newText = [self.text stringByReplacingCharactersInRange:range withString:string];
         textLabelHideCursor.text = newText;
     }
     
     return YES;
 }
 
-- (BOOL)textFieldShouldClear:(UITextField*)textField 
+- (BOOL)textFieldShouldClear:(UITextField *)textField 
 {
     if (self.selectedCell)
     {
@@ -801,7 +803,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
     return YES;
 }
 
-- (BOOL)textFieldShouldReturn:(UITextField*)textField
+- (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
     if (!self.searchesAutomatically) 
     {
@@ -828,7 +830,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
 
 #pragma mark - UITextFieldDelegate
 
-- (void)textFieldDidBeginEditing:(UITextField*)textField 
+- (void)textFieldDidBeginEditing:(UITextField *)textField 
 {
     if ([parent respondsToSelector:@selector(textFieldDidBeginEditing:)])
     {
@@ -836,7 +838,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
     }
 }
 
-- (void)textFieldDidEndEditing:(UITextField*)textField 
+- (void)textFieldDidEndEditing:(UITextField *)textField 
 {
     if ([parent respondsToSelector:@selector(textFieldDidEndEditing:)])
     {
@@ -844,7 +846,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
     }
 }
 
-- (BOOL)textField:(UITextField*)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString*)string 
+- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string 
 {
     if ([parent respondsToSelector:@selector(textField:shouldChangeCharactersInRange:replacementString:)])
     {
@@ -853,7 +855,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
     return YES;
 }
 
-- (BOOL)textFieldShouldClear:(UITextField*)textField 
+- (BOOL)textFieldShouldClear:(UITextField *)textField 
 {
     if ([parent respondsToSelector:@selector(textFieldShouldClear:)])
     {
@@ -862,7 +864,7 @@ static const CGFloat kMinCursorWidth  = 50.f;
     return YES;
 }
 
-- (BOOL)textFieldShouldReturn:(UITextField*)textField
+- (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
     if ([parent respondsToSelector:@selector(textFieldShouldReturn:)])
     {

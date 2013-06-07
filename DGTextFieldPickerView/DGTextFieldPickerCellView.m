@@ -5,33 +5,35 @@
 //  Created by Daniel Cohen Gindi on 4/18/12.
 //  Copyright (c) 2013 danielgindi@gmail.com. All rights reserved.
 //
+//  https://github.com/danielgindi/drunken-danger-zone
+//
 
 #import "DGTextFieldPickerCellView.h"
 
 @interface DGTextFieldPickerCellView ()
 {
-    UILabel * _labelView;
+    UILabel *_labelView;
 }
 
-- (CGGradientRef)newGradientWithColors:(NSArray*)colors locations:(CGFloat*)locations;
+- (CGGradientRef)newGradientWithColors:(NSArray *)colors locations:(CGFloat *)locations;
 
-- (CGGradientRef)newGradientWithColors:(NSArray*)colors;
+- (CGGradientRef)newGradientWithColors:(NSArray *)colors;
 
 - (void)addRoundedRectPathToContext:(CGContextRef)context
                            withFrame:(CGRect)rect;
 
 - (void)drawBorderInContext:(CGContextRef)context
                    withFrame:(CGRect)rect
-                   withColor:(UIColor*)color
+                   withColor:(UIColor *)color
                     andWidth:(CGFloat)width
-                    newFrame:(CGRect*)newFrame;
+                    newFrame:(CGRect *)newFrame;
 
 - (void)drawGradientBorderInContext:(CGContextRef)context
                           withFrame:(CGRect)rect
-                          andColor1:(UIColor*)color1
-                          andColor2:(UIColor*)color2
+                          andColor1:(UIColor *)color1
+                          andColor2:(UIColor *)color2
                            andWidth:(CGFloat)width
-                           newFrame:(CGRect*)newFrame;
+                           newFrame:(CGRect *)newFrame;
 
 @end
 
@@ -136,33 +138,33 @@ alpha:(a)]
 - (void)layoutSubviews 
 {
     _labelView.frame = CGRectMake(kPaddingX, kPaddingY,
-                                  self.frame.size.width-kPaddingX*2, self.frame.size.height-kPaddingY*2);
+                                  self.frame.size.width-kPaddingX *2, self.frame.size.height-kPaddingY *2);
 }
 
 - (CGSize)sizeThatFits:(CGSize)size 
 {
     CGSize labelSize = [_labelView.text sizeWithFont:_labelView.font];
-    CGFloat width = labelSize.width + kPaddingX*2;
-    if (labelSize.height + kPaddingY*2 > width) width = labelSize.height + kPaddingY*2;
-    return CGSizeMake(width > kMaxWidth ? kMaxWidth : width, labelSize.height + kPaddingY*2);
+    CGFloat width = labelSize.width + kPaddingX *2;
+    if (labelSize.height + kPaddingY *2 > width) width = labelSize.height + kPaddingY *2;
+    return CGSizeMake(width > kMaxWidth ? kMaxWidth : width, labelSize.height + kPaddingY *2);
 }
 
-- (NSString*)label 
+- (NSString *)label 
 {
     return _labelView.text;
 }
 
-- (void)setLabel:(NSString*)label 
+- (void)setLabel:(NSString *)label 
 {
     _labelView.text = label;
 }
 
-- (UIFont*)font 
+- (UIFont *)font 
 {
     return _labelView.font;
 }
 
-- (void)setFont:(UIFont*)font 
+- (void)setFont:(UIFont *)font 
 {
     _labelView.font = font;
 }
@@ -175,7 +177,7 @@ alpha:(a)]
     [self setNeedsDisplay];
 }
 
-- (UIColor*)textColor
+- (UIColor *)textColor
 {
     return _labelView.textColor;
 }
@@ -185,7 +187,7 @@ alpha:(a)]
     _labelView.textColor = textColor;
 }
 
-- (UIColor*)highlightedTextColor
+- (UIColor *)highlightedTextColor
 {
     return _labelView.highlightedTextColor;
 }
@@ -245,10 +247,10 @@ alpha:(a)]
 
 #pragma mark - Drawing helpers
 
-- (CGGradientRef)newGradientWithColors:(NSArray*)colors locations:(CGFloat*)locations
+- (CGGradientRef)newGradientWithColors:(NSArray *)colors locations:(CGFloat *)locations
 {
-    NSMutableArray * colorsForGradient = [[NSMutableArray alloc] init];
-    for (UIColor * color in colors)
+    NSMutableArray *colorsForGradient = [[NSMutableArray alloc] init];
+    for (UIColor *color in colors)
     {
         [colorsForGradient addObject:(id)color.CGColor];
     }
@@ -260,7 +262,7 @@ alpha:(a)]
     return gradient;
 }
 
-- (CGGradientRef)newGradientWithColors:(NSArray*)colors
+- (CGGradientRef)newGradientWithColors:(NSArray *)colors
 {
     return [self newGradientWithColors:colors locations:nil];
 }
@@ -286,9 +288,9 @@ alpha:(a)]
 
 - (void)drawBorderInContext:(CGContextRef)context
                    withFrame:(CGRect)rect
-                   withColor:(UIColor*)color
+                   withColor:(UIColor *)color
                     andWidth:(CGFloat)width
-                    newFrame:(CGRect*)newFrame
+                    newFrame:(CGRect *)newFrame
 {
     if (color)
     {
@@ -321,17 +323,17 @@ alpha:(a)]
     {
         *newFrame = CGRectMake(rect.origin.x + (color ? width : 0),
                                rect.origin.y + (color ? width : 0),
-                               rect.size.width - ((color ? width * 2.0f : 0)),
-                               rect.size.height - ((color ? width * 2.0f : 0)));
+                               rect.size.width - ((color ? width *2.0f : 0)),
+                               rect.size.height - ((color ? width *2.0f : 0)));
     }
 }
 
 - (void)drawGradientBorderInContext:(CGContextRef)context
                           withFrame:(CGRect)rect
-                          andColor1:(UIColor*)color1
-                          andColor2:(UIColor*)color2
+                          andColor1:(UIColor *)color1
+                          andColor2:(UIColor *)color2
                            andWidth:(CGFloat)width
-                           newFrame:(CGRect*)newFrame
+                           newFrame:(CGRect *)newFrame
 {
     CGContextSaveGState(context);
     

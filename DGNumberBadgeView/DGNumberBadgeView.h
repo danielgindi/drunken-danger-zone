@@ -5,6 +5,8 @@
 //  Created by Daniel Cohen Gindi on 4/18/12.
 //  Copyright (c) 2013 danielgindi@gmail.com. All rights reserved.
 //
+//  https://github.com/danielgindi/drunken-danger-zone
+//
 
 #import <UIKit/UIKit.h>
 
@@ -43,6 +45,6 @@ typedef enum _DGNumberBadgeViewAnchor
 @property (nonatomic, assign) NSUInteger pad UI_APPEARANCE_SELECTOR;
 @property (nonatomic, assign) BOOL hideWhenZero UI_APPEARANCE_SELECTOR;
 
-+ (DGNumberBadgeView*)badgeForView:(UIView*)view;
++ (DGNumberBadgeView *)badgeForView:(UIView *)view;
 
 @end

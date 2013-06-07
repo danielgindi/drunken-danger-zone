@@ -5,6 +5,8 @@
 //  Created by Daniel Cohen Gindi on 3/29/13.
 //  Copyright (c) 2013 danielgindi@gmail.com. All rights reserved.
 //
+//  https://github.com/danielgindi/drunken-danger-zone
+//
 
 #import "DGGeocodingAddressResult.h"
 #import "DGGeocodingAddressComponent.h"
@@ -26,15 +28,15 @@
 	return (MKCoordinateRegion){self.coordinate, self.coordinateSpan};
 }
 
--(NSArray*)findAddressComponent:(NSString*)typeName
+-(NSArray *)findAddressComponent:(NSString *)typeName
 {
 	NSMutableArray *matchingComponents = [[NSMutableArray alloc] init];
 	
     BOOL isMatch;
-    NSString * type;
+    NSString *type;
 	for(int i = 0, count = _addressComponents.count, typesCount, j; i < count; i++)
 	{
-		DGGeocodingAddressComponent * component = _addressComponents[i];
+		DGGeocodingAddressComponent *component = _addressComponents[i];
 		if(component.types != nil)
 		{
             isMatch = NO;

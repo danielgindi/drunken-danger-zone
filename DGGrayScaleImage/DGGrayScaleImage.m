@@ -1,7 +1,11 @@
 //
 //  DGGrayScaleImage.m
+//  DGGrayScaleImage
 //
 //  Created by Daniel Cohen Gindi on 12/2/12.
+//  Copyright (c) 2013 danielgindi@gmail.com. All rights reserved.
+//
+//  https://github.com/danielgindi/drunken-danger-zone
 //
 
 #import "DGGrayScaleImage.h"
@@ -21,29 +25,29 @@
 
 @implementation DGGrayScaleImage
 
-- (id)initWithImage:(UIImage*)image withMode:(DGGrayScaleImageMode)colorMode andAlphaMultiplier:(float)alphaMultiplier
+- (id)initWithImage:(UIImage *)image withMode:(DGGrayScaleImageMode)colorMode andAlphaMultiplier:(float)alphaMultiplier
 {
 	CGSize size = image.size;
 	
 	int width = size.width;
 	int height = size.height;
 	
-	uint32_t *pixels = (uint32_t *)malloc(width * height * sizeof(uint32_t));
+	uint32_t *pixels = (uint32_t *)malloc(width *height *sizeof(uint32_t));
 	
-	memset(pixels, 0, width * height * sizeof(uint32_t));
+	memset(pixels, 0, width *height *sizeof(uint32_t));
 	
 	CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
 	
 	CGContextRef context = CGBitmapContextCreate(pixels,
 												 width, height, 8,
-												 width * sizeof(uint32_t),
+												 width *sizeof(uint32_t),
 												 colorSpace,
 												 kCGBitmapByteOrder32Little |
 												 kCGImageAlphaPremultipliedLast);
 	
 	CGContextDrawImage(context, CGRectMake(0, 0, width, height), image.CGImage);
 	
-	uint8_t * rgbaPixel;
+	uint8_t *rgbaPixel;
 	uint32_t value;
 	BOOL hasAlpha = alphaMultiplier != 1.0f;
 	BOOL alphaCheckBoundary = alphaMultiplier > 1.0f;
@@ -72,9 +76,9 @@
 			{
 				for(x = 0; x < width; x++)
 				{
-					rgbaPixel = (uint8_t *) &pixels[y * width + x];
+					rgbaPixel = (uint8_t *) &pixels[y *width + x];
 					
-					value = redMultiplier * rgbaPixel[CHANNEL_RED] + greenMultiplier * rgbaPixel[CHANNEL_GREEN] + blueMultiplier * rgbaPixel[CHANNEL_BLUE];
+					value = redMultiplier *rgbaPixel[CHANNEL_RED] + greenMultiplier *rgbaPixel[CHANNEL_GREEN] + blueMultiplier *rgbaPixel[CHANNEL_BLUE];
 					
 					rgbaPixel[CHANNEL_RED] = value;
 					rgbaPixel[CHANNEL_GREEN] = value;
@@ -84,13 +88,13 @@
 					{
 						if (alphaCheckBoundary)
 						{
-							value = rgbaPixel[CHANNEL_ALPHA] * alphaMultiplier;
+							value = rgbaPixel[CHANNEL_ALPHA] *alphaMultiplier;
 							if (value > 255) value = 255;
 							rgbaPixel[CHANNEL_ALPHA] = value;
 						}
 						else
 						{
-							rgbaPixel[CHANNEL_ALPHA] = rgbaPixel[CHANNEL_ALPHA] * alphaMultiplier;
+							rgbaPixel[CHANNEL_ALPHA] = rgbaPixel[CHANNEL_ALPHA] *alphaMultiplier;
 						}
 					}
 				}
@@ -103,7 +107,7 @@
 			{
 				for(x = 0; x < width; x++)
 				{
-					rgbaPixel = (uint8_t *) &pixels[y * width + x];
+					rgbaPixel = (uint8_t *) &pixels[y *width + x];
 					
 					value = ((uint32_t)rgbaPixel[CHANNEL_RED] + (uint32_t)rgbaPixel[CHANNEL_GREEN] + (uint32_t)rgbaPixel[CHANNEL_BLUE]) / 3;
 					
@@ -115,13 +119,13 @@
 					{
 						if (alphaCheckBoundary)
 						{
-							value = rgbaPixel[CHANNEL_ALPHA] * alphaMultiplier;
+							value = rgbaPixel[CHANNEL_ALPHA] *alphaMultiplier;
 							if (value > 255) value = 255;
 							rgbaPixel[CHANNEL_ALPHA] = value;
 						}
 						else
 						{
-							rgbaPixel[CHANNEL_ALPHA] = rgbaPixel[CHANNEL_ALPHA] * alphaMultiplier;
+							rgbaPixel[CHANNEL_ALPHA] = rgbaPixel[CHANNEL_ALPHA] *alphaMultiplier;
 						}
 					}
 				}
@@ -142,7 +146,7 @@
 	return self;
 }
 
-+ (id)grayScaleImageFromImage:(UIImage*)image withMode:(DGGrayScaleImageMode)colorMode andAlphaMultiplier:(float)alphaMultiplier
++ (id)grayScaleImageFromImage:(UIImage *)image withMode:(DGGrayScaleImageMode)colorMode andAlphaMultiplier:(float)alphaMultiplier
 {
     if ([image isKindOfClass:self]) return (id)image;
     

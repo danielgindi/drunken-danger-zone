@@ -5,6 +5,8 @@
 //  Created by Daniel Cohen Gindi on 4/18/12.
 //  Copyright (c) 2013 danielgindi@gmail.com. All rights reserved.
 //
+//  https://github.com/danielgindi/drunken-danger-zone
+//
 
 #import "DGNumberBadgeView.h"
 #import <objc/runtime.h>
@@ -74,9 +76,9 @@
     }
 }
 
-+ (DGNumberBadgeView*)badgeForView:(UIView *)view
++ (DGNumberBadgeView *)badgeForView:(UIView *)view
 {
-    DGNumberBadgeView * badge = objc_getAssociatedObject(view, ASSOCIATED_OBJECT_KEY);
+    DGNumberBadgeView *badge = objc_getAssociatedObject(view, ASSOCIATED_OBJECT_KEY);
     if (!badge)
     {
         badge = [[DGNumberBadgeView alloc] init];
@@ -276,7 +278,7 @@
     
 	CGContextRef curContext = UIGraphicsGetCurrentContext();
     
-	NSString* numberString = [@(self.value) stringValue];
+	NSString *numberString = [@(self.value) stringValue];
     
 	CGSize numberSize = [numberString sizeWithFont:self.font];
     
@@ -369,8 +371,8 @@
 		CGContextBeginPath(curContext);
 		CGContextMoveToPoint(curContext, 0, 0);
         
-		CGFloat shineStartY = badgeRect.size.height*0.25;
-		CGFloat shineStopY = shineStartY + badgeRect.size.height*0.4;
+		CGFloat shineStartY = badgeRect.size.height *0.25;
+		CGFloat shineStopY = shineStartY + badgeRect.size.height *0.4;
         
 		CGContextAddLineToPoint(curContext, 0, shineStartY);
 		CGContextAddCurveToPoint(curContext, 0, shineStopY,
@@ -406,7 +408,7 @@
 	CGFloat arcRadius = ceil((inSize.height+self.pad)/2.0);
     
 	CGFloat badgeWidthAdjustment = inSize.width - inSize.height/2.0;
-	CGFloat badgeWidth = 2.0*arcRadius;
+	CGFloat badgeWidth = 2.0 *arcRadius;
     
 	if ( badgeWidthAdjustment > 0.0 )
 	{
@@ -416,9 +418,9 @@
 	CGMutablePathRef badgePath = CGPathCreateMutable();
     
 	CGPathMoveToPoint( badgePath, NULL, arcRadius, 0 );
-	CGPathAddArc( badgePath, NULL, arcRadius, arcRadius, arcRadius, 3.0*M_PI_2, M_PI_2, YES);
-	CGPathAddLineToPoint( badgePath, NULL, badgeWidth-arcRadius, 2.0*arcRadius);
-	CGPathAddArc( badgePath, NULL, badgeWidth-arcRadius, arcRadius, arcRadius, M_PI_2, 3.0*M_PI_2, YES);
+	CGPathAddArc( badgePath, NULL, arcRadius, arcRadius, arcRadius, 3.0 *M_PI_2, M_PI_2, YES);
+	CGPathAddLineToPoint( badgePath, NULL, badgeWidth-arcRadius, 2.0 *arcRadius);
+	CGPathAddArc( badgePath, NULL, badgeWidth-arcRadius, arcRadius, arcRadius, M_PI_2, 3.0 *M_PI_2, YES);
 	CGPathAddLineToPoint( badgePath, NULL, arcRadius, 0 );
     
 	return badgePath;
@@ -439,7 +441,7 @@
 
 - (CGSize)sizeThatFits:(CGSize)size
 {
-	NSString* numberString = [@(self.value) stringValue];
+	NSString *numberString = [@(self.value) stringValue];
     
 	CGSize numberSize = [numberString sizeWithFont:self.font];
     
@@ -460,8 +462,8 @@
         badgeRect.size.height += fabsf(shadowOffset.height);
         
         CGFloat shadowBlur = self.shadowBlurSize;
-        badgeRect.size.width += shadowBlur * 2.f;
-        badgeRect.size.height += shadowBlur * 2.f;
+        badgeRect.size.width += shadowBlur *2.f;
+        badgeRect.size.height += shadowBlur *2.f;
     }
     
 	return badgeRect.size;

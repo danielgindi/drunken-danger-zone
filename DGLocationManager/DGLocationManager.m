@@ -5,6 +5,8 @@
 //  Created by Daniel Cohen Gindi on 11/23/12.
 //  Copyright (c) 2012 danielgindi@gmail.com. All rights reserved.
 //
+//  https://github.com/danielgindi/drunken-danger-zone
+//
 //  General Location Manager Class.
 //  Thread safe.
 //  No instances required.
@@ -34,7 +36,7 @@
 
 @implementation DGLocationManager
 
-+ (DGLocationManager*)instance
++ (DGLocationManager *)instance
 {
     static DGLocationManager *sharedInstance = nil;
     static dispatch_once_t onceToken;
@@ -194,7 +196,7 @@
     [self stopUpdatingHeading];
 }
 
-+ (void)setLocationPurpose:(NSString*)purpose
++ (void)setLocationPurpose:(NSString *)purpose
 {
     self.instance->purpose = [purpose copy];
 }
@@ -204,12 +206,12 @@
     self.instance->activityType = activityType;
 }
 
-+ (CLLocation*)location
++ (CLLocation *)location
 {
     return self.instance->newLocation;
 }
 
-+ (CLLocation*)previousLocation
++ (CLLocation *)previousLocation
 {
     return self.instance->oldLocation;
 }

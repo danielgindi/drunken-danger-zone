@@ -5,6 +5,8 @@
 //  Created by Daniel Cohen Gindi on 3/29/13.
 //  Copyright (c) 2013 danielgindi@gmail.com. All rights reserved.
 //
+//  https://github.com/danielgindi/drunken-danger-zone
+//
 
 #import "DGGeocoding.h"
 #import "DGGeocodingRequest.h"
@@ -12,7 +14,7 @@
 
 @implementation DGGeocoding
 
-static NSString * s_DGGeocoding_Bing_Key = nil;
+static NSString *s_DGGeocoding_Bing_Key = nil;
 
 + (void)setBingKey:(NSString *)key
 {
@@ -28,10 +30,10 @@ static NSString * s_DGGeocoding_Bing_Key = nil;
 {
     if ([service isEqualToString:DGGeocodingServiceBing] && s_DGGeocoding_Bing_Key.length)
     {
-        NSString * url = [NSString stringWithFormat:@"http://dev.virtualearth.net/REST/v1/Locations?query=%@&includeNeighborhood=0&maxResults=5&culture=%@&key=%@", [DGGeocodingRequest urlEncodedString:queryString], (NSString*)[NSLocale preferredLanguages][0], s_DGGeocoding_Bing_Key];
+        NSString *url = [NSString stringWithFormat:@"http://dev.virtualearth.net/REST/v1/Locations?query=%@&includeNeighborhood=0&maxResults=5&culture=%@&key=%@", [DGGeocodingRequest urlEncodedString:queryString], (NSString *)[NSLocale preferredLanguages][0], s_DGGeocoding_Bing_Key];
         [DGGeocodingRequest requestWithUrl:[NSURL URLWithString:url] cachePolicy:NSURLCacheStorageAllowed timeout:10.0 completion:^(NSObject *response) {
             
-            NSDictionary * dict = (NSDictionary*)response;
+            NSDictionary *dict = (NSDictionary *)response;
             
             int statusCode = [dict[@"statusCode"] intValue];
             if (statusCode != 200)
@@ -43,7 +45,7 @@ static NSString * s_DGGeocoding_Bing_Key = nil;
                 return;
             }
             
-            NSArray * resourceSets = dict[@"resourceSets"];
+            NSArray *resourceSets = dict[@"resourceSets"];
             if (!resourceSets.count)
             {
                 if (errorBlock)
@@ -53,7 +55,7 @@ static NSString * s_DGGeocoding_Bing_Key = nil;
                 return;
             }
             
-            NSArray * resources = resourceSets[0][@"resources"];
+            NSArray *resources = resourceSets[0][@"resources"];
             if (!resources.count)
             {
                 if (errorBlock)
@@ -63,14 +65,14 @@ static NSString * s_DGGeocoding_Bing_Key = nil;
                 return;
             }
             
-            NSMutableArray * geocodingResults = [[NSMutableArray alloc] init];
-            for (NSDictionary * result in resources)
+            NSMutableArray *geocodingResults = [[NSMutableArray alloc] init];
+            for (NSDictionary *result in resources)
             {
-                DGGeocodingAddressResult * geocodingResult = [[DGGeocodingAddressResult alloc] init];
+                DGGeocodingAddressResult *geocodingResult = [[DGGeocodingAddressResult alloc] init];
                 
                 geocodingResult.address = result[@"address"][@"formattedAddress"];
                 
-                NSArray * bbox = result[@"bbox"];
+                NSArray *bbox = result[@"bbox"];
                 if (bbox)
                 {
                     geocodingResult.boundsSouthWestLat = [bbox[0] doubleValue];
@@ -79,7 +81,7 @@ static NSString * s_DGGeocoding_Bing_Key = nil;
                     geocodingResult.boundsNorthEastLon = [bbox[3] doubleValue];
                 }
                 
-                NSArray * coordinates = result[@"point"][@"coordinates"];
+                NSArray *coordinates = result[@"point"][@"coordinates"];
                 geocodingResult.latitude = [coordinates[0] doubleValue];
                 geocodingResult.longitude = [coordinates[1] doubleValue];
                 
@@ -102,12 +104,12 @@ static NSString * s_DGGeocoding_Bing_Key = nil;
     }
     else // DGGeocodingServiceGoogle
     {
-        NSString * url = [NSString stringWithFormat:@"http://maps.google.com/maps/api/geocode/json?address=%@&sensor=false&language=%@", [DGGeocodingRequest urlEncodedString:queryString], [(NSString*)[NSLocale preferredLanguages][0] stringByReplacingOccurrencesOfString:@"_" withString:@"-"]];
+        NSString *url = [NSString stringWithFormat:@"http://maps.google.com/maps/api/geocode/json?address=%@&sensor=false&language=%@", [DGGeocodingRequest urlEncodedString:queryString], [(NSString *)[NSLocale preferredLanguages][0] stringByReplacingOccurrencesOfString:@"_" withString:@"-"]];
         [DGGeocodingRequest requestWithUrl:[NSURL URLWithString:url] cachePolicy:NSURLCacheStorageAllowed timeout:10.0 completion:^(NSObject *response) {
             
-            NSDictionary * dict = (NSDictionary*)response;
+            NSDictionary *dict = (NSDictionary *)response;
             
-            NSString * status = dict[@"status"];
+            NSString *status = dict[@"status"];
             
             if(![status isEqualToString:@"OK"])
             {
@@ -118,19 +120,19 @@ static NSString * s_DGGeocoding_Bing_Key = nil;
                 return;
             }
             
-            NSMutableArray * geocodingResults = [[NSMutableArray alloc] init];
+            NSMutableArray *geocodingResults = [[NSMutableArray alloc] init];
             
-            NSArray * results = dict[@"results"];
-            for (NSDictionary * result in results)
+            NSArray *results = dict[@"results"];
+            for (NSDictionary *result in results)
             {
-                DGGeocodingAddressResult * geocodingResult = [[DGGeocodingAddressResult alloc] init];
+                DGGeocodingAddressResult *geocodingResult = [[DGGeocodingAddressResult alloc] init];
                 
-                NSMutableArray * components = nil; 
-                NSArray * addressComponents = result[@"address_components"];
-                for (NSDictionary * addressComponent in addressComponents)
+                NSMutableArray *components = nil; 
+                NSArray *addressComponents = result[@"address_components"];
+                for (NSDictionary *addressComponent in addressComponents)
                 {
                     if (!components) components = [[NSMutableArray alloc] init];
-                    DGGeocodingAddressComponent * component = [[DGGeocodingAddressComponent alloc] init];
+                    DGGeocodingAddressComponent *component = [[DGGeocodingAddressComponent alloc] init];
                     component.longName = addressComponent[@"long_name"];
                     component.shortName = addressComponent[@"short_name"];
                     component.types = addressComponent[@"types"];
@@ -139,8 +141,8 @@ static NSString * s_DGGeocoding_Bing_Key = nil;
                 geocodingResult.addressComponents = [components copy];
                 geocodingResult.address = result[@"formatted_address"];
                 
-                NSDictionary * geometry = result[@"geometry"];
-                NSDictionary * bounds = geometry[@"bounds"];
+                NSDictionary *geometry = result[@"geometry"];
+                NSDictionary *bounds = geometry[@"bounds"];
                 if (bounds)
                 {
                     geocodingResult.boundsNorthEastLat = [bounds[@"northeast"][@"lat"] doubleValue];
@@ -149,7 +151,7 @@ static NSString * s_DGGeocoding_Bing_Key = nil;
                     geocodingResult.boundsSouthWestLon = [bounds[@"southwest"][@"lng"] doubleValue];
                 }
                 
-                NSDictionary * viewport = geometry[@"viewport"];
+                NSDictionary *viewport = geometry[@"viewport"];
                 if (viewport)
                 {
                     geocodingResult.viewportNorthEastLat = [viewport[@"northeast"][@"lat"] doubleValue];
@@ -158,7 +160,7 @@ static NSString * s_DGGeocoding_Bing_Key = nil;
                     geocodingResult.viewportSouthWestLon = [viewport[@"southwest"][@"lng"] doubleValue];
                 }
                 
-                NSDictionary * location = geometry[@"location"];
+                NSDictionary *location = geometry[@"location"];
                 geocodingResult.latitude = [location[@"lat"] doubleValue];
                 geocodingResult.longitude = [location[@"lng"] doubleValue];
                 
@@ -206,7 +208,7 @@ static NSString * s_DGGeocoding_Bing_Key = nil;
         }
         else
         {
-            NSMutableArray * nextServices = [services mutableCopy];
+            NSMutableArray *nextServices = [services mutableCopy];
             [nextServices removeObjectAtIndex:0];
             [self geocodeLocation:queryString withServices:nextServices completion:completionBlock error:errorBlock];
         }

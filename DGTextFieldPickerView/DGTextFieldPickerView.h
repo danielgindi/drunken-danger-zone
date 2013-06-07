@@ -5,6 +5,8 @@
 //  Created by Daniel Cohen Gindi on 4/18/12.
 //  Copyright (c) 2013 danielgindi@gmail.com. All rights reserved.
 //
+//  https://github.com/danielgindi/drunken-danger-zone
+//
 
 #import <UIKit/UIKit.h>
 
@@ -12,18 +14,18 @@
 
 @protocol DGTextFieldPickerViewDelegate <NSObject>
 @required
-- (void)textFieldPickerView:(DGTextFieldPickerView*)textField showSearchTable:(BOOL)show;
-- (BOOL)textFieldPickerView:(DGTextFieldPickerView*)textField search:(NSString*)keywords;
-- (BOOL)textFieldPickerViewHasSearchResults:(DGTextFieldPickerView*)textField;
+- (void)textFieldPickerView:(DGTextFieldPickerView *)textField showSearchTable:(BOOL)show;
+- (BOOL)textFieldPickerView:(DGTextFieldPickerView *)textField search:(NSString *)keywords;
+- (BOOL)textFieldPickerViewHasSearchResults:(DGTextFieldPickerView *)textField;
 
 @optional
-- (NSString*)textFieldPickerView:(DGTextFieldPickerView*)textField labelForObject:(id)object;
-- (void)textFieldPickerViewDidResize:(DGTextFieldPickerView*)textField;
-- (void)textFieldPickerView:(DGTextFieldPickerView*)textField didAddCellAtIndex:(NSUInteger)index;
-- (void)textFieldPickerView:(DGTextFieldPickerView*)textField didRemoveCellAtIndex:(NSUInteger)index;
-- (void)textFieldPickerView:(DGTextFieldPickerView*)textField returnRequestedWithText:(NSString*)text;
-- (void)textFieldPickerViewDidBeginEditing:(DGTextFieldPickerView*)textField;
-- (void)textFieldPickerViewDidEndEditing:(DGTextFieldPickerView*)textField;
+- (NSString *)textFieldPickerView:(DGTextFieldPickerView *)textField labelForObject:(id)object;
+- (void)textFieldPickerViewDidResize:(DGTextFieldPickerView *)textField;
+- (void)textFieldPickerView:(DGTextFieldPickerView *)textField didAddCellAtIndex:(NSUInteger)index;
+- (void)textFieldPickerView:(DGTextFieldPickerView *)textField didRemoveCellAtIndex:(NSUInteger)index;
+- (void)textFieldPickerView:(DGTextFieldPickerView *)textField returnRequestedWithText:(NSString *)text;
+- (void)textFieldPickerViewDidBeginEditing:(DGTextFieldPickerView *)textField;
+- (void)textFieldPickerViewDidEndEditing:(DGTextFieldPickerView *)textField;
 @end
 
 @interface DGTextFieldPickerView : UITextField <UITextFieldDelegate, UIAppearance>
@@ -33,7 +35,7 @@
 @property (nonatomic, assign)               BOOL searchesAutomatically;
 @property (nonatomic, strong, readonly)     NSArray *cellViews;
 @property (nonatomic, strong, readonly)     NSArray *cells;
-@property (nonatomic, strong)               DGTextFieldPickerCellView* selectedCell;
+@property (nonatomic, strong)               DGTextFieldPickerCellView *selectedCell;
 @property (nonatomic, readonly)             int lineCount;
 @property (nonatomic, assign) CGFloat minimumHeight;
 @property (nonatomic, assign) CGFloat cellXSpacing UI_APPEARANCE_SELECTOR;
@@ -43,7 +45,7 @@
 - (void)search;
 - (void)showSearchResults:(BOOL)show;
 
-- (NSString*)searchText;
+- (NSString *)searchText;
 
 - (void)addCellWithObject:(id)object;
 - (void)removeCellWithObject:(id)object;

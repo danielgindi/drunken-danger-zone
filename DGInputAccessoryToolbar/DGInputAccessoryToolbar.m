@@ -1,22 +1,25 @@
 //
 //  DGInputAccessoryToolbar.m
+//  DGInputAccessoryToolbar
 //
 //  Created by Daniel Cohen Gindi on 2/7/13.
 //  Copyright (c) 2013 danielgindi@gmail.com. All rights reserved.
+//
+//  https://github.com/danielgindi/drunken-danger-zone
 //
 
 #import "DGInputAccessoryToolbar.h"
 
 @interface DGInputAccessoryToolbar ()
-{
-    id actionTarget;
-    SEL prevActionSelector, nextActionSelector, doneActionSelector;
-    UISegmentedControl * segmented;
-    UIBarButtonItem * doneButton;
-}
 @end
 
 @implementation DGInputAccessoryToolbar
+{
+    id actionTarget;
+    SEL prevActionSelector, nextActionSelector, doneActionSelector;
+    UISegmentedControl *segmented;
+    UIBarButtonItem *doneButton;
+}
 
 - (void)initialize_DGInputAccessoryToolbar
 {
@@ -28,9 +31,9 @@
     self.translucent = YES;
     //self.tintColor = [UIColor darkGrayColor];
     
-    NSString * prevString, * nextString;
+    NSString *prevString, *nextString;
     
-    NSString * localeId = NSBundle.mainBundle.preferredLocalizations[0];
+    NSString *localeId = NSBundle.mainBundle.preferredLocalizations[0];
     if ([localeId hasPrefix:@"he"])
     {
         prevString = @"הקודם";
@@ -42,7 +45,7 @@
         nextString = @"Next";
     }
     
-    NSMutableArray * items = [[NSMutableArray alloc] init];
+    NSMutableArray *items = [[NSMutableArray alloc] init];
     
     if (prevActionSelector || nextActionSelector)
     {
@@ -54,7 +57,7 @@
         [items addObject:[[UIBarButtonItem alloc] initWithCustomView:segmented]];
     }
     
-    UIBarButtonItem* flexSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
+    UIBarButtonItem *flexSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
     doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:actionTarget action:doneActionSelector];
     
     [items addObject:flexSpace];
