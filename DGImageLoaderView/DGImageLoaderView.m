@@ -296,6 +296,9 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
 - (UIImage*)imageThumbnailOfImage:(UIImage*)image fromCacheOfURL:(NSURL*)url isFromFile:(BOOL*)fromFile
 {
     CGSize neededSize = [self calculateFrameForImage:image].size;
+    CGFloat scale = UIScreen.mainScreen.scale;
+    neededSize.width *= scale;
+    neededSize.height *= scale;
     CGSize currentSize = image.size;
     if (fromFile) *fromFile = YES;
     if (neededSize.width != currentSize.width || neededSize.height != currentSize.height)
@@ -307,7 +310,7 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
         {
             if ([[NSFileManager defaultManager] fileExistsAtPath:thumbCachePath])
             {
-                image = [UIImage imageWithContentsOfFile:thumbCachePath];
+                image = [UIImage imageWithData:[NSData dataWithContentsOfFile:thumbCachePath options:0 error:nil] scale:scale];
             }
             else
             {
