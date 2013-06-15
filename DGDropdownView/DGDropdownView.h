@@ -39,11 +39,11 @@
 @property (nonatomic, assign) CGFloat imagePadding UI_APPEARANCE_SELECTOR;
 @property (nonatomic, assign) CGSize maximumImageSize UI_APPEARANCE_SELECTOR;
 @property (nonatomic, assign) CGFloat animationDuration UI_APPEARANCE_SELECTOR;
-@property (nonatomic, assign) BOOL imageOnTheRight UI_APPEARANCE_SELECTOR; // Seems like BOOL doesn't work with UI_APPEARANCE
-@property (nonatomic, assign) BOOL alignImageToText UI_APPEARANCE_SELECTOR; // Seems like BOOL doesn't work with UI_APPEARANCE
+@property (nonatomic, assign) int imageOnTheRight UI_APPEARANCE_SELECTOR; // Seems like BOOL doesn't work with UI_APPEARANCE
+@property (nonatomic, assign) int alignImageToText UI_APPEARANCE_SELECTOR; // Seems like BOOL doesn't work with UI_APPEARANCE
 @property (nonatomic, assign) CGFloat maxHeight UI_APPEARANCE_SELECTOR;
 @property (nonatomic, assign) CGFloat minHeight UI_APPEARANCE_SELECTOR;
-@property (nonatomic, assign) BOOL reduceImageSizeOnBothSides UI_APPEARANCE_SELECTOR; // Seems like BOOL doesn't work with UI_APPEARANCE
+@property (nonatomic, assign) int reduceImageSizeOnBothSides UI_APPEARANCE_SELECTOR; // Seems like BOOL doesn't work with UI_APPEARANCE
 
 @property (nonatomic, strong) NSString *title UI_APPEARANCE_SELECTOR;
 @property (nonatomic, strong) NSString *detail UI_APPEARANCE_SELECTOR;

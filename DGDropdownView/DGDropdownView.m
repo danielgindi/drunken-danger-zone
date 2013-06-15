@@ -15,6 +15,13 @@
 // For use with objc_getAssociatedObject/objc_setAssociatedObject to attach arrays of dropdown-views to parent views
 #define ASSOCIATED_KEY @"DGDropdownView_array" 
 
+// iOS 5 support, to be dropped soon
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
+#define NSTextAlignmentLeft UITextAlignmentLeft
+#define NSTextAlignmentRight UITextAlignmentRight
+#define NSTextAlignmentCenter UITextAlignmentCenter
+#endif
+
 @interface DGDropdownView ()
 {
     CAGradientLayer *backgroundLayer;
@@ -56,7 +63,7 @@
     _animationDuration = 0.3;
     _imageOnTheRight = NO;
     _alignImageToText = NO;
-    _titleTextAlignment = _detailTextAlignment = UITextAlignmentLeft;
+    _titleTextAlignment = _detailTextAlignment = NSTextAlignmentLeft;
     _textVerticalAlignment = UIControlContentVerticalAlignmentCenter;
     _imageVerticalAlignment = UIControlContentVerticalAlignmentCenter;
     _reduceImageSizeOnBothSides = NO;
@@ -267,11 +274,11 @@
         titleRect.size.width = MIN(sz.width, titleRect.size.width);
         titleRect.size.height = MIN(sz.height, titleRect.size.height);
         
-        if (titleLabel.textAlignment == UITextAlignmentRight)
+        if (titleLabel.textAlignment == NSTextAlignmentRight)
         {
             titleRect.origin.x += availableSpace.size.width - titleRect.size.width;
         }
-        else if (titleLabel.textAlignment == UITextAlignmentCenter)
+        else if (titleLabel.textAlignment == NSTextAlignmentCenter)
         {
             titleRect.origin.x += (availableSpace.size.width - titleRect.size.width) / 2.f;
         }
@@ -296,11 +303,11 @@
         detailRect.size.width = MIN(sz.width, detailRect.size.width);
         detailRect.size.height = MIN(sz.height, detailRect.size.height);
         
-        if (detailLabel.textAlignment == UITextAlignmentRight)
+        if (detailLabel.textAlignment == NSTextAlignmentRight)
         {
             detailRect.origin.x += availableSpace.size.width - detailRect.size.width;
         }
-        else if (detailLabel.textAlignment == UITextAlignmentCenter)
+        else if (detailLabel.textAlignment == NSTextAlignmentCenter)
         {
             detailRect.origin.x += (availableSpace.size.width - detailRect.size.width) / 2.f;
         }
@@ -690,13 +697,13 @@
     [self setNeedsLayout];
 }
 
-- (void)setImageOnTheRight:(BOOL)imageOnTheRight
+- (void)setImageOnTheRight:(int)imageOnTheRight
 {
     _imageOnTheRight = imageOnTheRight;
     [self setNeedsLayout];
 }
 
-- (void)setAlignImageToText:(BOOL)alignImageToText
+- (void)setAlignImageToText:(int)alignImageToText
 {
     _alignImageToText = alignImageToText;
     [self setNeedsLayout];
