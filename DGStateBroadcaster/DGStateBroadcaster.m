@@ -4,8 +4,6 @@
 //  Created by Daniel Cohen Gindi on 5/8/13.
 //  Copyright (c) 2013 danielgindi@gmail.com. All rights reserved.
 //
-//  https://github.com/danielgindi/drunken-danger-zone
-//
 
 #import "DGStateBroadcaster.h"
 #import <CoreLocation/CoreLocation.h>
@@ -67,7 +65,7 @@
     reachabilityRef = NULL;
 }
 
-+ (DGStateBroadcaster *)instance
++ (DGStateBroadcaster*)instance
 {
     static DGStateBroadcaster *sharedInstance = nil;
     static dispatch_once_t onceToken;
@@ -76,7 +74,7 @@
         sharedInstance->delegates = [[NSMutableArray alloc] init];
         sharedInstance->batteryPercentageBar = .05f;
         sharedInstance->distanceMetersBar = 30.0;
-        sharedInstance->locationAccuracyMetersBar = 100.0;
+        sharedInstance->locationAccuracyMetersBar = 500.0;
         sharedInstance->locationManager = [[CLLocationManager alloc] init];
         sharedInstance->locationManager.distanceFilter = kCLDistanceFilterNone;
         sharedInstance->locationManager.desiredAccuracy = kCLLocationAccuracyBest;
@@ -175,8 +173,11 @@
         if (!instance->isListeningToBattery)
         {
             [[NSNotificationCenter defaultCenter] addObserver:instance
-                                                     selector:@selector(batteryLevelChanged:)
+                                                     selector:@selector(batteryLevelOrStateChanged:)
                                                          name:UIDeviceBatteryLevelDidChangeNotification object:nil];
+            [[NSNotificationCenter defaultCenter] addObserver:instance
+                                                     selector:@selector(batteryLevelOrStateChanged:)
+                                                         name:UIDeviceBatteryStateDidChangeNotification object:nil];
         }
         instance->isListeningToBattery = YES;
     }
@@ -204,6 +205,7 @@
     {
         UIDevice.currentDevice.batteryMonitoringEnabled = YES;
         [[NSNotificationCenter defaultCenter] removeObserver:instance name:UIDeviceBatteryLevelDidChangeNotification object:nil];
+        [[NSNotificationCenter defaultCenter] removeObserver:instance name:UIDeviceBatteryStateDidChangeNotification object:nil];
         instance->isListeningToBattery = NO;
     }
     if ((states & DGStateBroadcasterDistanceTravelled) == DGStateBroadcasterDistanceTravelled && instance->isListeningToDistanceTravelled)
@@ -303,7 +305,7 @@ static NSString *s_DGStateBroadcaster_RechabilitySync = @"s_DGStateBroadcaster_R
                     addr.sin_family = AF_INET;
                 }
             }
-            reachabilityRef = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, (const struct sockaddr *)&addr);
+            reachabilityRef = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, (const struct sockaddr*)&addr);
         }
         
         if (!reachabilityQueue)
@@ -338,10 +340,10 @@ static NSString *s_DGStateBroadcaster_RechabilitySync = @"s_DGStateBroadcaster_R
     }
 }
 
-static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReachabilityFlags flags, void *info)
+static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReachabilityFlags flags, void*info)
 {
 #pragma unused (target)
-    DGStateBroadcaster *_self = ((__bridge DGStateBroadcaster *)info);
+    DGStateBroadcaster *_self = ((__bridge DGStateBroadcaster*)info);
     
     [_self reachabilityChanged:flags];
 }
@@ -396,7 +398,7 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
 	return !!wifiAddress.length;
 }
 
-+ (NSString *)wifiIpAddress
++ (NSString*)wifiIpAddress
 { // Thanks to Matt Brown!
     BOOL success;
     struct ifaddrs *addrs;
@@ -421,7 +423,7 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
     return NULL;
 }
 
-+ (void)setReachabilityWithHostname:(NSString *)hostname
++ (void)setReachabilityWithHostname:(NSString*)hostname
 {
     DGStateBroadcaster *instance = self.instance;
     instance->hasReachabilityAddress = NO;
@@ -430,7 +432,7 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
     [instance initReachabilityIfNeeded:YES];
 }
 
-+ (void)setReachabilityWithAddress:(const struct sockaddr_in *)hostAddress
++ (void)setReachabilityWithAddress:(const struct sockaddr_in*)hostAddress
 {
     DGStateBroadcaster *instance = self.instance;
     instance->reachabilityAddress = *hostAddress;
@@ -459,7 +461,7 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
 }
 
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
-+ (void)setLocationPurpose:(NSString *)purpose
++ (void)setLocationPurpose:(NSString*)purpose
 {
     self.instance->locationPurpose = [purpose copy];
 }
@@ -514,7 +516,7 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
 
 #pragma mark - Notifications
 
-- (void)batteryLevelChanged:(NSNotification *)notification
+- (void)batteryLevelOrStateChanged:(NSNotification*)notification
 {
     float batteryLevel = UIDevice.currentDevice.batteryLevel;
     BOOL isCharging = UIDevice.currentDevice.batteryState == UIDeviceBatteryStateCharging;
@@ -547,7 +549,7 @@ static void DGStateBroadcaster_ReachabilityCallback(SCNetworkReachabilityRef tar
                 {
                     if ([delegate respondsToSelector:@selector(stateBroadcasterBatteryChargedLow:charging:)])
                     {
-                        [delegate stateBroadcasterBatteryChargedLow:YES charging:isCharging];
+                        [delegate stateBroadcasterBatteryChargedLow:NO charging:isCharging];
                     }
                 }
             });

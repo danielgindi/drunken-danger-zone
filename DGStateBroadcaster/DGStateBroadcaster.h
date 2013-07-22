@@ -4,8 +4,6 @@
 //  Created by Daniel Cohen Gindi on 5/8/13.
 //  Copyright (c) 2013 danielgindi@gmail.com. All rights reserved.
 //
-//  https://github.com/danielgindi/drunken-danger-zone
-//
 
 #import <Foundation/Foundation.h>
 #import <CoreLocation/CoreLocation.h>
@@ -23,9 +21,9 @@ typedef enum _DGStateBroadcasterState
 @protocol DGStateBroadcasterDelegate <NSObject>
 
 - (void)stateBroadcasterBatteryChargedLow:(BOOL)isLow charging:(BOOL)isCharging;
-- (void)stateBroadcasterDistanceTravelledToLocation:(CLLocation *)location;
+- (void)stateBroadcasterDistanceTravelledToLocation:(CLLocation*)location;
 - (void)stateBroadcasterLocationAccurateEnough:(BOOL)accurateEnough;
-- (void)stateBroadcasterNetworkReachable:(BOOL)rechable isOnWifi:(BOOL)wifi;
+- (void)stateBroadcasterNetworkReachable:(BOOL)reachable isOnWifi:(BOOL)wifi;
 
 @end
 
@@ -49,13 +47,13 @@ typedef enum _DGStateBroadcasterState
 + (void)setLocationAccuracyBarInMeters:(double)meters;
 + (void)setLowBatteryBar:(float)batteryCharge;
 
-+ (void)setReachabilityWithHostname:(NSString *)hostname;
-+ (void)setReachabilityWithAddress:(const struct sockaddr_in *)hostAddress;
++ (void)setReachabilityWithHostname:(NSString*)hostname;
++ (void)setReachabilityWithAddress:(const struct sockaddr_in*)hostAddress;
 + (void)setReachabilityForInternetConnection; // This is the default mode
 + (void)setReachabilityForWifiInternetConnection;
 
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
-+ (void)setLocationPurpose:(NSString *)purpose;
++ (void)setLocationPurpose:(NSString*)purpose;
 #endif
 + (void)setLocationActivityType:(CLActivityType)activityType;
 + (CLAuthorizationStatus)locationAuthorizationStatus;
@@ -68,6 +66,6 @@ typedef enum _DGStateBroadcasterState
 
 + (BOOL)isReachable; // Available only when listening to reachability!
 + (BOOL)isOnWifi; // Available only when listening to reachability!
-+ (NSString *)wifiIpAddress;
++ (NSString*)wifiIpAddress;
 
 @end
