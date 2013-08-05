@@ -19,6 +19,8 @@
     self.text = @"";
     self.textAlignment = NSTextAlignmentLeft;
     self.lineBreakMode = NSLineBreakByTruncatingTail;
+    self.contentsScale = UIScreen.mainScreen.scale;
+    self.rasterizationScale = UIScreen.mainScreen.scale;
 }
 
 - (id)initWithCoder:(NSCoder *)aDecoder
@@ -137,6 +139,9 @@
     NSString *text = self.text;
     
     UIGraphicsPushContext(ctx);
+    CGContextSetAllowsAntialiasing(ctx, YES);
+    CGContextSetShouldAntialias(ctx, YES);
+    CGContextSetShouldSmoothFonts(ctx, YES);
     if (textOutlineColor)
     {
         CGContextSetTextDrawingMode(ctx, kCGTextStroke);
