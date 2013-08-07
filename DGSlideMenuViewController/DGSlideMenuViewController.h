@@ -15,6 +15,8 @@
 
 @optional
 - (BOOL)slideMenuViewController:(DGSlideMenuViewController *)vc selectedMenuAt:(NSString *)identifier fromGroup:(NSString *)groupIdentifier;
+- (UIView *)slideMenuViewController:(DGSlideMenuViewController *)vc customViewForSectionHeader:(NSString *)sectionKey;
+- (UITableViewCell *)slideMenuViewController:(DGSlideMenuViewController *)vc customTableCellForItem:(NSString *)itemKey inSection:(NSString *)sectionKey withTitle:(NSString *)title inTableView:(UITableView*)tableView;
 
 @end
 
@@ -22,6 +24,15 @@
 
 @property (nonatomic, weak) id<DGSlideMenuViewControllerDelegate> delegate;
 @property (nonatomic, assign) BOOL retainSelection;
+@property (nonatomic, assign) CGFloat sectionHeaderHeight UI_APPEARANCE_SELECTOR;
+@property (nonatomic, assign) CGFloat sectionHeaderPaddingLeft UI_APPEARANCE_SELECTOR;
+@property (nonatomic, assign) CGFloat sectionHeaderFontSize UI_APPEARANCE_SELECTOR;
+@property (nonatomic, strong) UIColor *sectionHeaderTextColor UI_APPEARANCE_SELECTOR;
+@property (nonatomic, strong) UIColor *sectionHeaderTopColor UI_APPEARANCE_SELECTOR;
+@property (nonatomic, strong) UIColor *sectionHeaderBottomColor UI_APPEARANCE_SELECTOR;
+@property (nonatomic, strong) UIColor *tableBackgroundColor UI_APPEARANCE_SELECTOR;
+@property (nonatomic, strong) UIImage *tableBackgroundImage UI_APPEARANCE_SELECTOR;
+@property (nonatomic, strong) UIView *tableBackgroundView UI_APPEARANCE_SELECTOR;
 
 - (id)initWithRootViewController:(UIViewController *)rootViewController;
 

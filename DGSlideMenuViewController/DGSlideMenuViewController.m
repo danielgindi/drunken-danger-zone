@@ -24,19 +24,21 @@
 #define kKeyTitleFont @"font"
 #define kDefaultGroup @"{Default}"
 
-#define SECTION_HEADER_HEIGHT 20.f
-#define SECTION_HEADER_PADDING_LEFT 8.f
-#define SECTION_HEADER_FONT_SIZE 12.f
-#define SECTION_HEADER_TEXT_COLOR [UIColor whiteColor]
-#define SECTION_HEADER_COLOR_TOP [UIColor colorWithRed:0.318 green:0.322 blue:0.318 alpha:1.000]
-#define SECTION_HEADER_COLOR_BOTTOM [UIColor colorWithWhite:0.498 alpha:1.000]
-
-#define TABLE_BACKGROUND_COLOR [UIColor colorWithRed:0.173 green:0.176 blue:0.173 alpha:1.000]
-
 #define kSlideInInterval 0.3
 #define kSlideOutInterval 0.1
 #define kVisiblePortion 65
 #define kMenuTableSize 255
+
+// iOS 5 support, to be dropped soon
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
+#define NSTextAlignmentLeft UITextAlignmentLeft
+#define NSTextAlignmentRight UITextAlignmentRight
+#define NSTextAlignmentCenter UITextAlignmentCenter
+#endif
+
+#ifndef IS_IOS7_OR_GREATER
+#define IS_IOS7_OR_GREATER ([UIDevice.currentDevice.systemVersion compare:@"7.0" options:NSNumericSearch] == NSOrderedSame)
+#endif
 
 @interface DGSlideMenuViewController ()
 
@@ -56,6 +58,20 @@
     
     NSIndexPath *selectedCellIp;
     NSString *selectedItem, *selectedGroup;
+    
+    BOOL isOnIos7;
+}
+
+- (void)initialize_DGSlideMenuViewController
+{
+    _sectionHeaderHeight = 20.f;
+    _sectionHeaderPaddingLeft = 8.f;
+    _sectionHeaderFontSize = 12.f;
+    _sectionHeaderTextColor = UIColor.whiteColor;
+    _sectionHeaderTopColor = [UIColor colorWithWhite:81/255.f alpha:1.f];
+    _sectionHeaderBottomColor = [UIColor colorWithWhite:127/255.f alpha:1.f];
+    _tableBackgroundColor = [UIColor colorWithWhite:44/255.f alpha:1.f];
+    isOnIos7 = IS_IOS7_OR_GREATER;
 }
 
 - (id)initWithRootViewController:(UIViewController *)rootViewController
@@ -66,6 +82,7 @@
         selectedViewController = rootViewController;
         groupsMap = [NSMutableDictionary dictionary];
         groupsArray = [NSMutableArray array];
+        [self initialize_DGSlideMenuViewController];
     }
     return self;
 }
@@ -77,6 +94,7 @@
     {
         groupsMap = [NSMutableDictionary dictionary];
         groupsArray = [NSMutableArray array];
+        [self initialize_DGSlideMenuViewController];
     }
     return self;
 }
@@ -88,6 +106,7 @@
     {
         groupsMap = [NSMutableDictionary dictionary];
         groupsArray = [NSMutableArray array];
+        [self initialize_DGSlideMenuViewController];
     }
     return self;
 }
@@ -112,6 +131,18 @@
 	
     movingView.center = CGPointMake([movingView center].x + translation.x, [movingView center].y);
     [gesture setTranslation:CGPointZero inView:[panningView superview]];
+    
+    if (isOnIos7)
+    {
+        if (movingView.center.x > movingView.superview.bounds.size.width)
+        {
+            [UIApplication.sharedApplication setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
+        }
+        else
+        {
+            [UIApplication.sharedApplication setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
+        }
+    }
     
     if ([gesture state] == UIGestureRecognizerStateEnded)
     {
@@ -263,6 +294,11 @@
         self.view.userInteractionEnabled = YES;
         isSwitchingToViewController = NO;
     }
+    
+    if (isOnIos7)
+    {
+        [UIApplication.sharedApplication setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
+    }
 }
 
 - (void)setupViewControllerShadow:(UIViewController *)viewController
@@ -291,6 +327,11 @@
         
         selectedViewController.view.frame = CGRectMake(kMenuTableSize, 0, bounds.size.width, bounds.size.height);
         
+        if (isOnIos7)
+        {
+            [UIApplication.sharedApplication setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
+        }
+        
     } completion:nil];
 }
 
@@ -298,15 +339,15 @@
 {
     NSMutableDictionary *group = [NSMutableDictionary dictionary];
     
-    [group setObject:identifier forKey:kKeyIdentifier];
-    if (title) [group setObject:title forKey:kKeyTitle];
+    group[kKeyIdentifier] = identifier;
+    if (title) group[kKeyTitle] = title;
     
-    if ([groupsMap objectForKey:identifier])
+    if (groupsMap[identifier])
     {
-        [groupsArray removeObject:[groupsMap objectForKey:identifier]];
+        [groupsArray removeObject:groupsMap[identifier]];
     }
     
-    [groupsMap setObject:group forKey:identifier];
+    groupsMap[identifier] = group;
     return group;
 }
 
@@ -314,14 +355,14 @@
 {
     NSMutableDictionary *item = [NSMutableDictionary dictionary];
     
-    [item setObject:identifier forKey:kKeyIdentifier];
-    if (title) [item setObject:title forKey:kKeyTitle];
-    if (viewController) [item setObject:viewController forKey:kKeyContent];
-    if (icon) [item setObject:icon forKey:kKeyIcon];
-    if (selectedIcon) [item setObject:selectedIcon forKey:kKeySelectedIcon];
-    if (titleColor) [item setObject:titleColor forKey:kKeyTitleColor];
-    if (selectedTitleColor) [item setObject:selectedTitleColor forKey:kKeySelectedTitleColor];
-    if (titleFont) [item setObject:titleFont forKey:kKeyTitleFont];
+    item[kKeyIdentifier] = identifier;
+    if (title) item[kKeyTitle] = title;
+    if (viewController) item[kKeyContent] = viewController;
+    if (icon) item[kKeyIcon] = icon;
+    if (selectedIcon) item[kKeySelectedIcon] = selectedIcon;
+    if (titleColor) item[kKeyTitleColor] = titleColor;
+    if (selectedTitleColor) item[kKeySelectedTitleColor] = selectedTitleColor;
+    if (titleFont) item[kKeyTitleFont] = titleFont;
     
     return item;
 }
@@ -373,8 +414,8 @@
     NSDictionary *group = groupsMap[groupIdentifier];
     if (group)
     {
-        NSMutableDictionary *itemsMap = [group objectForKey:kKeyMap];
-        NSMutableArray *itemsArray = [group objectForKey:kKeyArray];
+        NSMutableDictionary *itemsMap = group[kKeyMap];
+        NSMutableArray *itemsArray = group[kKeyArray];
         if (itemsMap[item])
         {
             if (selectedCellIp && selectedCellIp.section == [groupsArray indexOfObject:group])
@@ -430,25 +471,25 @@
 - (void)addItemWithTitle:(NSString *)title andViewController:(UIViewController *)viewController withIdentifier:(NSString *)identifier andIcon:(UIImage *)icon andSelectedIcon:(UIImage *)selectedIcon andTitleColor:(UIColor *)titleColor andSelectedTitleColor:(UIColor *)selectedTitleColor andTitleFont:(UIFont *)titleFont inGroup:(NSString *)groupIdentifier atIndex:(NSInteger)index
 {
     if (!groupIdentifier) groupIdentifier = kDefaultGroup;
-    NSMutableDictionary *group = [groupsMap objectForKey:groupIdentifier];
+    NSMutableDictionary *group = groupsMap[groupIdentifier];
     if (group)
     {
-        NSMutableDictionary *itemsMap = [group objectForKey:kKeyMap];
-        NSMutableArray *itemsArray = [group objectForKey:kKeyArray];
+        NSMutableDictionary *itemsMap = group[kKeyMap];
+        NSMutableArray *itemsArray = group[kKeyArray];
         if (!itemsMap)
         {
-            [group setObject:itemsMap = [NSMutableDictionary dictionary] forKey:kKeyMap];
+            group[kKeyMap] = itemsMap = [NSMutableDictionary dictionary];
         }
         if (!itemsArray)
         {
-            [group setObject:itemsArray = [NSMutableArray array] forKey:kKeyArray];
+            group[kKeyArray] = itemsArray = [NSMutableArray array];
         }
-        if ([itemsMap objectForKey:identifier])
+        if (itemsMap[identifier])
         {
-            [itemsArray removeObject:[itemsMap objectForKey:identifier]];
+            [itemsArray removeObject:itemsMap[identifier]];
         }
         NSObject *item = [self _createItemWithTitle:title andViewController:viewController andIcon:icon andSelectedIcon:selectedIcon andTitleColor:titleColor andSelectedTitleColor:selectedTitleColor andTitleFont:titleFont withIdentifier:identifier];
-        [itemsMap setObject:item forKey:identifier];
+        itemsMap[identifier] = item;
         if (index < 0)
         {
             [itemsArray addObject:item];
@@ -468,10 +509,10 @@
 - (NSMutableDictionary *)getItem:(NSString *)identifier inGroup:(NSString *)groupIdentifier
 {
     if (!groupIdentifier) groupIdentifier = kDefaultGroup;
-    NSMutableDictionary *group = [groupsMap objectForKey:groupIdentifier];
+    NSMutableDictionary *group = groupsMap[groupIdentifier];
     if (group)
     {
-        NSMutableDictionary *itemsMap = [group objectForKey:kKeyMap];
+        NSMutableDictionary *itemsMap = group[kKeyMap];
         return itemsMap[identifier];
     }
     return nil;
@@ -498,11 +539,11 @@
 - (void)reloadRowForItem:(NSString *)identifier inGroup:(NSString *)groupIdentifier
 {
     if (!groupIdentifier) groupIdentifier = kDefaultGroup;
-    NSMutableDictionary *group = [groupsMap objectForKey:groupIdentifier];
+    NSMutableDictionary *group = groupsMap[groupIdentifier];
     if (group)
     {
         int groupIdx = [groupsArray indexOfObject:group];
-        int itemIdx = [[group objectForKey:kKeyArray] indexOfObject:[group objectForKey:kKeyMap][identifier]];
+        int itemIdx = [group[kKeyArray] indexOfObject:group[kKeyMap][identifier]];
         [tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:itemIdx inSection:groupIdx]] withRowAnimation:UITableViewRowAnimationNone];
     }
 }
@@ -545,9 +586,23 @@
     isFirstViewWillAppear = YES;
     
     tableView = [[UITableView alloc] init];
-    tableView.backgroundColor = TABLE_BACKGROUND_COLOR;
+    tableView.backgroundColor = self.tableBackgroundColor;
+    UIView *tableBackgroundView = self.tableBackgroundView;
+    if (!tableBackgroundView)
+    {
+        UIImage *tableBackgroundImage = self.tableBackgroundImage;
+        if (tableBackgroundImage)
+        {
+            UIImageView *iv = [[UIImageView alloc] initWithImage:tableBackgroundImage];
+            tableBackgroundView = iv;
+        }
+    }
+    if (tableBackgroundView)
+    {
+        tableView.backgroundView = tableBackgroundView;
+    }
     tableView.rowHeight = SlideMenuTableCellHeight;
-    tableView.sectionHeaderHeight = SECTION_HEADER_HEIGHT;
+    tableView.sectionHeaderHeight = self.sectionHeaderHeight;
     tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     tableView.frame = CGRectMake(0.f, 0.f, self.view.frame.size.width, self.view.frame.size.height);
     tableView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleRightMargin;
@@ -580,8 +635,8 @@
 	if (aTableView != tableView) return;
     if (isSwitchingToViewController) return;
     
-    NSDictionary *group = [groupsArray objectAtIndex:indexPath.section];
-    NSDictionary *item = [[group objectForKey:kKeyArray] objectAtIndex:indexPath.row];
+    NSDictionary *group = groupsArray[indexPath.section];
+    NSDictionary *item = group[kKeyArray][indexPath.row];
     
     BOOL defaultAction = [self _highlightItem:item inGroup:group moveToViewController:YES animated:YES];
 
@@ -612,67 +667,86 @@
 - (NSInteger)tableView:(UITableView *)aTableView numberOfRowsInSection:(NSInteger)section
 {
 	if (aTableView != tableView) return 0;
-    return [[[groupsArray objectAtIndex:section] objectForKey:kKeyArray] count];
+    return [groupsArray[section][kKeyArray] count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)aTableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
 	if (aTableView != tableView) return nil;
-    static NSString *CellIdentifier = @"Cell";
-    DGSlideMenuTableCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    if (!cell)
+    
+    NSDictionary *group = groupsArray[indexPath.section];
+    NSDictionary *item = group[kKeyArray][indexPath.row];
+    
+    if (_delegate && [_delegate respondsToSelector:@selector(slideMenuViewController:customTableCellForItem:inSection:withTitle:inTableView:)])
     {
-        cell = [[DGSlideMenuTableCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
+        return [_delegate slideMenuViewController:self customTableCellForItem:item[kKeyIdentifier] inSection:group[kKeyIdentifier] withTitle:item[kKeyTitle] inTableView:tableView];
     }
-    
-    NSDictionary *group = [groupsArray objectAtIndex:indexPath.section];
-    NSDictionary *item = [[group objectForKey:kKeyArray] objectAtIndex:indexPath.row];
-    
-    cell.icon = [item objectForKey:kKeyIcon];
-    cell.selectedIcon = [item objectForKey:kKeySelectedIcon];
-    cell.titleColor = [item objectForKey:kKeyTitleColor];
-    cell.selectedTitleColor = [item objectForKey:kKeySelectedTitleColor];
-    cell.titleFont = [item objectForKey:kKeyTitleFont];
-    cell.title = [item objectForKey:kKeyTitle];
-    
-    return cell;
+    else
+    {
+        static NSString *CellIdentifier = @"Cell";
+        DGSlideMenuTableCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+        if (!cell)
+        {
+            cell = [[DGSlideMenuTableCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
+        }
+        
+        cell.icon = item[kKeyIcon];
+        cell.selectedIcon = item[kKeySelectedIcon];
+        cell.titleColor = item[kKeyTitleColor];
+        cell.selectedTitleColor = item[kKeySelectedTitleColor];
+        cell.titleFont = item[kKeyTitleFont];
+        cell.title = item[kKeyTitle];
+        
+        return cell;
+    }
 }
 
 - (CGFloat)tableView:(UITableView *)aTableView heightForHeaderInSection:(NSInteger)section
 {
 	if (aTableView != tableView) return 0.f;
-    NSDictionary *group = [groupsArray objectAtIndex:section];
-    NSString *title = [group objectForKey:kKeyTitle];
+    NSDictionary *group = groupsArray[section];
+    NSString *title = group[kKeyTitle];
     if (!title.length) return 0;
-    return SECTION_HEADER_HEIGHT;
+    return self.sectionHeaderHeight;
 }
 
 - (UIView *)tableView:(UITableView *)aTableView viewForHeaderInSection:(NSInteger)section
 {
 	if (aTableView != tableView) return nil;
-    NSDictionary *group = [groupsArray objectAtIndex:section];
-    NSString *title = [group objectForKey:kKeyTitle];
+    NSDictionary *group = groupsArray[section];
+    NSString *title = group[kKeyTitle];
     if (!title.length) return nil;
-    return [self customSectionHeaderViewWithTitle:title];
+    if (_delegate && [_delegate respondsToSelector:@selector(slideMenuViewController:customViewForSectionHeader:)])
+    {
+        return [_delegate slideMenuViewController:self customViewForSectionHeader:group[kKeyIdentifier]];
+    }
+    else
+    {
+        return [self customSectionHeaderViewWithTitle:title];
+    }
 }
 
 - (UIView *)customSectionHeaderViewWithTitle:(NSString *)title
 {
     CGFloat width = tableView.frame.size.width;
     
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0.f, 0.f, width, SECTION_HEADER_HEIGHT)];
+    CGFloat sectionHeaderHeight = self.sectionHeaderHeight;
+    CGFloat sectionHeaderPaddingLeft = self.sectionHeaderPaddingLeft;
+    CGFloat sectionHeaderFontSize = self.sectionHeaderFontSize;
     
-    CGRect labelFrame = CGRectMake(SECTION_HEADER_PADDING_LEFT, 0.f, width - SECTION_HEADER_PADDING_LEFT, SECTION_HEADER_HEIGHT);
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0.f, 0.f, width, sectionHeaderHeight)];
+    
+    CGRect labelFrame = CGRectMake(sectionHeaderPaddingLeft, 0.f, width - sectionHeaderPaddingLeft, sectionHeaderHeight);
     
     UILabel *label = [[UILabel alloc] initWithFrame:labelFrame];
     label.backgroundColor = [UIColor clearColor];
-    label.textAlignment = UITextAlignmentLeft;
-    label.font = [UIFont boldSystemFontOfSize:SECTION_HEADER_FONT_SIZE];
-    label.textColor = SECTION_HEADER_TEXT_COLOR;
+    label.textAlignment = NSTextAlignmentLeft;
+    label.font = [UIFont boldSystemFontOfSize:sectionHeaderFontSize];
+    label.textColor = self.sectionHeaderTextColor;
     label.text = title;
     
     CAGradientLayer *gradient = [[CAGradientLayer alloc] init];
-    gradient.colors = @[(id)SECTION_HEADER_COLOR_TOP.CGColor, (id)SECTION_HEADER_COLOR_BOTTOM.CGColor];
+    gradient.colors = @[(id)self.sectionHeaderTopColor.CGColor, (id)self.sectionHeaderBottomColor.CGColor];
     gradient.frame = header.bounds;
     [header.layer addSublayer:gradient];
     
@@ -705,11 +779,11 @@
     BOOL defaultAction = moveToViewController;
     if (defaultAction && _delegate && [_delegate respondsToSelector:@selector(slideMenuViewController:selectedMenuAt:fromGroup:)])
     {
-        defaultAction = [_delegate slideMenuViewController:self selectedMenuAt:[item objectForKey:kKeyIdentifier] fromGroup:[group objectForKey:kKeyIdentifier]];
+        defaultAction = [_delegate slideMenuViewController:self selectedMenuAt:item[kKeyIdentifier] fromGroup:group[kKeyIdentifier]];
     }
     if (defaultAction && !isSwitchingToViewController)
     {
-        UIViewController *vc = [item objectForKey:kKeyContent];
+        UIViewController *vc = item[kKeyContent];
         if ([vc isKindOfClass:[UINavigationController class]])
         {
             [((UINavigationController *)vc) popToRootViewControllerAnimated:selectedViewController ? YES : NO];
@@ -720,7 +794,7 @@
     
     if (defaultAction)
     {
-        selectedCellIp = [NSIndexPath indexPathForRow:[[group objectForKey:kKeyArray] indexOfObject:item] inSection:[groupsArray indexOfObject:group]];
+        selectedCellIp = [NSIndexPath indexPathForRow:[group[kKeyArray] indexOfObject:item] inSection:[groupsArray indexOfObject:group]];
         [tableView selectRowAtIndexPath:selectedCellIp animated:YES scrollPosition:UITableViewScrollPositionNone];
     }
     
