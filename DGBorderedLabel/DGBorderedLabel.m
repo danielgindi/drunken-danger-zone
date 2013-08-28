@@ -19,6 +19,26 @@
 
 @implementation DGBorderedLabel
 
+- (id)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self)
+    {
+        self.layer.contentsScale = UIScreen.mainScreen.scale;
+    }
+    return self;
+}
+
+- (id)initWithCoder:(NSCoder *)aDecoder
+{
+    self = [super initWithCoder:aDecoder];
+    if (self)
+    {
+        self.layer.contentsScale = UIScreen.mainScreen.scale;
+    }
+    return self;
+}
+
 #pragma mark - Custom layer
 
 + (Class)layerClass

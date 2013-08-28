@@ -19,8 +19,6 @@
     self.text = @"";
     self.textAlignment = NSTextAlignmentLeft;
     self.lineBreakMode = NSLineBreakByTruncatingTail;
-    self.contentsScale = UIScreen.mainScreen.scale;
-    self.rasterizationScale = UIScreen.mainScreen.scale;
 }
 
 - (id)initWithCoder:(NSCoder *)aDecoder
