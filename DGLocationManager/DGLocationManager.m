@@ -17,6 +17,20 @@
 
 #import "DGLocationManager.h"
 
+#pragma mark - Wrapper for delegate to keep it unretained
+
+@interface DGLocationManagerUnretainedWrapper : NSObject
+{
+@public
+    __unsafe_unretained id reference;
+}
+
++ (DGLocationManagerUnretainedWrapper *)wrapperForReference:(__unsafe_unretained id)aReference;
+
+@end
+
+#pragma mark - DGLocationManager main class
+
 @interface DGLocationManager ()
 {
     CLLocationManager *locationManager;
@@ -107,8 +121,9 @@
     }
     
     DGLocationManager *instance = self.instance;
-    if ([instance->locationDelegates containsObject:delegate]) return;
-    [instance->locationDelegates addObject:delegate];
+    DGLocationManagerUnretainedWrapper *wrapper = [DGLocationManagerUnretainedWrapper wrapperForReference:delegate];
+    if ([instance->locationDelegates containsObject:wrapper]) return;
+    [instance->locationDelegates addObject:wrapper];
     
     [self startUpdatingLocation];
 }
@@ -124,7 +139,8 @@
     }
     
     DGLocationManager *instance = self.instance;
-    [instance->locationDelegates removeObject:delegate];
+    DGLocationManagerUnretainedWrapper *wrapper = [DGLocationManagerUnretainedWrapper wrapperForReference:delegate];
+    [instance->locationDelegates removeObject:wrapper];
     if (instance->locationDelegates.count == 0)
     {
         [self stopUpdatingLocation];
@@ -157,8 +173,9 @@
     }
     
     DGLocationManager *instance = self.instance;
-    if ([instance->headingDelegates containsObject:delegate]) return;
-    [instance->headingDelegates addObject:delegate];
+    DGLocationManagerUnretainedWrapper *wrapper = [DGLocationManagerUnretainedWrapper wrapperForReference:delegate];
+    if ([instance->headingDelegates containsObject:wrapper]) return;
+    [instance->headingDelegates addObject:wrapper];
     
     [self startUpdatingHeading];
 }
@@ -174,7 +191,8 @@
     }
     
     DGLocationManager *instance = self.instance;
-    [instance->headingDelegates removeObject:delegate];
+    DGLocationManagerUnretainedWrapper *wrapper = [DGLocationManagerUnretainedWrapper wrapperForReference:delegate];
+    [instance->headingDelegates removeObject:wrapper];
     if (instance->headingDelegates.count == 0)
     {
         [self stopUpdatingHeading];
@@ -247,8 +265,9 @@
     
     // NSMutableArray is NOT threadsafe! So only work with the delegates on main queue
     dispatch_async(dispatch_get_main_queue(), ^{
-        for (id<DGLocationManagerDelegate> delegate in locationDelegates)
+        for (DGLocationManagerUnretainedWrapper *delegateWrapper in locationDelegates)
         {
+            id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
             if ([delegate respondsToSelector:@selector(locationManagerDidUpdateToLocation:fromLocation:)])
             {
                 [delegate locationManagerDidUpdateToLocation:theNewLocation fromLocation:theOldLocation];
@@ -265,8 +284,9 @@
     
     // NSMutableArray is NOT threadsafe! So only work with the delegates on main queue
     dispatch_async(dispatch_get_main_queue(), ^{
-        for (id<DGLocationManagerDelegate> delegate in headingDelegates)
+        for (DGLocationManagerUnretainedWrapper *delegateWrapper in headingDelegates)
         {
+            id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
             if ([delegate respondsToSelector:@selector(locationManagerDidUpdateHeading:)])
             {
                 [delegate locationManagerDidUpdateHeading:newHeading];
@@ -279,15 +299,17 @@
 {
     // NSMutableArray is NOT threadsafe! So only work with the delegates on main queue
     dispatch_async(dispatch_get_main_queue(), ^{
-        for (id<DGLocationManagerDelegate> delegate in locationDelegates)
+        for (DGLocationManagerUnretainedWrapper *delegateWrapper in locationDelegates)
         {
+            id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
             if ([delegate respondsToSelector:@selector(locationManagerDidFailWithError:)])
             {
                 [delegate locationManagerDidFailWithError:error];
             }
         }
-        for (id<DGLocationManagerDelegate> delegate in headingDelegates)
+        for (DGLocationManagerUnretainedWrapper *delegateWrapper in headingDelegates)
         {
+            id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
             if ([delegate respondsToSelector:@selector(locationManagerDidFailWithError:)])
             {
                 [delegate locationManagerDidFailWithError:error];
@@ -300,21 +322,50 @@
 {
     // NSMutableArray is NOT threadsafe! So only work with the delegates on main queue
     dispatch_async(dispatch_get_main_queue(), ^{
-        for (id<DGLocationManagerDelegate> delegate in locationDelegates)
+        for (DGLocationManagerUnretainedWrapper *delegateWrapper in locationDelegates)
         {
+            id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
             if ([delegate respondsToSelector:@selector(locationManagerDidChangeAuthorizationStatus:)])
             {
                 [delegate locationManagerDidChangeAuthorizationStatus:status];
             }
         }
-        for (id<DGLocationManagerDelegate> delegate in headingDelegates)
+        for (DGLocationManagerUnretainedWrapper *delegateWrapper in headingDelegates)
         {
+            id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
             if ([delegate respondsToSelector:@selector(locationManagerDidChangeAuthorizationStatus:)])
             {
                 [delegate locationManagerDidChangeAuthorizationStatus:status];
             }
         }
     });
+}
+
+@end
+
+#pragma mark -
+#pragma mark - DGLocationManagerUnretainedWrapper
+
+@implementation DGLocationManagerUnretainedWrapper
+
+- (id)initWithReference:(__unsafe_unretained id)aReference
+{
+    self = [super init];
+    if (self)
+    {
+        reference = aReference;
+    }
+    return self;
+}
+
++ (DGLocationManagerUnretainedWrapper *)wrapperForReference:(__unsafe_unretained id)aReference
+{
+    return [[DGLocationManagerUnretainedWrapper alloc] initWithReference:aReference];
+}
+
+- (BOOL)isEqual:(id)object
+{
+    return self == object || reference == ((DGLocationManagerUnretainedWrapper*)object)->reference;
 }
 
 @end
