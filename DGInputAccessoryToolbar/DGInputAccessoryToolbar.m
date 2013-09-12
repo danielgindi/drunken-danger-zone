@@ -10,6 +10,10 @@
 
 #import "DGInputAccessoryToolbar.h"
 
+#ifndef IS_IOS7_OR_GREATER
+#define IS_IOS7_OR_GREATER                  ([UIDevice.currentDevice.systemVersion compare:@"7.0" options:NSNumericSearch] == NSOrderedSame)
+#endif
+
 @interface DGInputAccessoryToolbar ()
 @end
 
@@ -27,9 +31,16 @@
     rect.size.height = 44.f;
     self.frame = rect;
     
-    self.barStyle = UIBarStyleBlackTranslucent;
-    self.translucent = YES;
-    //self.tintColor = [UIColor darkGrayColor];
+    if (IS_IOS7_OR_GREATER)
+    {
+        self.barStyle = UIBarStyleDefault;
+    }
+    else
+    {
+        self.barStyle = UIBarStyleBlackTranslucent;
+        self.translucent = YES;
+        //self.tintColor = [UIColor darkGrayColor];
+    }
     
     NSString *prevString, *nextString;
     
@@ -52,7 +63,14 @@
         segmented = [[UISegmentedControl alloc] initWithItems:((prevActionSelector&&nextActionSelector) ? @[prevString,nextString] : (prevActionSelector ? @[prevString] : @[nextString]))];
         [segmented addTarget:self action:@selector(segmentedControlChangedValued:) forControlEvents:UIControlEventValueChanged];
         segmented.segmentedControlStyle = UISegmentedControlStyleBar;
-        segmented.tintColor = [UIColor darkGrayColor];
+        if (IS_IOS7_OR_GREATER)
+        {
+            // Color will come from tint automatically
+        }
+        else
+        {
+            segmented.tintColor = [UIColor darkGrayColor];
+        }
         segmented.momentary = YES;
         [items addObject:[[UIBarButtonItem alloc] initWithCustomView:segmented]];
     }

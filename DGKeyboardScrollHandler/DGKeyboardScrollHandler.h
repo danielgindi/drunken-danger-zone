@@ -1,6 +1,6 @@
 //
 //  DGKeyboardScrollHandler.h
-//  eyedo agent
+//  DGKeyboardScrollHandler
 //
 //  Created by Daniel Cohen Gindi on 6/15/13.
 //  Copyright (c) 2013 danielgindi@gmail.com. All rights reserved.

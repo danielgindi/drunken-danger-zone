@@ -285,7 +285,9 @@
     }
     if (!titleAttributes[NSForegroundColorAttributeName])
     {
-        titleAttributes[NSForegroundColorAttributeName] = self.tintColor;
+        UIColor *color = self.tintColor;
+        if (!color) color = UIColor.darkTextColor; // Fallback
+        titleAttributes[NSForegroundColorAttributeName] = color;
     }
     
     return [[NSAttributedString alloc] initWithString:titleString attributes:titleAttributes];
