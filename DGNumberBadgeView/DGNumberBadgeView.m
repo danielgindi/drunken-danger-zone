@@ -11,6 +11,18 @@
 #import "DGNumberBadgeView.h"
 #import <objc/runtime.h>
 
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_6_0
+#define UITextAlignmentLeft NSTextAlignmentLeft
+#define UITextAlignmentRight NSTextAlignmentRight
+#define UITextAlignmentCenter NSTextAlignmentCenter
+#define UILineBreakModeTailTruncation NSLineBreakByTruncatingTail
+#define UILineBreakModeHeadTruncation NSLineBreakByTruncatingHead
+#define UILineBreakModeMiddleTruncation NSLineBreakByTruncatingMiddle
+#define UILineBreakModeCharacterWrap NSLineBreakByCharWrapping
+#define UILineBreakModeClip NSLineBreakByClipping
+#define UILineBreakModeWordWrap NSLineBreakByWordWrapping
+#endif
+
 #define ASSOCIATED_OBJECT_KEY @"DGNumberBadgeView"
 
 @interface DGNumberBadgeView ()
