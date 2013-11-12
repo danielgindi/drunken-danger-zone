@@ -37,7 +37,7 @@
 #endif
 
 #ifndef IS_IOS7_OR_GREATER
-#define IS_IOS7_OR_GREATER ([UIDevice.currentDevice.systemVersion compare:@"7.0" options:NSNumericSearch] == NSOrderedSame)
+#define IS_IOS7_OR_GREATER ([UIDevice.currentDevice.systemVersion compare:@"7.0" options:NSNumericSearch] >= NSOrderedSame)
 #endif
 
 @interface DGSlideMenuViewController ()
@@ -60,6 +60,7 @@
     NSString *selectedItem, *selectedGroup;
     
     BOOL isOnIos7;
+    UIStatusBarStyle lastStatusBarStyle;
 }
 
 - (void)initialize_DGSlideMenuViewController
@@ -136,11 +137,15 @@
     {
         if (movingView.center.x > movingView.superview.bounds.size.width)
         {
-            [UIApplication.sharedApplication setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
+            if (lastStatusBarStyle != UIStatusBarStyleLightContent)
+            {
+                lastStatusBarStyle = UIApplication.sharedApplication.statusBarStyle;
+            }
+            [UIApplication.sharedApplication setStatusBarStyle:UIStatusBarStyleLightContent animated:YES];
         }
         else
         {
-            [UIApplication.sharedApplication setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
+            [UIApplication.sharedApplication setStatusBarStyle:lastStatusBarStyle animated:YES];
         }
     }
     
@@ -297,7 +302,7 @@
     
     if (isOnIos7)
     {
-        [UIApplication.sharedApplication setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
+        [UIApplication.sharedApplication setStatusBarStyle:lastStatusBarStyle animated:YES];
     }
 }
 
@@ -329,7 +334,11 @@
         
         if (isOnIos7)
         {
-            [UIApplication.sharedApplication setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
+            if (lastStatusBarStyle != UIStatusBarStyleLightContent)
+            {
+                lastStatusBarStyle = UIApplication.sharedApplication.statusBarStyle;
+            }
+            [UIApplication.sharedApplication setStatusBarStyle:UIStatusBarStyleLightContent animated:YES];
         }
         
     } completion:nil];
@@ -601,6 +610,23 @@
     {
         tableView.backgroundView = tableBackgroundView;
     }
+    
+    if (isOnIos7)
+    {
+        lastStatusBarStyle = UIApplication.sharedApplication.statusBarStyle;
+        
+        CGFloat statusBarHeight = 0.f;
+        if (UIInterfaceOrientationIsLandscape(UIApplication.sharedApplication.statusBarOrientation))
+        {
+            statusBarHeight = UIApplication.sharedApplication.statusBarFrame.size.width;
+        }
+        else
+        {
+            statusBarHeight = UIApplication.sharedApplication.statusBarFrame.size.height;
+        }
+        tableView.contentInset = UIEdgeInsetsMake(statusBarHeight, 0.f, 0.f, 0.f);
+    }
+    
     tableView.rowHeight = SlideMenuTableCellHeight;
     tableView.sectionHeaderHeight = self.sectionHeaderHeight;
     tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
