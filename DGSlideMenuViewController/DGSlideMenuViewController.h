@@ -50,6 +50,8 @@
 - (void)setTitle:(NSString *)title forItem:(NSString *)identifier inGroup:(NSString *)groupIdentifier;
 - (void)setViewController:(UIViewController *)viewController forItem:(NSString *)identifier inGroup:(NSString *)groupIdentifier;
 
+- (NSInteger)indexOfItem:(NSString *)identifier inGroup:(NSString *)groupIdentifier;
+
 - (void)removeGroup:(NSString *)identifier;
 - (void)removeItem:(NSString *)item inGroup:(NSString *)group;
 

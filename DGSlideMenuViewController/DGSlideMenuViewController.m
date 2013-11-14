@@ -515,7 +515,7 @@
     }
 }
 
-- (NSMutableDictionary *)getItem:(NSString *)identifier inGroup:(NSString *)groupIdentifier
+- (NSMutableDictionary *)item:(NSString *)identifier inGroup:(NSString *)groupIdentifier
 {
     if (!groupIdentifier) groupIdentifier = kDefaultGroup;
     NSMutableDictionary *group = groupsMap[groupIdentifier];
@@ -527,9 +527,21 @@
     return nil;
 }
 
+- (NSInteger)indexOfItem:(NSString *)identifier inGroup:(NSString *)groupIdentifier
+{
+    if (!groupIdentifier) groupIdentifier = kDefaultGroup;
+    NSMutableDictionary *group = groupsMap[groupIdentifier];
+    if (group)
+    {
+        NSObject *item = group[kKeyMap][identifier];
+        return [group[kKeyArray] indexOfObject:item];
+    }
+    return -1;
+}
+
 - (void)setTitle:(NSString *)title forItem:(NSString *)identifier inGroup:(NSString *)groupIdentifier
 {
-    NSMutableDictionary *item = [self getItem:identifier inGroup:groupIdentifier];
+    NSMutableDictionary *item = [self item:identifier inGroup:groupIdentifier];
     if (!item) return;
     
     item[kKeyTitle] = title;
@@ -538,7 +550,7 @@
 
 - (void)setViewController:(UIViewController *)viewController forItem:(NSString *)identifier inGroup:(NSString *)groupIdentifier
 {
-    NSMutableDictionary *item = [self getItem:identifier inGroup:groupIdentifier];
+    NSMutableDictionary *item = [self item:identifier inGroup:groupIdentifier];
     if (!item) return;
     
     item[kKeyContent] = viewController;
