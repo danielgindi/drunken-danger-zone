@@ -396,16 +396,13 @@
         if (selectedCellIp)
         {
             int section = [groupsArray indexOfObject:groupsMap[identifier]];
-            if (selectedCellIp.section>=section)
+            if (selectedCellIp.section == section || selectedCellIp.section == 0)
             {
-                if (selectedCellIp.section == 0)
-                {
-                    selectedCellIp = nil;
-                }
-                else
-                {
-                    selectedCellIp = [NSIndexPath indexPathForRow:selectedCellIp.row inSection:selectedCellIp.section - 1];
-                }
+                selectedCellIp = nil;
+            }
+            else if (selectedCellIp.section > section)
+            {
+                selectedCellIp = [NSIndexPath indexPathForRow:selectedCellIp.row inSection:selectedCellIp.section - 1];
             }
         }
         [groupsArray removeObject:groupsMap[identifier]];
@@ -430,16 +427,13 @@
             if (selectedCellIp && selectedCellIp.section == [groupsArray indexOfObject:group])
             {
                 int row = [itemsArray indexOfObject:itemsMap[item]];
-                if (selectedCellIp.row>=row)
+                if (selectedCellIp.row == row || selectedCellIp.row == 0)
                 {
-                    if (selectedCellIp.row == 0)
-                    {
-                        selectedCellIp = nil;
-                    }
-                    else
-                    {
-                        selectedCellIp = [NSIndexPath indexPathForRow:selectedCellIp.row - 1 inSection:selectedCellIp.section];
-                    }
+                    selectedCellIp = nil;
+                }
+                else if (selectedCellIp.row > row)
+                {
+                    selectedCellIp = [NSIndexPath indexPathForRow:selectedCellIp.row - 1 inSection:selectedCellIp.section];
                 }
             }
             [itemsArray removeObject:itemsMap[item]];
@@ -534,7 +528,9 @@
     if (group)
     {
         NSObject *item = group[kKeyMap][identifier];
-        return [group[kKeyArray] indexOfObject:item];
+        int idx = [group[kKeyArray] indexOfObject:item];
+        if (idx == NSNotFound) return -1;
+        else return idx;
     }
     return -1;
 }
