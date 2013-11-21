@@ -426,37 +426,43 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
         BOOL async = _asyncLoadImages;
         int asyncIndex = ++asyncOperationCounter;
         void(^loadBlock)() = ^{
-            if (asyncIndex != asyncOperationCounter) return; // Check, maybe we were cancelled, and another operation is on the go...
-            UIImage * image = [UIImage imageWithData:_connectionData]; // Might be a heavey operation
-            if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
             
-            self.nextImage = image;
-            if (self.nextImage)
-            {
-                NSString *cachePath = [self getLocalCachePathForUrl:url];
-                [self.connectionData writeToFile:cachePath options:NSDataWritingAtomic error:nil];
+            @autoreleasepool {
                 
-                if (_resizeImagesToNeededSize)
+                if (asyncIndex != asyncOperationCounter) return; // Check, maybe we were cancelled, and another operation is on the go...
+                UIImage * image = [UIImage imageWithData:_connectionData]; // Might be a heavey operation
+                if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
+                
+                self.nextImage = image;
+                if (self.nextImage)
                 {
-                    if (asyncIndex != asyncOperationCounter) return; // Check, maybe we were cancelled, and another operation is on the go...
-                    image = [self imageThumbnailOfImage:image fromCacheOfURL:url isFromFile:NULL]; // Might be a heavey operation
-                    if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
-                    self.nextImage = image;
+                    NSString *cachePath = [self getLocalCachePathForUrl:url];
+                    [self.connectionData writeToFile:cachePath options:NSDataWritingAtomic error:nil];
+                    
+                    if (_resizeImagesToNeededSize)
+                    {
+                        if (asyncIndex != asyncOperationCounter) return; // Check, maybe we were cancelled, and another operation is on the go...
+                        image = [self imageThumbnailOfImage:image fromCacheOfURL:url isFromFile:NULL]; // Might be a heavey operation
+                        if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
+                        self.nextImage = image;
+                    }
+                    
+                    void(^playBlock)() = ^{
+                        if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
+                        [self playWithAnimation:YES immediate:NO];
+                    };
+                    if (async)
+                    {
+                        dispatch_async(dispatch_get_main_queue(), playBlock);
+                    }
+                    else
+                    {
+                        playBlock();
+                    }
                 }
                 
-                void(^playBlock)() = ^{
-                    if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
-                    [self playWithAnimation:YES immediate:NO];
-                };
-                if (async)
-                {
-                    dispatch_async(dispatch_get_main_queue(), playBlock);
-                }
-                else
-                {
-                    playBlock();
-                }
-            }
+            } // @autoreleasepool
+            
         };
         if (async)
         {
@@ -500,36 +506,42 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
         BOOL async = _asyncLoadImages;
         int asyncIndex = ++asyncOperationCounter;
         void(^loadBlock)() = ^{
-            if (asyncIndex != asyncOperationCounter) return; // Check, maybe we were cancelled, and another operation is on the go...
-            UIImage *image = url ? (localUrl ? [UIImage imageWithContentsOfFile:[url path]] : [UIImage imageWithContentsOfFile:cachePath]) : nil;
-            if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
             
-            self.nextImage = image;
-            if (self.nextImage)
-            {
-                BOOL loadedThumbFromFile = YES;
-                if (_resizeImagesToNeededSize)
+            @autoreleasepool {
+                
+                if (asyncIndex != asyncOperationCounter) return; // Check, maybe we were cancelled, and another operation is on the go...
+                UIImage *image = url ? (localUrl ? [UIImage imageWithContentsOfFile:[url path]] : [UIImage imageWithContentsOfFile:cachePath]) : nil;
+                if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
+                
+                self.nextImage = image;
+                if (self.nextImage)
                 {
-                    if (asyncIndex != asyncOperationCounter) return; // Check, maybe we were cancelled, and another operation is on the go...
-                    image = [self imageThumbnailOfImage:self.nextImage fromCacheOfURL:url isFromFile:&loadedThumbFromFile];// Might be a heavey operation
-                    if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
-                    self.nextImage = image;
+                    BOOL loadedThumbFromFile = YES;
+                    if (_resizeImagesToNeededSize)
+                    {
+                        if (asyncIndex != asyncOperationCounter) return; // Check, maybe we were cancelled, and another operation is on the go...
+                        image = [self imageThumbnailOfImage:self.nextImage fromCacheOfURL:url isFromFile:&loadedThumbFromFile];// Might be a heavey operation
+                        if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
+                        self.nextImage = image;
+                    }
+                    
+                    BOOL animate = !_doNotAnimateFromCache || !loadedThumbFromFile;
+                    void(^playBlock)() = ^{
+                        if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
+                        [self playWithAnimation:animate immediate:immediate];
+                    };
+                    if (async)
+                    {
+                        dispatch_async(dispatch_get_main_queue(), playBlock);
+                    }
+                    else
+                    {
+                        playBlock();
+                    }
                 }
                 
-                BOOL animate = !_doNotAnimateFromCache || !loadedThumbFromFile;
-                void(^playBlock)() = ^{
-                    if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
-                    [self playWithAnimation:animate immediate:immediate];
-                };
-                if (async)
-                {
-                    dispatch_async(dispatch_get_main_queue(), playBlock);
-                }
-                else
-                {
-                    playBlock();
-                }
-            }
+            } // @autoreleasepool
+            
         };
         if (async)
         {
