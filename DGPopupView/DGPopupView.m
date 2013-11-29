@@ -17,7 +17,7 @@
     NSObject *keyboardScrollHandler;
     UIScrollView *scrollView;
     CGPoint popupPreviousScrollTouchPoint;
-    PopupViewAnimationType inAnimation;
+    DGPopupViewAnimationType inAnimation;
     BOOL showNextAfterPopdown;
 }
 @end
@@ -32,7 +32,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
     return s_PopupView_Popups.count;
 }
 
-- (void)addNextPopup:(DGPopupView*)popupView fromView:(UIView*)fromView withFrame:(CGRect)frame animation:(PopupViewAnimationType)animationType
+- (void)addNextPopup:(DGPopupView*)popupView fromView:(UIView*)fromView withFrame:(CGRect)frame animation:(DGPopupViewAnimationType)animationType
 {
     @synchronized(s_DGPopupView_syncObject)
     {
@@ -156,35 +156,35 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
 
 - (id)popupFromView:(UIView *)parentView
 {
-    return [self popupFromView:parentView withPopupFrame:CGRectNull animation:PopupViewAnimationTypePopup now:NO];
+    return [self popupFromView:parentView withPopupFrame:CGRectNull animation:DGPopupViewAnimationTypePopup now:NO];
 }
 
 - (id)popupFromView:(UIView *)parentView now:(BOOL)now
 {
-    return [self popupFromView:parentView withPopupFrame:CGRectNull animation:PopupViewAnimationTypePopup now:now];
+    return [self popupFromView:parentView withPopupFrame:CGRectNull animation:DGPopupViewAnimationTypePopup now:now];
 }
 
 - (id)popupFromView:(UIView *)parentView withPopupFrame:(CGRect)popupFrame
 {
-    return [self popupFromView:parentView withPopupFrame:popupFrame animation:PopupViewAnimationTypePopup now:NO];
+    return [self popupFromView:parentView withPopupFrame:popupFrame animation:DGPopupViewAnimationTypePopup now:NO];
 }
 
-- (id)popupFromView:(UIView* )parentView withPopupFrame:(CGRect)popupFrame animation:(PopupViewAnimationType)animation
+- (id)popupFromView:(UIView* )parentView withPopupFrame:(CGRect)popupFrame animation:(DGPopupViewAnimationType)animation
 {
     return [self popupFromView:parentView withPopupFrame:popupFrame animation:animation now:NO];
 }
 
-- (id)popupFromView:(UIView *)parentView animation:(PopupViewAnimationType)animation
+- (id)popupFromView:(UIView *)parentView animation:(DGPopupViewAnimationType)animation
 {
     return [self popupFromView:parentView withPopupFrame:CGRectNull animation:animation now:NO];
 }
 
-- (id)popupFromView:(UIView *)parentView animation:(PopupViewAnimationType)animation now:(BOOL)now
+- (id)popupFromView:(UIView *)parentView animation:(DGPopupViewAnimationType)animation now:(BOOL)now
 {
     return [self popupFromView:parentView withPopupFrame:CGRectNull animation:animation now:now];
 }
 
-- (id)popupFromView:(UIView *)parentView withPopupFrame:(CGRect)popupFrame animation:(PopupViewAnimationType)animation now:(BOOL)now
+- (id)popupFromView:(UIView *)parentView withPopupFrame:(CGRect)popupFrame animation:(DGPopupViewAnimationType)animation now:(BOOL)now
 {
     showNextAfterPopdown = YES;
     
@@ -240,7 +240,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
     
     CAMediaTimingFunction *easeOut = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
     
-    if (animation == PopupViewAnimationTypePopup)
+    if (animation == DGPopupViewAnimationTypePopup)
     {
         if (popupOverlayView)
         {
@@ -275,7 +275,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         self.layer.transform = CATransform3DIdentity;
         [self.layer addAnimation:popupAnimation forKey:@"popup"];
     }
-    else if (animation == PopupViewAnimationTypeTopBottom)
+    else if (animation == DGPopupViewAnimationTypeTopBottom)
     {
         if (popupOverlayView)
         {
@@ -337,7 +337,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
                 NSDictionary *nextOne = self.currentPopupCache;
                 if (nextOne)
                 {
-                    [nextOne[@"popup"] popupFromView:nextOne[@"fromView"] withPopupFrame:[((NSValue*)nextOne[@"frame"]) CGRectValue] animation:(PopupViewAnimationType)[nextOne[@"animation"] intValue] now:NO];
+                    [nextOne[@"popup"] popupFromView:nextOne[@"fromView"] withPopupFrame:[((NSValue*)nextOne[@"frame"]) CGRectValue] animation:(DGPopupViewAnimationType)[nextOne[@"animation"] intValue] now:NO];
                 }
             }
         }
@@ -345,7 +345,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         return self;
     }
     
-    if (inAnimation == PopupViewAnimationTypePopup)
+    if (inAnimation == DGPopupViewAnimationTypePopup)
     {
         if (popupOverlayView)
         {
@@ -379,7 +379,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         self.layer.transform = CATransform3DMakeScale(0.f, 0.f, 1.f);
         [self.layer addAnimation:popdownAnimation forKey:@"popdown"];
     }
-    else if (inAnimation == PopupViewAnimationTypeTopBottom)
+    else if (inAnimation == DGPopupViewAnimationTypeTopBottom)
     {
         if (popupOverlayView)
         {
@@ -412,7 +412,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
             
         }];
     }
-    else // PopupViewAnimationTypeNone
+    else // DGPopupViewAnimationTypeNone
     {
         if ([_popupDelegate respondsToSelector:@selector(popupViewDidPopup:)])
         {
@@ -463,7 +463,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         NSDictionary *nextOne = self.currentPopupCache;
         if (nextOne)
         {
-            [nextOne[@"popup"] popupFromView:nextOne[@"fromView"] withPopupFrame:[((NSValue*)nextOne[@"frame"]) CGRectValue] animation:(PopupViewAnimationType)[nextOne[@"animation"] intValue] now:NO];
+            [nextOne[@"popup"] popupFromView:nextOne[@"fromView"] withPopupFrame:[((NSValue*)nextOne[@"frame"]) CGRectValue] animation:(DGPopupViewAnimationType)[nextOne[@"animation"] intValue] now:NO];
         }
     }
 }

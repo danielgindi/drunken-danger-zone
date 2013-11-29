@@ -13,12 +13,12 @@
 
 #import <Foundation/Foundation.h>
 
-typedef enum _PopupViewAnimationType
+typedef enum _DGPopupViewAnimationType
 {
-    PopupViewAnimationTypeNone,
-    PopupViewAnimationTypePopup,
-    PopupViewAnimationTypeTopBottom
-} PopupViewAnimationType;
+    DGPopupViewAnimationTypeNone,
+    DGPopupViewAnimationTypePopup,
+    DGPopupViewAnimationTypeTopBottom
+} DGPopupViewAnimationType;
 
 @class DGPopupView;
 @protocol DGPopupViewDelegate <NSObject>
@@ -47,10 +47,10 @@ typedef enum _PopupViewAnimationType
 - (id)popupFromView:(UIView*)parentView;
 - (id)popupFromView:(UIView*)parentView now:(BOOL)now;
 - (id)popupFromView:(UIView*)parentView withPopupFrame:(CGRect)popupFrame;
-- (id)popupFromView:(UIView*)parentView withPopupFrame:(CGRect)popupFrame animation:(PopupViewAnimationType)animation;
-- (id)popupFromView:(UIView*)parentView withPopupFrame:(CGRect)popupFrame animation:(PopupViewAnimationType)animation now:(BOOL)now;
-- (id)popupFromView:(UIView*)parentView animation:(PopupViewAnimationType)animation;
-- (id)popupFromView:(UIView*)parentView animation:(PopupViewAnimationType)animation now:(BOOL)now;
+- (id)popupFromView:(UIView*)parentView withPopupFrame:(CGRect)popupFrame animation:(DGPopupViewAnimationType)animation;
+- (id)popupFromView:(UIView*)parentView withPopupFrame:(CGRect)popupFrame animation:(DGPopupViewAnimationType)animation now:(BOOL)now;
+- (id)popupFromView:(UIView*)parentView animation:(DGPopupViewAnimationType)animation;
+- (id)popupFromView:(UIView*)parentView animation:(DGPopupViewAnimationType)animation now:(BOOL)now;
 - (id)popdown;
 - (id)popdownShowNext:(BOOL)showNext; // If an override needed, override this!
 
