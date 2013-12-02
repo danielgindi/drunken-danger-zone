@@ -440,6 +440,11 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
     }
 }
 
+- (void)didFinishPopdown
+{
+    // Do nothing, this is for overrides
+}
+
 - (void)finishPopDown
 {
     [popupOverlayView removeFromSuperview];
@@ -466,6 +471,8 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
             [nextOne[@"popup"] popupFromView:nextOne[@"fromView"] withPopupFrame:[((NSValue*)nextOne[@"frame"]) CGRectValue] animation:(DGPopupViewAnimationType)[nextOne[@"animation"] intValue] now:NO];
         }
     }
+    
+    [self didFinishPopdown];
 }
 
 - (void)setPopupTextFieldDelegate:(id<UITextFieldDelegate>)popupTextFieldDelegate

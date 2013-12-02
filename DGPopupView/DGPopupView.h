@@ -58,6 +58,8 @@ typedef enum _DGPopupViewAnimationType
 
 - (void)attachAllFieldDelegatesToPopupsScrollView;
 
+- (void)didFinishPopdown;
+
 #pragma mark - Utilities
 
 - (UIImage *)gradientImageSized:(CGSize)size colors:(NSArray *)colors locations:(NSArray *)locations vertical:(BOOL)vertical;
