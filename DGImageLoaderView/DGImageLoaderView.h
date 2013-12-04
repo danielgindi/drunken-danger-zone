@@ -31,31 +31,115 @@ typedef enum _DGImageLoaderViewCropAnchor
 
 @interface DGImageLoaderView : UIView <NSURLConnectionDelegate>
 
+/*! @property hasImageLoaded
+    @brief Do we have an image loaded? */
 @property (nonatomic, assign, readonly) BOOL hasImageLoaded;
-@property (nonatomic, strong) UIImage * defaultImage;
+
+/*! @property defaultImage
+    @brief Default image to use when not loaded or after calling reset
+    Default: nil
+ */
+@property (nonatomic, strong) UIImage *defaultImage;
+
+/*! @property keepAspectRatio
+    @brief Should we keep the aspect ration when resizing the image?
+    Default: YES
+ */
 @property (nonatomic, assign) BOOL keepAspectRatio;
+
+/*! @property fitFromOutside
+    @brief Should we fit the image from ouside of the bounds of the UIView, so there are not blanks inside?
+    Default: NO
+ */
 @property (nonatomic, assign) BOOL fitFromOutside;
+
+/*! @property cropAnchor
+    @brief If fitFromOutside is set, this property determines which part you want to be most visible in the image. Or more precisely, which part of the image you want to "crop" to the required size.
+    Default: DGImageLoaderViewCropAnchorCenterCenter
+ */
 @property (nonatomic, assign) DGImageLoaderViewCropAnchor cropAnchor;
+
+/*! @property animationDuration
+    @brief The duration of the animation (if there's an animation chosen for displaying the image). Specified in seconds.
+    Default: 0.8
+ */
 @property (nonatomic, assign) float animationDuration;
-@property (nonatomic, strong, readonly) UIImage * currentVisibleImage;
-@property (nonatomic, strong, readonly) UIImage * currentVisibleImageNotDefault;
 
-// Performance tweaks
-@property (nonatomic, assign) BOOL doNotAnimateFromCache; // Will not animate when loaded completely from cache
-@property (nonatomic, assign) BOOL delayActualLoadUntilDisplay; // Delay heavy loading (like network work) to the first time that drawRect: is requested
-@property (nonatomic, assign) BOOL delayImageShowUntilDisplay; // Delay actual showing (animation) to the first time that drawRect: is requested
-@property (nonatomic, assign) BOOL asyncLoadImages; // Do image loading on separate queue
-@property (nonatomic, assign) BOOL resizeImagesToNeededSize; // Post process images to resize to requested size
+/*! @property currentVisibleImage
+    @brief The currently loaded image, including the default image if loaded. */
+@property (nonatomic, strong, readonly) UIImage *currentVisibleImage;
 
+/*! @property currentVisibleImageNotDefault
+    @brief The currently loaded image, but returning nil if the default image is loaded */
+@property (nonatomic, strong, readonly) UIImage *currentVisibleImageNotDefault;
+
+/*! @property doNotAnimateFromCache
+    @brief Will not animate when loaded completely from cache, and no extra work has to be done.
+    Default: NO */
+@property (nonatomic, assign) BOOL doNotAnimateFromCache;
+
+/*! @property delayActualLoadUntilDisplay
+    @brief Delay the loading from network to the first time that drawRect: is requested.
+    This is useful for example when you have a circular gallery with 20 images and you want the first image to load fast, and the others to load only if the user scrolls to them, so you gain good UX and you do not use extra bandwidth that is not needed.
+    Default: NO */
+@property (nonatomic, assign) BOOL delayActualLoadUntilDisplay;
+
+/*! @property delayImageShowUntilDisplay
+    @brief Delay actual showing (or animation) to the first time that drawRect: is requested.
+    This prevents extra work for when you have many off-screen images.
+    This also causes the Fade animation, if chosen, to always be visible and not happen when off-screen, so you can always achieve that nice effect.
+    Default: YES */
+@property (nonatomic, assign) BOOL delayImageShowUntilDisplay;
+
+/*! @property asyncLoadImages
+    @brief Do the image loading (reading or writing to cached files) on a separate queue.
+    Default: YES */
+@property (nonatomic, assign) BOOL asyncLoadImages;
+
+/*! @property resizeImagesToNeededSize
+    @brief Post process images to resize to requested size.
+    Disable this if images are known to always come in the correct size.
+    Default: YES */
+@property (nonatomic, assign) BOOL resizeImagesToNeededSize;
+
+/*! Load the image from an URL
+    @param url  The URL of the image to load
+    @param animationType  The kind of animation to use when displaying the image. */
 - (void)loadImageFromURL:(NSURL*)url andAnimationType:(DGImageLoaderViewAnimationType)animationType;
+
+/*! Load the image from an URL
+    @param url  The URL of the image to load
+    @param animationType  The kind of animation to use when displaying the image.
+    @param immediate  If set to YES, will override any delaying of loading or displaying, and will immediately load and display the image. */
 - (void)loadImageFromURL:(NSURL*)url andAnimationType:(DGImageLoaderViewAnimationType)animationType immediate:(BOOL)immediate isLocalUrl:(BOOL)localUrl;
+
+/*! Load the image from an UIImage
+    This is useful when you want to use the "resize" feature on an available UIImage
+    @param animationType  The kind of animation to use when displaying the image. */
 - (void)loadImage:(UIImage*)image withAnimationType:(DGImageLoaderViewAnimationType)animationType;
+
+/*! Stops any loading of image in progress */
 - (void)stop;
+
+/*! Stops any loading of image in progress, and resets to the defaultImage if present */
 - (void)reset;
 
+/*! Maximum asynchronous connections that can be used to load images. 
+    This affects this class overall in the app.
+    The default is 8.
+    @return The max connections */
 + (int)maxAsyncConnections;
+
+/*! Maximum asynchronous connections that can be used to load images
+    @param int The max connections */
 + (void)setMaxAsyncConnections:(int)max;
+
+/*! Current active connections used by this class overall in the app
+    @param int The active connections count */
 + (int)activeConnections;
+
+/*! Total connections which include active + pending connections, used by this class overall in the app
+    @param int The total connections count */
 + (int)totalConnections;
 
 @end

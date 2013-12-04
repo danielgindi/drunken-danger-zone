@@ -92,6 +92,9 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
     isDefaultLoaded = YES;
     _keepAspectRatio = YES;
     _animationDuration = 0.8;
+    _asyncLoadImages = YES;
+    _resizeImagesToNeededSize = YES;
+    _cropAnchor = DGImageLoaderViewCropAnchorCenterCenter;
     self.clipsToBounds = YES;
     if (self.defaultImage)
     {
@@ -495,7 +498,7 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
     {
         nextUrlToLoad = url;
         nextUrlToLoadIsLocal = localUrl;
-        [self setNeedsDisplay];
+        [self setNeedsDisplay]; // Cause drawRect: to be called when coming on-screen
         return;
     }
     
@@ -695,7 +698,7 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
     {
         waitingForDisplay = YES;
         waitingForDisplayWithAnimation = withAnimation;
-        [self setNeedsDisplay];
+        [self setNeedsDisplay]; // Cause drawRect: to be called when coming on-screen
         return;
     }
     
