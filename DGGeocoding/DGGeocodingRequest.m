@@ -72,6 +72,7 @@
     if (start) [req start];
     return req;
 }
+
 + (DGGeocodingRequest *)requestWithUrl:(NSURL *)url cachePolicy:(NSURLRequestCachePolicy)cachePolicy completion:(DGGeocodingRequestJsonResponseBlock)completionBlock error:(DGGeocodingRequestErrorBlock)errorBlock start:(BOOL)start
 {
     DGGeocodingRequest *req = [[DGGeocodingRequest alloc] initWithUrl:url cachePolicy:cachePolicy completion:completionBlock error:errorBlock];
