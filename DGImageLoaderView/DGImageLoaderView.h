@@ -110,7 +110,8 @@ typedef enum _DGImageLoaderViewCropAnchor
 /*! Load the image from an URL
     @param url  The URL of the image to load
     @param animationType  The kind of animation to use when displaying the image.
-    @param immediate  If set to YES, will override any delaying of loading or displaying, and will immediately load and display the image. */
+    @param immediate  If set to YES, will override any delaying of loading or displaying, and will immediately load and display the image. 
+    @param isLocalUrl Tells it that the URL is of a local file, which should NOT be cached, as it exists locally already */
 - (void)loadImageFromURL:(NSURL*)url andAnimationType:(DGImageLoaderViewAnimationType)animationType immediate:(BOOL)immediate isLocalUrl:(BOOL)localUrl;
 
 /*! Load the image from an UIImage
