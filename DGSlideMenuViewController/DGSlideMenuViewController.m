@@ -29,13 +29,6 @@
 #define kVisiblePortion 65
 #define kMenuTableSize 255
 
-// iOS 5 support, to be dropped soon
-#if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
-#define NSTextAlignmentLeft UITextAlignmentLeft
-#define NSTextAlignmentRight UITextAlignmentRight
-#define NSTextAlignmentCenter UITextAlignmentCenter
-#endif
-
 #ifndef IS_IOS7_OR_GREATER
 #define IS_IOS7_OR_GREATER ([UIDevice.currentDevice.systemVersion compare:@"7.0" options:NSNumericSearch] >= NSOrderedSame)
 #endif
