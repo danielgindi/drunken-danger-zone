@@ -11,7 +11,7 @@
 #import <UIKit/UIKit.h>
 
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= 70000
-#pragma message("You shouldn't be using DGCompatibleSegmentedControl for your deplyment target!")
+#pragma message("You shouldn't be using DGCompatibleSegmentedControl for your deplyment target! This is intended for \"forward compatibility\" to iOS 7.x when compiling to deployment target < 7.x")
 #endif
 
 @interface DGCompatibleSegmentedControl : UISegmentedControl
