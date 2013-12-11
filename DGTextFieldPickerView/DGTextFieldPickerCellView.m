@@ -70,7 +70,7 @@ alpha:(a)]
         _labelView.backgroundColor = [UIColor clearColor];
         _labelView.textColor = [UIColor blackColor];
         _labelView.highlightedTextColor = [UIColor whiteColor];
-        _labelView.lineBreakMode = UILineBreakModeTailTruncation;
+        _labelView.lineBreakMode = NSLineBreakByTruncatingTail;
         [self addSubview:_labelView];
         
         self.backgroundColor = [UIColor clearColor];
@@ -143,7 +143,11 @@ alpha:(a)]
 
 - (CGSize)sizeThatFits:(CGSize)size 
 {
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 70000
+    CGSize labelSize = [_labelView.text sizeWithAttributes:@{NSFontAttributeName: _labelView.font}];
+#else
     CGSize labelSize = [_labelView.text sizeWithFont:_labelView.font];
+#endif
     CGFloat width = labelSize.width + kPaddingX *2;
     if (labelSize.height + kPaddingY *2 > width) width = labelSize.height + kPaddingY *2;
     return CGSizeMake(width > kMaxWidth ? kMaxWidth : width, labelSize.height + kPaddingY *2);
