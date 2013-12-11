@@ -30,13 +30,13 @@
 
 @interface DGTextFieldPickerView : UITextField <UITextFieldDelegate, UIAppearance>
 
-@property (nonatomic, weak)                 id<DGTextFieldPickerViewDelegate> searchDelegate;
-@property (nonatomic, assign, readonly)     BOOL hasText;
-@property (nonatomic, assign)               BOOL searchesAutomatically;
-@property (nonatomic, strong, readonly)     NSArray *cellViews;
-@property (nonatomic, strong, readonly)     NSArray *cells;
-@property (nonatomic, strong)               DGTextFieldPickerCellView *selectedCell;
-@property (nonatomic, readonly)             int lineCount;
+@property (nonatomic, weak) id<DGTextFieldPickerViewDelegate> searchDelegate;
+@property (nonatomic, assign, readonly) BOOL hasText;
+@property (nonatomic, assign) BOOL searchesAutomatically;
+@property (nonatomic, strong, readonly) NSArray *cellViews;
+@property (nonatomic, strong, readonly) NSArray *cells;
+@property (nonatomic, strong) DGTextFieldPickerCellView *selectedCell;
+@property (nonatomic, readonly) int lineCount;
 @property (nonatomic, assign) CGFloat minimumHeight;
 @property (nonatomic, assign) CGFloat cellXSpacing UI_APPEARANCE_SELECTOR;
 @property (nonatomic, strong) UIColor *placeholderColor UI_APPEARANCE_SELECTOR;

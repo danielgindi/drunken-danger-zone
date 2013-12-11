@@ -7,6 +7,8 @@
 //
 //  https://github.com/danielgindi/drunken-danger-zone
 //
+//  Originally based on the class from Three20
+//
 
 #import "DGTextFieldPickerView.h"
 #import "DGTextFieldPickerCellView.h"
