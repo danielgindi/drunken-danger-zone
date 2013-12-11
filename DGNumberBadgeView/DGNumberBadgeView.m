@@ -398,7 +398,11 @@
     
 	CGPoint textPt = CGPointMake( ctm.x + (badgeRect.size.width - numberSize.width)/2 , ctm.y + (badgeRect.size.height - numberSize.height)/2 );
     
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 70000
+    [numberString drawAtPoint:textPt withAttributes:@{NSFontAttributeName: self.font}];
+#else
 	[numberString drawAtPoint:textPt withFont:self.font];
+#endif
     
 	CGContextRestoreGState( curContext );
 }

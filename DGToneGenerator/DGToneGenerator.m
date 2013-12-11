@@ -10,6 +10,7 @@
 
 #import "DGToneGenerator.h"
 #import <AudioToolbox/AudioToolbox.h>
+#import <AVFoundation/AVFoundation.h>
 
 @interface DGToneGenerator ()
 {
@@ -52,7 +53,7 @@ OSStatus DGToneGenerator_RenderTone(
 - (void)dealloc
 {
     [self stop];
-    AudioSessionSetActive(NO);
+
 	if (toneAudioUnit)
 	{
 		AudioUnitUninitialize(toneAudioUnit);
@@ -110,7 +111,7 @@ OSStatus DGToneGenerator_RenderTone(
                                0, 
                                &input, 
                                sizeof(input));
-	NSAssert1(err == noErr, @"Error setting callback: %ld", err);
+	NSAssert1(err == noErr, @"Error setting callback: %hd", err);
 	
 	// Set the format to 32 bit, single channel, floating point, linear PCM
 	AudioStreamBasicDescription streamFormat;
@@ -140,12 +141,9 @@ OSStatus DGToneGenerator_RenderTone(
 {
 	if (_manageAudioSession)
 	{
-		if (AudioSessionSetActive(YES) == kAudioSessionNotInitialized)
-		{
-			AudioSessionInitialize(NULL, NULL, DGToneGenerator_InterruptionListener, (__bridge void*)self);
-		}
-		UInt32 sessionCategory = _preventMute ? kAudioSessionCategory_MediaPlayback : kAudioSessionCategory_SoloAmbientSound;
-		AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(sessionCategory), &sessionCategory);
+        [AVAudioSession.sharedInstance setActive:YES error:nil];
+		NSString *sessionCategory = _preventMute ? AVAudioSessionCategoryPlayback : AVAudioSessionCategorySoloAmbient;
+        [AVAudioSession.sharedInstance setCategory:sessionCategory error:nil];
 	}
 		
     if (toneAudioUnit)
@@ -166,7 +164,7 @@ OSStatus DGToneGenerator_RenderTone(
 {
 	if (_manageAudioSession)
 	{
-		AudioSessionSetActive(NO);
+        [AVAudioSession.sharedInstance setActive:NO error:nil];
 	}
 	if (toneAudioUnit)
 	{
@@ -289,8 +287,8 @@ OSStatus DGToneGenerator_RenderTone(
 	_preventMute = preventMute;
 	if (_manageAudioSession)
 	{
-		UInt32 sessionCategory = _preventMute ? kAudioSessionCategory_MediaPlayback : kAudioSessionCategory_SoloAmbientSound;
-		AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(sessionCategory), &sessionCategory);
+		NSString *sessionCategory = _preventMute ? AVAudioSessionCategoryPlayback : AVAudioSessionCategorySoloAmbient;
+        [AVAudioSession.sharedInstance setCategory:sessionCategory error:nil];
 	}
 }
 

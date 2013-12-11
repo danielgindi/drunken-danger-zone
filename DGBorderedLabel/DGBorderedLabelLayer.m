@@ -146,13 +146,31 @@
         CGContextSetFillColorWithColor(ctx, textOutlineColor.CGColor);
         CGContextSetLineWidth(ctx, self.textOutlineWidth);
         CGContextSetLineJoin(ctx, kCGLineJoinRound);
+        
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 70000
+        NSMutableParagraphStyle *paragraphStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+        paragraphStyle.lineBreakMode = self.lineBreakMode;
+        paragraphStyle.alignment = self.textAlignment;
+        [text drawInRect:self.bounds withAttributes:@{NSFontAttributeName: font,
+                                                           NSParagraphStyleAttributeName: paragraphStyle}];
+#else
         [text drawInRect:self.bounds withFont:font lineBreakMode:self.lineBreakMode alignment:self.textAlignment];
+#endif
     }
     if (textColor)
     {
         CGContextSetTextDrawingMode(ctx, kCGTextFill);
         CGContextSetFillColorWithColor(ctx, textColor.CGColor);
+        
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 70000
+        NSMutableParagraphStyle *paragraphStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+        paragraphStyle.lineBreakMode = self.lineBreakMode;
+        paragraphStyle.alignment = self.textAlignment;
+        [text drawInRect:self.bounds withAttributes:@{NSFontAttributeName: font,
+                                                      NSParagraphStyleAttributeName: paragraphStyle}];
+#else
         [text drawInRect:self.bounds withFont:font lineBreakMode:self.lineBreakMode alignment:self.textAlignment];
+#endif
     }
     UIGraphicsPopContext();
 }

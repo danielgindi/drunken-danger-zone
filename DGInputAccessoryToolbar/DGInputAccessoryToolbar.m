@@ -62,7 +62,9 @@
     {
         segmented = [[UISegmentedControl alloc] initWithItems:((prevActionSelector&&nextActionSelector) ? @[prevString,nextString] : (prevActionSelector ? @[prevString] : @[nextString]))];
         [segmented addTarget:self action:@selector(segmentedControlChangedValued:) forControlEvents:UIControlEventValueChanged];
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 70000
         segmented.segmentedControlStyle = UISegmentedControlStyleBar;
+#endif
         if (IS_IOS7_OR_GREATER)
         {
             // Color will come from tint automatically

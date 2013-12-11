@@ -334,7 +334,13 @@ static const CGFloat kMinCursorWidth  = 50.f;
     {
         [_placeholderColor setFill];
         
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_6_0
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 70000
+        NSMutableParagraphStyle *paragraphStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+        paragraphStyle.lineBreakMode = NSLineBreakByTruncatingTail;
+        paragraphStyle.alignment = self.textAlignment;
+        [self.placeholder drawInRect:rect withAttributes:@{NSFontAttributeName: self.font,
+                                                      NSParagraphStyleAttributeName: paragraphStyle}];
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 60000
         [self.placeholder drawInRect:rect withFont:self.font lineBreakMode:NSLineBreakByTruncatingTail alignment:self.textAlignment];
 #else
         [self.placeholder drawInRect:rect withFont:self.font lineBreakMode:UILineBreakModeTailTruncation alignment:self.textAlignment];
