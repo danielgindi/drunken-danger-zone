@@ -51,14 +51,6 @@
         {
             self.scrollView = [((id)viewController) performSelector:@selector(tableView) withObject:nil];
         }
-        else if ([viewController respondsToSelector:@selector(scrollview)])
-        {
-            self.scrollView = [((id)viewController) performSelector:@selector(scrollview) withObject:nil];
-        }
-        else if ([viewController respondsToSelector:@selector(tableview)])
-        {
-            self.scrollView = [((id)viewController) performSelector:@selector(tableview) withObject:nil];
-        }
         
         // Try to detect delegates
         if ([viewController conformsToProtocol:@protocol(UITextFieldDelegate)])
