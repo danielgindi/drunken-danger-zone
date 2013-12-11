@@ -204,7 +204,8 @@
 - (NSString *)cssStringForUIColor:(UIColor *)color
 {
 	CGFloat *oldComponents = (CGFloat *)CGColorGetComponents(color.CGColor);
-	CGFloat r,g,b,a;
+	CGFloat r,g,b/*,a*/;
+    // Should we also account for Alpha colors here? We need to test if apps like Excel supports it.
     
 	int numComponents = CGColorGetNumberOfComponents(color.CGColor);
     
@@ -216,7 +217,7 @@
 			r = oldComponents[0];
 			g = oldComponents[0];
 			b = oldComponents[0];
-			a = oldComponents[1];
+			//a = oldComponents[1];
 			break;
 		}
 		case 4:
@@ -225,7 +226,7 @@
 			r = oldComponents[0];
 			g = oldComponents[1];
 			b = oldComponents[2];
-			a = oldComponents[3];
+			//a = oldComponents[3];
 			break;
 		}
         default:
