@@ -1,5 +1,5 @@
 //
-//  DGSpreadSheetExportExport.h
+//  DGSpreadSheetExport.h
 //  CSV or XMLSS (XML Spreadsheet) generation library
 //
 //  Created by Daniel Cohen Gindi (danielgindi@gmail.com)
@@ -25,136 +25,136 @@
 
 #pragma mark - Constant macros
 
-#define kDGSpreadSheetExportExportNumberFormatGeneral @"General"
-#define kDGSpreadSheetExportExportNumberFormatGeneralNumber @"General Number"
-#define kDGSpreadSheetExportExportNumberFormatGeneralDate @"General Date"
-#define kDGSpreadSheetExportExportNumberFormatLongDate @"Long Date"
-#define kDGSpreadSheetExportExportNumberFormatMediumDate @"Medium Date"
-#define kDGSpreadSheetExportExportNumberFormatShortDate @"Short Date"
-#define kDGSpreadSheetExportExportNumberFormatLongTime @"Long Time"
-#define kDGSpreadSheetExportExportNumberFormatMediumTime @"Medium Time"
-#define kDGSpreadSheetExportExportNumberFormatShortTime @"Short Time"
-#define kDGSpreadSheetExportExportNumberFormatCurrency @"Currency"
-#define kDGSpreadSheetExportExportNumberFormatEuroCurrency @"Euro Currency"
-#define kDGSpreadSheetExportExportNumberFormatFixed @"Fixed"
-#define kDGSpreadSheetExportExportNumberFormatStandard @"Standard"
-#define kDGSpreadSheetExportExportNumberFormatPercent @"Percent"
-#define kDGSpreadSheetExportExportNumberFormatScientific @"Scientific"
-#define kDGSpreadSheetExportExportNumberFormatYesNo @"Yes/No"
-#define kDGSpreadSheetExportExportNumberFormatTrueFalse @"True/False"
-#define kDGSpreadSheetExportExportNumberFormatOnOff @"On/Off"
-#define kDGSpreadSheetExportExportNumberFormat0 @"0"
-#define kDGSpreadSheetExportExportNumberFormat0_00 @"0.00"
+#define kDGSpreadSheetExportNumberFormatGeneral @"General"
+#define kDGSpreadSheetExportNumberFormatGeneralNumber @"General Number"
+#define kDGSpreadSheetExportNumberFormatGeneralDate @"General Date"
+#define kDGSpreadSheetExportNumberFormatLongDate @"Long Date"
+#define kDGSpreadSheetExportNumberFormatMediumDate @"Medium Date"
+#define kDGSpreadSheetExportNumberFormatShortDate @"Short Date"
+#define kDGSpreadSheetExportNumberFormatLongTime @"Long Time"
+#define kDGSpreadSheetExportNumberFormatMediumTime @"Medium Time"
+#define kDGSpreadSheetExportNumberFormatShortTime @"Short Time"
+#define kDGSpreadSheetExportNumberFormatCurrency @"Currency"
+#define kDGSpreadSheetExportNumberFormatEuroCurrency @"Euro Currency"
+#define kDGSpreadSheetExportNumberFormatFixed @"Fixed"
+#define kDGSpreadSheetExportNumberFormatStandard @"Standard"
+#define kDGSpreadSheetExportNumberFormatPercent @"Percent"
+#define kDGSpreadSheetExportNumberFormatScientific @"Scientific"
+#define kDGSpreadSheetExportNumberFormatYesNo @"Yes/No"
+#define kDGSpreadSheetExportNumberFormatTrueFalse @"True/False"
+#define kDGSpreadSheetExportNumberFormatOnOff @"On/Off"
+#define kDGSpreadSheetExportNumberFormat0 @"0"
+#define kDGSpreadSheetExportNumberFormat0_00 @"0.00"
 
 #pragma mark - Enums
 
-typedef enum _DGSpreadSheetExportExportAlignmentHorizontal
+typedef enum _DGSpreadSheetExportAlignmentHorizontal
 {
-    DGSpreadSheetExportExportAlignmentHorizontalAutomatic,
-    DGSpreadSheetExportExportAlignmentHorizontalLeft,
-    DGSpreadSheetExportExportAlignmentHorizontalCenter,
-    DGSpreadSheetExportExportAlignmentHorizontalRight,
-    DGSpreadSheetExportExportAlignmentHorizontalFill,
-    DGSpreadSheetExportExportAlignmentHorizontalJustify,
-    DGSpreadSheetExportExportAlignmentHorizontalCenterAcrossSelection,
-    DGSpreadSheetExportExportAlignmentHorizontalDistributed,
-    DGSpreadSheetExportExportAlignmentHorizontalJustifyDistributed
-} DGSpreadSheetExportExportAlignmentHorizontal;
+    DGSpreadSheetExportAlignmentHorizontalAutomatic,
+    DGSpreadSheetExportAlignmentHorizontalLeft,
+    DGSpreadSheetExportAlignmentHorizontalCenter,
+    DGSpreadSheetExportAlignmentHorizontalRight,
+    DGSpreadSheetExportAlignmentHorizontalFill,
+    DGSpreadSheetExportAlignmentHorizontalJustify,
+    DGSpreadSheetExportAlignmentHorizontalCenterAcrossSelection,
+    DGSpreadSheetExportAlignmentHorizontalDistributed,
+    DGSpreadSheetExportAlignmentHorizontalJustifyDistributed
+} DGSpreadSheetExportAlignmentHorizontal;
 
-typedef enum _DGSpreadSheetExportExportAlignmentVertical
+typedef enum _DGSpreadSheetExportAlignmentVertical
 {
-    DGSpreadSheetExportExportAlignmentVerticalAutomatic,
-    DGSpreadSheetExportExportAlignmentVerticalTop,
-    DGSpreadSheetExportExportAlignmentVerticalCenter,
-    DGSpreadSheetExportExportAlignmentVerticalBottom,
-    DGSpreadSheetExportExportAlignmentVerticalJustify,
-    DGSpreadSheetExportExportAlignmentVerticalDistributed,
-    DGSpreadSheetExportExportAlignmentVerticalJustifyDistributed
-} DGSpreadSheetExportExportAlignmentVertical;
+    DGSpreadSheetExportAlignmentVerticalAutomatic,
+    DGSpreadSheetExportAlignmentVerticalTop,
+    DGSpreadSheetExportAlignmentVerticalCenter,
+    DGSpreadSheetExportAlignmentVerticalBottom,
+    DGSpreadSheetExportAlignmentVerticalJustify,
+    DGSpreadSheetExportAlignmentVerticalDistributed,
+    DGSpreadSheetExportAlignmentVerticalJustifyDistributed
+} DGSpreadSheetExportAlignmentVertical;
 
-typedef enum _DGSpreadSheetExportExportAlignmentReadingOrder
+typedef enum _DGSpreadSheetExportAlignmentReadingOrder
 {
-    DGSpreadSheetExportExportAlignmentReadingOrderContext,
-    DGSpreadSheetExportExportAlignmentReadingOrderRightToLeft,
-    DGSpreadSheetExportExportAlignmentReadingOrderLeftToRight
-} DGSpreadSheetExportExportAlignmentReadingOrder;
+    DGSpreadSheetExportAlignmentReadingOrderContext,
+    DGSpreadSheetExportAlignmentReadingOrderRightToLeft,
+    DGSpreadSheetExportAlignmentReadingOrderLeftToRight
+} DGSpreadSheetExportAlignmentReadingOrder;
 
-typedef enum _DGSpreadSheetExportExportBorderPosition
+typedef enum _DGSpreadSheetExportBorderPosition
 {
-    DGSpreadSheetExportExportBorderPositionLeft,
-    DGSpreadSheetExportExportBorderPositionTop,
-    DGSpreadSheetExportExportBorderPositionRight,
-    DGSpreadSheetExportExportBorderPositionBottom,
-    DGSpreadSheetExportExportBorderPositionDiagonalLeft,
-    DGSpreadSheetExportExportBorderPositionDiagonalRight
-} DGSpreadSheetExportExportBorderPosition;
+    DGSpreadSheetExportBorderPositionLeft,
+    DGSpreadSheetExportBorderPositionTop,
+    DGSpreadSheetExportBorderPositionRight,
+    DGSpreadSheetExportBorderPositionBottom,
+    DGSpreadSheetExportBorderPositionDiagonalLeft,
+    DGSpreadSheetExportBorderPositionDiagonalRight
+} DGSpreadSheetExportBorderPosition;
 
-typedef enum _DGSpreadSheetExportExportBorderLineStyle
+typedef enum _DGSpreadSheetExportBorderLineStyle
 {
-    DGSpreadSheetExportExportBorderLineStyleNone,
-    DGSpreadSheetExportExportBorderLineStyleContinuous,
-    DGSpreadSheetExportExportBorderLineStyleDash,
-    DGSpreadSheetExportExportBorderLineStyleDot,
-    DGSpreadSheetExportExportBorderLineStyleDashDot,
-    DGSpreadSheetExportExportBorderLineStyleDashDotDot,
-    DGSpreadSheetExportExportBorderLineStyleSlantDashDot,
-    DGSpreadSheetExportExportBorderLineStyleDouble
-} DGSpreadSheetExportExportBorderLineStyle;
+    DGSpreadSheetExportBorderLineStyleNone,
+    DGSpreadSheetExportBorderLineStyleContinuous,
+    DGSpreadSheetExportBorderLineStyleDash,
+    DGSpreadSheetExportBorderLineStyleDot,
+    DGSpreadSheetExportBorderLineStyleDashDot,
+    DGSpreadSheetExportBorderLineStyleDashDotDot,
+    DGSpreadSheetExportBorderLineStyleSlantDashDot,
+    DGSpreadSheetExportBorderLineStyleDouble
+} DGSpreadSheetExportBorderLineStyle;
 
-typedef enum _DGSpreadSheetExportExportInteriorPattern
+typedef enum _DGSpreadSheetExportInteriorPattern
 {
-    DGSpreadSheetExportExportInteriorPatternNone,
-    DGSpreadSheetExportExportInteriorPatternSolid,
-    DGSpreadSheetExportExportInteriorPatternGray75,
-    DGSpreadSheetExportExportInteriorPatternGray50,
-    DGSpreadSheetExportExportInteriorPatternGray25,
-    DGSpreadSheetExportExportInteriorPatternGray125,
-    DGSpreadSheetExportExportInteriorPatternGray0625,
-    DGSpreadSheetExportExportInteriorPatternHorzStripe,
-    DGSpreadSheetExportExportInteriorPatternVertStripe,
-    DGSpreadSheetExportExportInteriorPatternReverseDiagStripe,
-    DGSpreadSheetExportExportInteriorPatternDiagStripe,
-    DGSpreadSheetExportExportInteriorPatternDiagCross,
-    DGSpreadSheetExportExportInteriorPatternThickDiagCross,
-    DGSpreadSheetExportExportInteriorPatternThinHorzStripe,
-    DGSpreadSheetExportExportInteriorPatternThinVertStripe,
-    DGSpreadSheetExportExportInteriorPatternThinReverseDiagStripe,
-    DGSpreadSheetExportExportInteriorPatternThinDiagStripe,
-    DGSpreadSheetExportExportInteriorPatternThinHorzCross,
-    DGSpreadSheetExportExportInteriorPatternThinDiagCross
-} DGSpreadSheetExportExportInteriorPattern;
+    DGSpreadSheetExportInteriorPatternNone,
+    DGSpreadSheetExportInteriorPatternSolid,
+    DGSpreadSheetExportInteriorPatternGray75,
+    DGSpreadSheetExportInteriorPatternGray50,
+    DGSpreadSheetExportInteriorPatternGray25,
+    DGSpreadSheetExportInteriorPatternGray125,
+    DGSpreadSheetExportInteriorPatternGray0625,
+    DGSpreadSheetExportInteriorPatternHorzStripe,
+    DGSpreadSheetExportInteriorPatternVertStripe,
+    DGSpreadSheetExportInteriorPatternReverseDiagStripe,
+    DGSpreadSheetExportInteriorPatternDiagStripe,
+    DGSpreadSheetExportInteriorPatternDiagCross,
+    DGSpreadSheetExportInteriorPatternThickDiagCross,
+    DGSpreadSheetExportInteriorPatternThinHorzStripe,
+    DGSpreadSheetExportInteriorPatternThinVertStripe,
+    DGSpreadSheetExportInteriorPatternThinReverseDiagStripe,
+    DGSpreadSheetExportInteriorPatternThinDiagStripe,
+    DGSpreadSheetExportInteriorPatternThinHorzCross,
+    DGSpreadSheetExportInteriorPatternThinDiagCross
+} DGSpreadSheetExportInteriorPattern;
 
-typedef enum _DGSpreadSheetExportExportFontUnderline
+typedef enum _DGSpreadSheetExportFontUnderline
 {
-    DGSpreadSheetExportExportFontUnderlineNone,
-    DGSpreadSheetExportExportFontUnderlineSingle,
-    DGSpreadSheetExportExportFontUnderlineDouble,
-    DGSpreadSheetExportExportFontUnderlineSingleAccounting,
-    DGSpreadSheetExportExportFontUnderlineDoubleAccounting
-} DGSpreadSheetExportExportFontUnderline;
+    DGSpreadSheetExportFontUnderlineNone,
+    DGSpreadSheetExportFontUnderlineSingle,
+    DGSpreadSheetExportFontUnderlineDouble,
+    DGSpreadSheetExportFontUnderlineSingleAccounting,
+    DGSpreadSheetExportFontUnderlineDoubleAccounting
+} DGSpreadSheetExportFontUnderline;
 
-typedef enum _DGSpreadSheetExportExportFontVerticalAlign
+typedef enum _DGSpreadSheetExportFontVerticalAlign
 {
-    DGSpreadSheetExportExportFontVerticalAlignNone,
-    DGSpreadSheetExportExportFontVerticalAlignSubscript,
-    DGSpreadSheetExportExportFontVerticalAlignSuperscript
-} DGSpreadSheetExportExportFontVerticalAlign;
+    DGSpreadSheetExportFontVerticalAlignNone,
+    DGSpreadSheetExportFontVerticalAlignSubscript,
+    DGSpreadSheetExportFontVerticalAlignSuperscript
+} DGSpreadSheetExportFontVerticalAlign;
 
-typedef enum _DGSpreadSheetExportExportFontFamily
+typedef enum _DGSpreadSheetExportFontFamily
 {
-    DGSpreadSheetExportExportFontFamilyAutomatic,
-    DGSpreadSheetExportExportFontFamilyDecorative,
-    DGSpreadSheetExportExportFontFamilyModern,
-    DGSpreadSheetExportExportFontFamilyRoman,
-    DGSpreadSheetExportExportFontFamilyScript,
-    DGSpreadSheetExportExportFontFamilySwiss
-} DGSpreadSheetExportExportFontFamily;
+    DGSpreadSheetExportFontFamilyAutomatic,
+    DGSpreadSheetExportFontFamilyDecorative,
+    DGSpreadSheetExportFontFamilyModern,
+    DGSpreadSheetExportFontFamilyRoman,
+    DGSpreadSheetExportFontFamilyScript,
+    DGSpreadSheetExportFontFamilySwiss
+} DGSpreadSheetExportFontFamily;
 
-#pragma mark - DGSpreadSheetExportExport
+#pragma mark - DGSpreadSheetExport
 
-@class DGSpreadSheetExportExportStyle;
+@class DGSpreadSheetExportStyle;
 
-@interface DGSpreadSheetExportExport : NSObject
+@interface DGSpreadSheetExport : NSObject
 
 - (id)initAsXml:(bool)isXml intoFileHandle:(NSFileHandle *)fileHandle withEncoding:(NSStringEncoding)encoding;
 - (id)initAsXml:(bool)isXml intoFileHandle:(NSFileHandle *)fileHandle;
@@ -172,7 +172,7 @@ typedef enum _DGSpreadSheetExportExportFontFamily
 - (void)beginRowAtBeginningOfFile:(BOOL)beginning withStyleIndex:(int)idxStyle;
 - (void)beginRowAtBeginningOfFile:(BOOL)beginning withStyleIndex:(int)idxStyle andHeight:(float)height;
 - (void)beginRowWithStyleIndex:(int)idxStyle andHeight:(float)height;
-- (int)addStyle:(DGSpreadSheetExportExportStyle *)style;
+- (int)addStyle:(DGSpreadSheetExportStyle *)style;
 - (void)newWorksheetNamed:(NSString *)name;
 - (void)addColumn;
 - (void)addColumnWithWidthOf:(float)width;
@@ -199,14 +199,14 @@ typedef enum _DGSpreadSheetExportExportFontFamily
 
 @end
 
-#pragma mark - DGSpreadSheetExportExportAlignment
+#pragma mark - DGSpreadSheetExportAlignment
 
-@interface DGSpreadSheetExportExportAlignment : NSObject
+@interface DGSpreadSheetExportAlignment : NSObject
 
-@property (assign, nonatomic) DGSpreadSheetExportExportAlignmentHorizontal horizontal;
-@property (assign, nonatomic) DGSpreadSheetExportExportAlignmentVertical vertical;
+@property (assign, nonatomic) DGSpreadSheetExportAlignmentHorizontal horizontal;
+@property (assign, nonatomic) DGSpreadSheetExportAlignmentVertical vertical;
 @property (assign, nonatomic) NSUInteger indent;
-@property (assign, nonatomic) DGSpreadSheetExportExportAlignmentReadingOrder readingOrder;
+@property (assign, nonatomic) DGSpreadSheetExportAlignmentReadingOrder readingOrder;
 @property (assign, nonatomic) double rotate;
 @property (assign, nonatomic) BOOL shrinkToFit;
 @property (assign, nonatomic) BOOL verticalText;
@@ -214,35 +214,35 @@ typedef enum _DGSpreadSheetExportExportFontFamily
 
 @end
 
-#pragma mark - DGSpreadSheetExportExportBorder
+#pragma mark - DGSpreadSheetExportBorder
 
-@interface DGSpreadSheetExportExportBorder : NSObject
+@interface DGSpreadSheetExportBorder : NSObject
 
-- (id)initWithPosition:(DGSpreadSheetExportExportBorderPosition)position;
-- (id)initWithPosition:(DGSpreadSheetExportExportBorderPosition)position andColor:(UIColor *)color;
-- (id)initWithPosition:(DGSpreadSheetExportExportBorderPosition)position andColor:(UIColor *)color andLineStyle:(DGSpreadSheetExportExportBorderLineStyle)lineStyle;
-- (id)initWithPosition:(DGSpreadSheetExportExportBorderPosition)position andColor:(UIColor *)color andLineStyle:(DGSpreadSheetExportExportBorderLineStyle)lineStyle andWeight:(double)weight;
+- (id)initWithPosition:(DGSpreadSheetExportBorderPosition)position;
+- (id)initWithPosition:(DGSpreadSheetExportBorderPosition)position andColor:(UIColor *)color;
+- (id)initWithPosition:(DGSpreadSheetExportBorderPosition)position andColor:(UIColor *)color andLineStyle:(DGSpreadSheetExportBorderLineStyle)lineStyle;
+- (id)initWithPosition:(DGSpreadSheetExportBorderPosition)position andColor:(UIColor *)color andLineStyle:(DGSpreadSheetExportBorderLineStyle)lineStyle andWeight:(double)weight;
 
-@property (assign, nonatomic) DGSpreadSheetExportExportBorderPosition position;
+@property (assign, nonatomic) DGSpreadSheetExportBorderPosition position;
 @property (strong, nonatomic) UIColor *color;
-@property (assign, nonatomic) DGSpreadSheetExportExportBorderLineStyle lineStyle;
+@property (assign, nonatomic) DGSpreadSheetExportBorderLineStyle lineStyle;
 @property (assign, nonatomic) double weight;
 
 @end
 
-#pragma mark - DGSpreadSheetExportExportInterior
+#pragma mark - DGSpreadSheetExportInterior
 
-@interface DGSpreadSheetExportExportInterior : NSObject
+@interface DGSpreadSheetExportInterior : NSObject
 
 @property (strong, nonatomic) UIColor *color;
-@property (assign, nonatomic) DGSpreadSheetExportExportInteriorPattern pattern;
+@property (assign, nonatomic) DGSpreadSheetExportInteriorPattern pattern;
 @property (strong, nonatomic) UIColor *patternColor;
 
 @end
 
-#pragma mark - DGSpreadSheetExportExportFont
+#pragma mark - DGSpreadSheetExportFont
 
-@interface DGSpreadSheetExportExportFont : NSObject
+@interface DGSpreadSheetExportFont : NSObject
 
 @property (assign, nonatomic) BOOL bold;
 @property (strong, nonatomic) UIColor *color;
@@ -252,21 +252,21 @@ typedef enum _DGSpreadSheetExportExportFontFamily
 @property (assign, nonatomic) BOOL shadow;
 @property (assign, nonatomic) double size;
 @property (assign, nonatomic) BOOL strikeThrough;
-@property (assign, nonatomic) DGSpreadSheetExportExportFontUnderline underline;
-@property (assign, nonatomic) DGSpreadSheetExportExportFontVerticalAlign verticalAlign;
+@property (assign, nonatomic) DGSpreadSheetExportFontUnderline underline;
+@property (assign, nonatomic) DGSpreadSheetExportFontVerticalAlign verticalAlign;
 @property (assign, nonatomic) NSUInteger charSet;
-@property (assign, nonatomic) DGSpreadSheetExportExportFontFamily family;
+@property (assign, nonatomic) DGSpreadSheetExportFontFamily family;
 
 @end
 
-#pragma mark - DGSpreadSheetExportExportStyle
+#pragma mark - DGSpreadSheetExportStyle
 
-@interface DGSpreadSheetExportExportStyle : NSObject
+@interface DGSpreadSheetExportStyle : NSObject
 
 @property (strong, nonatomic) NSString *numberFormat;
-@property (strong, nonatomic) DGSpreadSheetExportExportAlignment *alignment;
+@property (strong, nonatomic) DGSpreadSheetExportAlignment *alignment;
 @property (strong, nonatomic) NSMutableArray *borders;
-@property (strong, nonatomic) DGSpreadSheetExportExportInterior *interior;
-@property (strong, nonatomic) DGSpreadSheetExportExportFont *font;
+@property (strong, nonatomic) DGSpreadSheetExportInterior *interior;
+@property (strong, nonatomic) DGSpreadSheetExportFont *font;
 
 @end

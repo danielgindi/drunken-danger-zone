@@ -1,5 +1,5 @@
 //
-//  DGSpreadSheetExportExport.h
+//  DGSpreadSheetExport.h
 //  CSV or XMLSS (XML Spreadsheet) generation library
 //
 //  Created by Daniel Cohen Gindi (danielgindi@gmail.com)
@@ -7,9 +7,9 @@
 //  https://github.com/danielgindi/drunken-danger-zone
 //
 
-#import "DGSpreadSheetExportExport.h"
+#import "DGSpreadSheetExport.h"
 
-@interface DGSpreadSheetExportExport ()
+@interface DGSpreadSheetExport ()
 - (NSString *)prepareString:(NSString *)string;
 - (void)write:(NSString *)output;
 - (void)seekToFirstRow;
@@ -21,7 +21,7 @@
 - (void)endRow;
 @end
 
-@implementation DGSpreadSheetExportExport
+@implementation DGSpreadSheetExport
 {
     NSFileHandle *_fileHandle;
     NSStringEncoding _fileEncoding;
@@ -64,7 +64,7 @@
         _fileEncoding = encoding;
         if (fileHandle)
         {
-            _fileHandle = [fileHandle retain];
+            _fileHandle = fileHandle;
 #ifdef DEBUG // In debug mode do output to string anyway, for description
             _outputString = [[NSMutableString alloc] init];
 #endif
@@ -91,17 +91,6 @@
     {
     }
     return self;
-}
-
-- (void)dealloc
-{
-    [_fileHandle release], _fileHandle = nil;
-    [_outputString release], _outputString = nil;
-    [_outputTempString release], _outputTempString = nil;
-    [_columnsArray release], _columnsArray = nil;
-    [_stylesArray release], _stylesArray = nil;
-    
-    [super dealloc];
 }
 
 - (NSString *) getFileExtension
@@ -166,7 +155,6 @@
     {
 #endif
         [self seekToEnd];
-        [_outputTempString release];
         _outputTempString = [[NSMutableString alloc] init];
 #ifndef DEBUG
     }
@@ -188,7 +176,7 @@
         if (_outputTempString)
         {
             [_outputString insertString:_outputTempString atIndex:_firstRowPosStr];
-            [_outputTempString release]; _outputTempString = nil;
+            _outputTempString = nil;
         }
 #ifndef DEBUG
     }
@@ -253,14 +241,14 @@
                 | (((int)roundf(g * 255)) << 8)
                 | (((int)roundf(b * 255)));
 
-    return [NSString stringWithFormat:@"#%0.6X", rgb];
+    return [NSString stringWithFormat:@"#%0.6X", (unsigned int)rgb];
 }
 
 - (void)writeStyle:(int)idxStyle
 {
     [self write:[NSString stringWithFormat:@"<ss:Style ss:ID=\"s%d\">", idxStyle + 21]];
     
-    DGSpreadSheetExportExportStyle *style = [_stylesArray objectAtIndex:idxStyle];
+    DGSpreadSheetExportStyle *style = [_stylesArray objectAtIndex:idxStyle];
     
     if (style.alignment)
     {
@@ -270,30 +258,30 @@
         switch (style.alignment.horizontal)
         {
             default:
-            case DGSpreadSheetExportExportAlignmentHorizontalAutomatic: // Default
+            case DGSpreadSheetExportAlignmentHorizontalAutomatic: // Default
                 break;
-            case DGSpreadSheetExportExportAlignmentHorizontalLeft:
+            case DGSpreadSheetExportAlignmentHorizontalLeft:
                 horizontal = @"Left";
                 break;
-            case DGSpreadSheetExportExportAlignmentHorizontalCenter:
+            case DGSpreadSheetExportAlignmentHorizontalCenter:
                 horizontal = @"Center";
                 break;
-            case DGSpreadSheetExportExportAlignmentHorizontalRight:
+            case DGSpreadSheetExportAlignmentHorizontalRight:
                 horizontal = @"Right";
                 break;
-            case DGSpreadSheetExportExportAlignmentHorizontalFill:
+            case DGSpreadSheetExportAlignmentHorizontalFill:
                 horizontal = @"Fill";
                 break;
-            case DGSpreadSheetExportExportAlignmentHorizontalJustify:
+            case DGSpreadSheetExportAlignmentHorizontalJustify:
                 horizontal = @"Justify";
                 break;
-            case DGSpreadSheetExportExportAlignmentHorizontalCenterAcrossSelection:
+            case DGSpreadSheetExportAlignmentHorizontalCenterAcrossSelection:
                 horizontal = @"CenterAcrossSelection";
                 break;
-            case DGSpreadSheetExportExportAlignmentHorizontalDistributed:
+            case DGSpreadSheetExportAlignmentHorizontalDistributed:
                 horizontal = @"Distributed";
                 break;
-            case DGSpreadSheetExportExportAlignmentHorizontalJustifyDistributed:
+            case DGSpreadSheetExportAlignmentHorizontalJustifyDistributed:
                 horizontal = @"JustifyDistributed";
                 break;
         }
@@ -311,12 +299,12 @@
         switch (style.alignment.readingOrder)
         {
             default:
-            case DGSpreadSheetExportExportAlignmentReadingOrderContext: // Default
+            case DGSpreadSheetExportAlignmentReadingOrderContext: // Default
                 break;
-            case DGSpreadSheetExportExportAlignmentReadingOrderRightToLeft:
+            case DGSpreadSheetExportAlignmentReadingOrderRightToLeft:
                 readingOrder = @"RightToLeft";
                 break;
-            case DGSpreadSheetExportExportAlignmentReadingOrderLeftToRight:
+            case DGSpreadSheetExportAlignmentReadingOrderLeftToRight:
                 readingOrder = @"LeftToRight";
                 break;
         }
@@ -339,24 +327,24 @@
         switch (style.alignment.vertical)
         {
             default:
-            case DGSpreadSheetExportExportAlignmentVerticalAutomatic: // Default
+            case DGSpreadSheetExportAlignmentVerticalAutomatic: // Default
                 break;
-            case DGSpreadSheetExportExportAlignmentVerticalTop:
+            case DGSpreadSheetExportAlignmentVerticalTop:
                 vertical = @"Top";
                 break;
-            case DGSpreadSheetExportExportAlignmentVerticalBottom:
+            case DGSpreadSheetExportAlignmentVerticalBottom:
                 vertical = @"Bottom";
                 break;
-            case DGSpreadSheetExportExportAlignmentVerticalCenter:
+            case DGSpreadSheetExportAlignmentVerticalCenter:
                 vertical = @"Center";
                 break;
-            case DGSpreadSheetExportExportAlignmentVerticalJustify:
+            case DGSpreadSheetExportAlignmentVerticalJustify:
                 vertical = @"Justify";
                 break;
-            case DGSpreadSheetExportExportAlignmentVerticalDistributed:
+            case DGSpreadSheetExportAlignmentVerticalDistributed:
                 vertical = @"Distributed";
                 break;
-            case DGSpreadSheetExportExportAlignmentVerticalJustifyDistributed:
+            case DGSpreadSheetExportAlignmentVerticalJustifyDistributed:
                 vertical = @"JustifyDistributed";
                 break;
         }
@@ -387,7 +375,7 @@
     {
         [self write:@"<ss:Borders>"]; // Opening tag
         
-        for (DGSpreadSheetExportExportBorder *border in style.borders)
+        for (DGSpreadSheetExportBorder *border in style.borders)
         {
             [self write:@"<ss:Border"]; // Opening tag
             
@@ -395,22 +383,22 @@
             switch (border.position)
             {
                 default:
-                case DGSpreadSheetExportExportBorderPositionLeft:
+                case DGSpreadSheetExportBorderPositionLeft:
                     position = @"Left";
                     break;
-                case DGSpreadSheetExportExportBorderPositionTop:
+                case DGSpreadSheetExportBorderPositionTop:
                     position = @"Top";
                     break;
-                case DGSpreadSheetExportExportBorderPositionRight:
+                case DGSpreadSheetExportBorderPositionRight:
                     position = @"Right";
                     break;
-                case DGSpreadSheetExportExportBorderPositionBottom:
+                case DGSpreadSheetExportBorderPositionBottom:
                     position = @"Bottom";
                     break;
-                case DGSpreadSheetExportExportBorderPositionDiagonalLeft:
+                case DGSpreadSheetExportBorderPositionDiagonalLeft:
                     position = @"DiagonalLeft";
                     break;
-                case DGSpreadSheetExportExportBorderPositionDiagonalRight:
+                case DGSpreadSheetExportBorderPositionDiagonalRight:
                     position = @"DiagonalRight";
                     break;
             }
@@ -425,27 +413,27 @@
             switch (border.lineStyle)
             {
                 default:
-                case DGSpreadSheetExportExportBorderLineStyleNone: // Default
+                case DGSpreadSheetExportBorderLineStyleNone: // Default
                     break;
-                case DGSpreadSheetExportExportBorderLineStyleContinuous:
+                case DGSpreadSheetExportBorderLineStyleContinuous:
                     lineStyle = @"Continuous";
                     break;
-                case DGSpreadSheetExportExportBorderLineStyleDash:
+                case DGSpreadSheetExportBorderLineStyleDash:
                     lineStyle = @"Dash";
                     break;
-                case DGSpreadSheetExportExportBorderLineStyleDot:
+                case DGSpreadSheetExportBorderLineStyleDot:
                     lineStyle = @"Dot";
                     break;
-                case DGSpreadSheetExportExportBorderLineStyleDashDot:
+                case DGSpreadSheetExportBorderLineStyleDashDot:
                     lineStyle = @"DashDot";
                     break;
-                case DGSpreadSheetExportExportBorderLineStyleDashDotDot:
+                case DGSpreadSheetExportBorderLineStyleDashDotDot:
                     lineStyle = @"DashDotDot";
                     break;
-                case DGSpreadSheetExportExportBorderLineStyleSlantDashDot:
+                case DGSpreadSheetExportBorderLineStyleSlantDashDot:
                     lineStyle = @"SlantDashDot";
                     break;
-                case DGSpreadSheetExportExportBorderLineStyleDouble:
+                case DGSpreadSheetExportBorderLineStyleDouble:
                     lineStyle = @"Double";
                     break;
             }
@@ -478,57 +466,57 @@
         switch (style.interior.pattern)
         {
             default:
-            case DGSpreadSheetExportExportInteriorPatternNone: // Default
+            case DGSpreadSheetExportInteriorPatternNone: // Default
                 break;
-            case DGSpreadSheetExportExportInteriorPatternSolid:
+            case DGSpreadSheetExportInteriorPatternSolid:
                 pattern = @"Solid";
                 break;
-            case DGSpreadSheetExportExportInteriorPatternGray75:
+            case DGSpreadSheetExportInteriorPatternGray75:
                 pattern = @"Gray75";
                 break;
-            case DGSpreadSheetExportExportInteriorPatternGray50:
+            case DGSpreadSheetExportInteriorPatternGray50:
                 pattern = @"Gray50";
                 break;
-            case DGSpreadSheetExportExportInteriorPatternGray25:
+            case DGSpreadSheetExportInteriorPatternGray25:
                 pattern = @"Gray25";
                 break;
-            case DGSpreadSheetExportExportInteriorPatternGray125:
+            case DGSpreadSheetExportInteriorPatternGray125:
                 pattern = @"Gray125";
                 break;
-            case DGSpreadSheetExportExportInteriorPatternGray0625:
+            case DGSpreadSheetExportInteriorPatternGray0625:
                 pattern = @"Gray0625";
                 break;
-            case DGSpreadSheetExportExportInteriorPatternHorzStripe:
+            case DGSpreadSheetExportInteriorPatternHorzStripe:
                 pattern = @"HorzStripe";
                 break;
-            case DGSpreadSheetExportExportInteriorPatternVertStripe:
+            case DGSpreadSheetExportInteriorPatternVertStripe:
                 pattern = @"VertStripe";
                 break;
-            case DGSpreadSheetExportExportInteriorPatternReverseDiagStripe:
+            case DGSpreadSheetExportInteriorPatternReverseDiagStripe:
                 pattern = @"ReverseDiagStripe";
                 break;
-            case DGSpreadSheetExportExportInteriorPatternDiagCross:
+            case DGSpreadSheetExportInteriorPatternDiagCross:
                 pattern = @"DiagCross";
                 break;
-            case DGSpreadSheetExportExportInteriorPatternThickDiagCross:
+            case DGSpreadSheetExportInteriorPatternThickDiagCross:
                 pattern = @"ThickDiagCross";
                 break;
-            case DGSpreadSheetExportExportInteriorPatternThinHorzStripe:
+            case DGSpreadSheetExportInteriorPatternThinHorzStripe:
                 pattern = @"ThinHorzStripe";
                 break;
-            case DGSpreadSheetExportExportInteriorPatternThinVertStripe:
+            case DGSpreadSheetExportInteriorPatternThinVertStripe:
                 pattern = @"ThinVertStripe";
                 break;
-            case DGSpreadSheetExportExportInteriorPatternThinReverseDiagStripe:
+            case DGSpreadSheetExportInteriorPatternThinReverseDiagStripe:
                 pattern = @"ThinReverseDiagStripe";
                 break;
-            case DGSpreadSheetExportExportInteriorPatternThinDiagStripe:
+            case DGSpreadSheetExportInteriorPatternThinDiagStripe:
                 pattern = @"ThinDiagStripe";
                 break;
-            case DGSpreadSheetExportExportInteriorPatternThinHorzCross:
+            case DGSpreadSheetExportInteriorPatternThinHorzCross:
                 pattern = @"ThinHorzCross";
                 break;
-            case DGSpreadSheetExportExportInteriorPatternThinDiagCross:
+            case DGSpreadSheetExportInteriorPatternThinDiagCross:
                 pattern = @"ThinDiagCross";
                 break;
         }
@@ -593,18 +581,18 @@
         switch (style.font.underline)
         {
             default:
-            case DGSpreadSheetExportExportFontUnderlineNone: // Default
+            case DGSpreadSheetExportFontUnderlineNone: // Default
                 break;
-            case DGSpreadSheetExportExportFontUnderlineSingle:
+            case DGSpreadSheetExportFontUnderlineSingle:
                 underline = @"Single";
                 break;
-            case DGSpreadSheetExportExportFontUnderlineDouble:
+            case DGSpreadSheetExportFontUnderlineDouble:
                 underline = @"Double";
                 break;
-            case DGSpreadSheetExportExportFontUnderlineSingleAccounting:
+            case DGSpreadSheetExportFontUnderlineSingleAccounting:
                 underline = @"SingleAccounting";
                 break;
-            case DGSpreadSheetExportExportFontUnderlineDoubleAccounting:
+            case DGSpreadSheetExportFontUnderlineDoubleAccounting:
                 underline = @"DoubleAccounting";
                 break;
         }
@@ -617,12 +605,12 @@
         switch (style.font.verticalAlign)
         {
             default:
-            case DGSpreadSheetExportExportFontVerticalAlignNone: // Default
+            case DGSpreadSheetExportFontVerticalAlignNone: // Default
                 break;
-            case DGSpreadSheetExportExportFontVerticalAlignSubscript:
+            case DGSpreadSheetExportFontVerticalAlignSubscript:
                 verticalAlign = @"Subscript";
                 break;
-            case DGSpreadSheetExportExportFontVerticalAlignSuperscript:
+            case DGSpreadSheetExportFontVerticalAlignSuperscript:
                 verticalAlign = @"Superscript";
                 break;
         }
@@ -640,21 +628,21 @@
         switch (style.font.family)
         {
             default:
-            case DGSpreadSheetExportExportFontFamilyAutomatic: // Default
+            case DGSpreadSheetExportFontFamilyAutomatic: // Default
                 break;
-            case DGSpreadSheetExportExportFontFamilyDecorative:
+            case DGSpreadSheetExportFontFamilyDecorative:
                 family = @"Decorative";
                 break;
-            case DGSpreadSheetExportExportFontFamilyModern:
+            case DGSpreadSheetExportFontFamilyModern:
                 family = @"Modern";
                 break;
-            case DGSpreadSheetExportExportFontFamilyRoman:
+            case DGSpreadSheetExportFontFamilyRoman:
                 family = @"Roman";
                 break;
-            case DGSpreadSheetExportExportFontFamilyScript:
+            case DGSpreadSheetExportFontFamilyScript:
                 family = @"Script";
                 break;
-            case DGSpreadSheetExportExportFontFamilySwiss:
+            case DGSpreadSheetExportFontFamilySwiss:
                 family = @"Swiss";
                 break;
         }
@@ -803,8 +791,8 @@
         {
             if (formatFromStyle)
             {
-                DGSpreadSheetExportExportStyle *style = [_stylesArray objectAtIndex:idxStyle];
-                if ((style.numberFormat && ([style.numberFormat isEqualToString:kDGSpreadSheetExportExportNumberFormatScientific] || [style.numberFormat isEqualToString:kDGSpreadSheetExportExportNumberFormatFixed] || [style.numberFormat isEqualToString:kDGSpreadSheetExportExportNumberFormatStandard] || [style.numberFormat isEqualToString:kDGSpreadSheetExportExportNumberFormat0] || [style.numberFormat isEqualToString:kDGSpreadSheetExportExportNumberFormat0_00])))
+                DGSpreadSheetExportStyle *style = [_stylesArray objectAtIndex:idxStyle];
+                if ((style.numberFormat && ([style.numberFormat isEqualToString:kDGSpreadSheetExportNumberFormatScientific] || [style.numberFormat isEqualToString:kDGSpreadSheetExportNumberFormatFixed] || [style.numberFormat isEqualToString:kDGSpreadSheetExportNumberFormatStandard] || [style.numberFormat isEqualToString:kDGSpreadSheetExportNumberFormat0] || [style.numberFormat isEqualToString:kDGSpreadSheetExportNumberFormat0_00])))
                 {
                     [self write:[NSString stringWithFormat:@"    <Cell ss:StyleID=\"s%d\"%@><Data ss:Type=\"Number\">%@</Data></Cell>\n", idxStyle + 21, merge, [self prepareString:string]]];
                 }
@@ -885,7 +873,7 @@
     _endRow = YES;
 }
 
-- (int)addStyle:(DGSpreadSheetExportExportStyle *)style
+- (int)addStyle:(DGSpreadSheetExportStyle *)style
 {
     [_stylesArray addObject:style];
     return _stylesArray.count - 1;
@@ -1045,13 +1033,13 @@
 
 - (NSString *)description
 {
-    if (_outputString) return [_outputString retain];
+    if (_outputString) return _outputString;
     else if (_fileHandle)
     {
         unsigned long long curPos = _fileHandle.offsetInFile;
         [_fileHandle seekToFileOffset:0];
         NSData *data = [_fileHandle readDataToEndOfFile];
-        NSString *ret = [[[NSString alloc] initWithData:data encoding:_fileEncoding] autorelease];
+        NSString *ret = [[NSString alloc] initWithData:data encoding:_fileEncoding];
         [_fileHandle seekToFileOffset:curPos];
         return ret;
     }
@@ -1061,18 +1049,18 @@
 @end
 
 #pragma mark - 
-#pragma mark - DGSpreadSheetExportExportAlignment
+#pragma mark - DGSpreadSheetExportAlignment
 
-@implementation DGSpreadSheetExportExportAlignment
+@implementation DGSpreadSheetExportAlignment
 
 @end
 
 #pragma mark - 
-#pragma mark - DGSpreadSheetExportExportBorder
+#pragma mark - DGSpreadSheetExportBorder
 
-@implementation DGSpreadSheetExportExportBorder
+@implementation DGSpreadSheetExportBorder
 
-- (id)initWithPosition:(DGSpreadSheetExportExportBorderPosition)position
+- (id)initWithPosition:(DGSpreadSheetExportBorderPosition)position
 {
     if ((self = [super init]))
     {
@@ -1081,7 +1069,7 @@
     return self;
 }
 
-- (id)initWithPosition:(DGSpreadSheetExportExportBorderPosition)position andColor:(UIColor *)color
+- (id)initWithPosition:(DGSpreadSheetExportBorderPosition)position andColor:(UIColor *)color
 {
     if ((self = [super init]))
     {
@@ -1091,7 +1079,7 @@
     return self;
 }
 
-- (id)initWithPosition:(DGSpreadSheetExportExportBorderPosition)position andColor:(UIColor *)color andLineStyle:(DGSpreadSheetExportExportBorderLineStyle)lineStyle
+- (id)initWithPosition:(DGSpreadSheetExportBorderPosition)position andColor:(UIColor *)color andLineStyle:(DGSpreadSheetExportBorderLineStyle)lineStyle
 {
     if ((self = [super init]))
     {
@@ -1102,7 +1090,7 @@
     return self;
 }
 
-- (id)initWithPosition:(DGSpreadSheetExportExportBorderPosition)position andColor:(UIColor *)color andLineStyle:(DGSpreadSheetExportExportBorderLineStyle)lineStyle andWeight:(double)weight
+- (id)initWithPosition:(DGSpreadSheetExportBorderPosition)position andColor:(UIColor *)color andLineStyle:(DGSpreadSheetExportBorderLineStyle)lineStyle andWeight:(double)weight
 {
     if ((self = [super init]))
     {
@@ -1117,22 +1105,22 @@
 @end
 
 #pragma mark - 
-#pragma mark - DGSpreadSheetExportExportInterior
+#pragma mark - DGSpreadSheetExportInterior
 
-@implementation DGSpreadSheetExportExportInterior
+@implementation DGSpreadSheetExportInterior
 
 @end
 
 #pragma mark - 
-#pragma mark - DGSpreadSheetExportExportFont
+#pragma mark - DGSpreadSheetExportFont
 
-@implementation DGSpreadSheetExportExportFont
+@implementation DGSpreadSheetExportFont
 
 - (id)init
 {
     if ((self = [super init]))
     {
-        _Size = 10.0;
+        _size = 10.0;
     }
     return self;
 }
@@ -1140,18 +1128,18 @@
 @end
 
 #pragma mark -
-#pragma mark - DGSpreadSheetExportExportStyle
+#pragma mark - DGSpreadSheetExportStyle
 
-@implementation DGSpreadSheetExportExportStyle
+@implementation DGSpreadSheetExportStyle
 
 - (id)init
 {
     if ((self = [super init]))
     {
-        _alignment = [[DGSpreadSheetExportExportAlignment alloc] init];
+        _alignment = [[DGSpreadSheetExportAlignment alloc] init];
         _borders = [NSMutableArray array];
-        _interior = [[DGSpreadSheetExportExportInterior alloc] init];
-        _font = [[DGSpreadSheetExportExportFont alloc] init];
+        _interior = [[DGSpreadSheetExportInterior alloc] init];
+        _font = [[DGSpreadSheetExportFont alloc] init];
     }
     return self;
 }
