@@ -11,18 +11,6 @@
 #import "DGNumberBadgeView.h"
 #import <objc/runtime.h>
 
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_6_0
-#define UITextAlignmentLeft NSTextAlignmentLeft
-#define UITextAlignmentRight NSTextAlignmentRight
-#define UITextAlignmentCenter NSTextAlignmentCenter
-#define UILineBreakModeTailTruncation NSLineBreakByTruncatingTail
-#define UILineBreakModeHeadTruncation NSLineBreakByTruncatingHead
-#define UILineBreakModeMiddleTruncation NSLineBreakByTruncatingMiddle
-#define UILineBreakModeCharacterWrap NSLineBreakByCharWrapping
-#define UILineBreakModeClip NSLineBreakByClipping
-#define UILineBreakModeWordWrap NSLineBreakByWordWrapping
-#endif
-
 #define ASSOCIATED_OBJECT_KEY @"DGNumberBadgeView"
 
 @interface DGNumberBadgeView ()
@@ -46,7 +34,7 @@
     _shadowBlurSize = 4.f;
 	_shadowColor = [[UIColor blackColor] colorWithAlphaComponent:0.5];
 	_shine = YES;
-	_alignment = UITextAlignmentCenter;
+	_alignment = NSTextAlignmentCenter;
 	_fillColor = [UIColor redColor];
 	_strokeColor = [UIColor whiteColor];
 	_strokeWidth = 2.0;
@@ -333,13 +321,13 @@
 	switch (self.alignment)
 	{
 		default:
-		case UITextAlignmentCenter:
+		case NSTextAlignmentCenter:
 			ctm = CGPointMake( round((viewBounds.size.width - badgeRect.size.width)/2), round((viewBounds.size.height - badgeRect.size.height)/2) );
 			break;
-		case UITextAlignmentLeft:
+		case NSTextAlignmentLeft:
 			ctm = CGPointMake( 0, round((viewBounds.size.height - badgeRect.size.height)/2) );
 			break;
-		case UITextAlignmentRight:
+		case NSTextAlignmentRight:
 			ctm = CGPointMake( (viewBounds.size.width - badgeRect.size.width), round((viewBounds.size.height - badgeRect.size.height)/2) );
 			break;
 	}

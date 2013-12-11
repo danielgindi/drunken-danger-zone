@@ -41,7 +41,7 @@ typedef enum _DGNumberBadgeViewAnchor
 @property (nonatomic, strong) UIColor *strokeColor UI_APPEARANCE_SELECTOR;
 @property (nonatomic, assign) CGFloat strokeWidth UI_APPEARANCE_SELECTOR;
 @property (nonatomic, strong) UIColor *textColor UI_APPEARANCE_SELECTOR;
-@property (nonatomic, assign) UITextAlignment alignment UI_APPEARANCE_SELECTOR;
+@property (nonatomic, assign) NSTextAlignment alignment UI_APPEARANCE_SELECTOR;
 @property (nonatomic, assign) NSUInteger pad UI_APPEARANCE_SELECTOR;
 @property (nonatomic, assign) BOOL hideWhenZero UI_APPEARANCE_SELECTOR;
 
