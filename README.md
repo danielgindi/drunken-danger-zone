@@ -9,7 +9,7 @@ All kinds of ObjC helper classes. The name of the repository - was amazingly sug
 * That's all you need to know.
 
 ## Compilation
-* Everything should compile with no dependencies on other libraries. Specific iOS frameworks may be required, so just listen to your compiler. *You can take any single library here without the rest - they are all independent*
+* Everything should compile with no dependencies on other libraries. Specific iOS frameworks may be required, so just listen to your compiler. *You can take any single library here without the rest - they are all independent.*
 * Everything is ARC based. As we are moving forward to a world where iOS 5.x is deprecated - things will soon be iOS 6.x based. 
 * I have no intent to keep backwards compatibility for platforms which are used by less than 1.5% of the population.
 
