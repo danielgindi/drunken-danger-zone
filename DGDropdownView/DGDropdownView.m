@@ -15,13 +15,6 @@
 // For use with objc_getAssociatedObject/objc_setAssociatedObject to attach arrays of dropdown-views to parent views
 #define ASSOCIATED_KEY @"DGDropdownView_array" 
 
-// iOS 5 support, to be dropped soon
-#if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
-#define NSTextAlignmentLeft UITextAlignmentLeft
-#define NSTextAlignmentRight UITextAlignmentRight
-#define NSTextAlignmentCenter UITextAlignmentCenter
-#endif
-
 @interface DGDropdownView ()
 {
     CAGradientLayer *backgroundLayer;
@@ -592,7 +585,7 @@
     [self setNeedsLayout];
 }
 
-- (void)setTitleTextAlignment:(UITextAlignment)titleTextAlignment
+- (void)setTitleTextAlignment:(NSTextAlignment)titleTextAlignment
 {
     _titleTextAlignment = titleTextAlignment;
     titleLabel.textAlignment = titleTextAlignment;
@@ -634,7 +627,7 @@
     [self setNeedsLayout];
 }
 
-- (void)setDetailTextAlignment:(UITextAlignment)detailTextAlignment
+- (void)setDetailTextAlignment:(NSTextAlignment)detailTextAlignment
 {
     _detailTextAlignment = detailTextAlignment;
     detailLabel.textAlignment = detailTextAlignment;

@@ -23,13 +23,13 @@
 @property (nonatomic, strong) UIColor *titleTextColor UI_APPEARANCE_SELECTOR;
 @property (nonatomic, strong) UIColor *titleShadowColor UI_APPEARANCE_SELECTOR;
 @property (nonatomic, assign) CGSize titleShadowOffset UI_APPEARANCE_SELECTOR;
-@property (nonatomic, assign) UITextAlignment titleTextAlignment UI_APPEARANCE_SELECTOR;
+@property (nonatomic, assign) NSTextAlignment titleTextAlignment UI_APPEARANCE_SELECTOR;
 
 @property (nonatomic, strong) UIFont *detailFont UI_APPEARANCE_SELECTOR;
 @property (nonatomic, strong) UIColor *detailTextColor UI_APPEARANCE_SELECTOR;
 @property (nonatomic, strong) UIColor *detailShadowColor UI_APPEARANCE_SELECTOR;
 @property (nonatomic, assign) CGSize detailShadowOffset UI_APPEARANCE_SELECTOR;
-@property (nonatomic, assign) UITextAlignment detailTextAlignment UI_APPEARANCE_SELECTOR;
+@property (nonatomic, assign) NSTextAlignment detailTextAlignment UI_APPEARANCE_SELECTOR;
 
 @property (nonatomic, assign) UIControlContentVerticalAlignment textVerticalAlignment UI_APPEARANCE_SELECTOR;
 @property (nonatomic, assign) UIControlContentVerticalAlignment imageVerticalAlignment UI_APPEARANCE_SELECTOR;
