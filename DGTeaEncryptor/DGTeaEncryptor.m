@@ -12,8 +12,11 @@
 
 @interface DGTeaEncryptor ()
 
-+ (NSString  *)base64EncodedStringFromData:(NSData *)data;
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 70000
++ (NSString *)base64EncodedStringFromData:(NSData *)data;
 + (NSData *)base64DecodedString:(NSString *)string;
+#endif
+
 + (NSMutableArray *)bytesToLongs:(const char *)bytes ofLength:(NSUInteger)length;
 + (unsigned char *)longsToBytes:(NSArray *)longs;
 
