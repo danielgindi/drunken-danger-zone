@@ -46,7 +46,7 @@
 /*! @property useEndEditingForDismiss
     @brief Set this to YES if you want us to try to force the current viewController's view to dismiss the keyboard,
            regardless of whether we know the current first responder or whether it wants to do so or not.
-           Default is NO */
+           Default is YES */
 @property (nonatomic, assign) BOOL useEndEditingForDismiss;
 
 /*! @property doNotResignForButtons
