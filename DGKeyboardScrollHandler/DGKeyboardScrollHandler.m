@@ -19,7 +19,7 @@
     int _currentKeyboardInsetEveningMode; // For even show/hide notification tracking
 }
 
-@property (nonatomic, strong) id currentFirstResponder;
+@property (nonatomic, weak) id currentFirstResponder;
 
 @end
 
