@@ -466,8 +466,8 @@
         badgeRect.size.height += fabsf(shadowOffset.height);
         
         CGFloat shadowBlur = self.shadowBlurSize;
-        badgeRect.size.width += shadowBlur *2.f;
-        badgeRect.size.height += shadowBlur *2.f;
+        badgeRect.size.width += shadowBlur * 2.f;
+        badgeRect.size.height += shadowBlur * 2.f;
     }
     
 	return badgeRect.size;
