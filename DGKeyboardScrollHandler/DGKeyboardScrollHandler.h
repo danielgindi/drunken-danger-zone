@@ -12,13 +12,13 @@
 
 @interface DGKeyboardScrollHandler : NSObject <UITextFieldDelegate, UITextViewDelegate, UIScrollViewDelegate>
 
-@property (nonatomic, strong) IBOutlet UIScrollView *scrollView;
-@property (nonatomic, strong) IBOutlet UIViewController *viewController;
+@property (nonatomic, weak) IBOutlet UIScrollView *scrollView;
+@property (nonatomic, weak) IBOutlet UIViewController *viewController;
 @property (nonatomic, assign) BOOL scrollToOriginalPositionAfterKeyboardHide;
 @property (nonatomic, assign) CGSize staticScrollOffset;
 @property (nonatomic, assign) BOOL suppressKeyboardEvents;
 @property (nonatomic, assign) BOOL doNotResignForInteractive;
-@property (nonatomic, strong, readonly) id currentFirstResponder;
+@property (nonatomic, weak, readonly) id currentFirstResponder;
 @property (nonatomic, unsafe_unretained) id<UITextFieldDelegate> textFieldDelegate;
 @property (nonatomic, unsafe_unretained) id<UITextViewDelegate> textViewDelegate;
 
@@ -32,9 +32,12 @@
 - (void)viewDidAppear;
 - (void)viewWillDisappear;
 - (void)viewDidDisappear;
+
+// If you override touchesBegan, please forward the events to us too!
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event;
 
-// This you need to call when you KNOW that a view has become the first responder, and that view is NOT a textfield or textview that is delegated to DGKeyboardScrollHandler
+// This you need to call when you KNOW that a view has become the first responder, 
+// and that view is NOT a textfield or textview that is delegated to DGKeyboardScrollHandler
 - (void)viewBecameFirstResponder:(UIView*)firstResponder;
 
 @end
