@@ -31,6 +31,7 @@
     if (self)
     {
         _doNotResignWhenTappingResponders = YES;
+        _useEndEditingForDismiss = YES;
     }
     return self;
 }
