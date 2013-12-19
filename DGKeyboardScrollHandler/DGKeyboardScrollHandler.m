@@ -30,7 +30,7 @@
     self = [super init];
     if (self)
     {
-        
+        _doNotResignWhenTappingResponders = YES;
     }
     return self;
 }
@@ -41,26 +41,6 @@
     if (self)
     {
         self.viewController = viewController;
-        
-        // Try to detect scrollview
-        if ([viewController respondsToSelector:@selector(scrollView)])
-        {
-            self.scrollView = [((id)viewController) performSelector:@selector(scrollView) withObject:nil];
-        }
-        else if ([viewController respondsToSelector:@selector(tableView)])
-        {
-            self.scrollView = [((id)viewController) performSelector:@selector(tableView) withObject:nil];
-        }
-        
-        // Try to detect delegates
-        if ([viewController conformsToProtocol:@protocol(UITextFieldDelegate)])
-        {
-            self.textFieldDelegate = (id<UITextFieldDelegate>)viewController;
-        }
-        if ([viewController conformsToProtocol:@protocol(UITextViewDelegate)])
-        {
-            self.textViewDelegate = (id<UITextViewDelegate>)viewController;
-        }
     }
     return self;
 }
@@ -89,16 +69,38 @@
 - (void)viewWillDisappear
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillShowNotification object:nil];
-	if ([_currentFirstResponder canResignFirstResponder])
-    {
-		[_currentFirstResponder resignFirstResponder];
-	}
+	[self dismissKeyboardIfPossible];
 }
 
 - (void)viewDidDisappear
 {
 	NSNotificationCenter *dc = [NSNotificationCenter defaultCenter];
 	[dc removeObserver:self name:UIKeyboardWillHideNotification object:nil];
+}
+
+- (void)setViewController:(UIViewController *)viewController
+{
+	_viewController = viewController;
+        
+        // Try to detect scrollview
+        if ([viewController respondsToSelector:@selector(scrollView)])
+        {
+            self.scrollView = [((id)viewController) performSelector:@selector(scrollView) withObject:nil];
+        }
+        else if ([viewController respondsToSelector:@selector(tableView)])
+        {
+            self.scrollView = [((id)viewController) performSelector:@selector(tableView) withObject:nil];
+        }
+        
+        // Try to detect delegates
+        if ([viewController conformsToProtocol:@protocol(UITextFieldDelegate)])
+        {
+            self.textFieldDelegate = (id<UITextFieldDelegate>)viewController;
+        }
+        if ([viewController conformsToProtocol:@protocol(UITextViewDelegate)])
+        {
+            self.textViewDelegate = (id<UITextViewDelegate>)viewController;
+        }
 }
 
 - (void)attachAllFieldDelegates
@@ -127,10 +129,9 @@
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    if ([_currentFirstResponder canResignFirstResponder])
+    if (_isKeyboardShowingForThisVC)
     {
-        [_currentFirstResponder resignFirstResponder];
-        self.currentFirstResponder = nil;
+        [self dismissKeyboardIfPossible];
     }
 }
 
@@ -161,18 +162,18 @@
 
 - (void)scrollViewTapGestureRecognized:(UIGestureRecognizer*)recognizer
 {
-    if ([_currentFirstResponder canResignFirstResponder])
+    if (_isKeyboardShowingForThisVC)
     {
-        if (_doNotResignForInteractive)
+        if (_doNotResignWhenTappingResponders || _doNotResignForButtons)
         {
             UIView *hitTest = [_scrollView hitTest:[recognizer locationInView:_scrollView] withEvent:nil];
-            if ([hitTest isKindOfClass:UIButton.class] || [hitTest canBecomeFirstResponder])
+            if ((_doNotResignForButtons && [hitTest isKindOfClass:UIButton.class]) || 
+            	(_doNotResignWhenTappingResponders && [hitTest canBecomeFirstResponder]))
             {
                 return;
             }
         }
-        [_currentFirstResponder resignFirstResponder];
-        self.currentFirstResponder = nil;
+        [self dismissKeyboardIfPossible];
     }
 }
 
@@ -511,9 +512,27 @@
 
 - (void)dismissKeyboardIfPossible
 {
-    if ([_currentFirstResponder canResignFirstResponder])
+    BOOL resigned = NO;
+    if (_useEndEditingForDismiss)
     {
-        [_currentFirstResponder resignFirstResponder];
+        if (self.viewController && self.viewController.isViewLoaded)
+        {
+            resigned = [self.viewController.view endEditing:YES];
+        }
+        
+        if (!resigned && self.scrollView)
+        {
+            resigned = [self.scrollView endEditing:YES];
+        }
+    }
+    
+    if (!resigned && [_currentFirstResponder canResignFirstResponder])
+    {
+        resigned = [_currentFirstResponder resignFirstResponder];
+    }
+    
+    if (resigned)
+    {
         self.currentFirstResponder = nil;
     }
 }
