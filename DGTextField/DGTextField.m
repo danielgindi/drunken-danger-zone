@@ -102,8 +102,14 @@
         [self.placeholder drawInRect:rect withAttributes:@{NSFontAttributeName: self.font,
                                                            NSParagraphStyleAttributeName: paragraphStyle}];
 #elif __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_6_0
+        CGSize stringSize = [self.placeholder sizeWithFont:self.font constrainedToSize:rect.size];
+        rect.origin.y = (rect.size.height - stringSize.height) / 2.f;
+        rect.size.height = stringSize.height;
         [self.placeholder drawInRect:rect withFont:self.font lineBreakMode:NSLineBreakByTruncatingTail alignment:self.textAlignment];
 #else
+        CGSize stringSize = [self.placeholder sizeWithFont:self.font constrainedToSize:rect.size];
+        rect.origin.y = (rect.size.height - stringSize.height) / 2.f;
+        rect.size.height = stringSize.height;
         [self.placeholder drawInRect:rect withFont:self.font lineBreakMode:UILineBreakModeTailTruncation alignment:self.textAlignment];
 #endif
     }
