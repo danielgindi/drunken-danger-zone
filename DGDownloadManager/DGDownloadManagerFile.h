@@ -41,11 +41,13 @@
 @property (nonatomic, strong) NSObject *context;
 
 /*! @property cachePolicy
- @brief The cache policy to use when downloading with NSURLConnection */
+ @brief The cache policy to use when downloading with NSURLConnection
+ Default is NSURLCacheStorageAllowed */
 @property (nonatomic, assign) NSURLRequestCachePolicy cachePolicy;
 
 /*! @property timeout
- @brief The timeout to use when downloading with NSURLConnection */
+ @brief The timeout to use when downloading with NSURLConnection
+ Default is 60.0 */
 @property (nonatomic, assign) NSTimeInterval requestTimeout;
 
 /*! @property delegate
@@ -55,6 +57,11 @@
 /*! @property progressDelegate
  @brief A delegate to receive progress change messages. Use this only if you really, really need to. This is going to possibly present heavy load on the main thread. It is seperate from the main delegate property, to spare the call to respondsToSelector: from the heavy duty data procedures. */
 @property (nonatomic, weak) id<DGDownloadManagerFileProgressDelegate> progressDelegate;
+
+/*! @property allowDownloadInBackground
+ @brief Should we allow backgrounding of the app while downloading this file?
+ Default is YES */
+@property (nonatomic, assign) BOOL allowDownloadInBackground;
 
 /*! @property suggestedFilename
  @brief The file name received from the server.

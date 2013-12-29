@@ -22,6 +22,7 @@
     NSURLRequest *urlRequest;
     BOOL resumeAllowed;
     BOOL connectionFinished;
+    UIBackgroundTaskIdentifier bgTaskId;
 }
 
 - (id)initWithUrl:(NSURL *)url
@@ -31,6 +32,7 @@
     {
         _requestTimeout = 60.0;
         _cachePolicy = NSURLCacheStorageAllowed;
+        bgTaskId = UIBackgroundTaskInvalid;
         _url = url;
     }
     return self;
@@ -43,6 +45,7 @@
     {
         _requestTimeout = 60.0;
         _cachePolicy = NSURLCacheStorageAllowed;
+        bgTaskId = UIBackgroundTaskInvalid;
         _url = url;
         _context = context;
     }
@@ -105,6 +108,12 @@
     {
         [_delegate downloadManagerFileCancelledDownload:self];
     }
+    
+    if (bgTaskId)
+    {
+        [UIApplication.sharedApplication endBackgroundTask:bgTaskId];
+        bgTaskId = UIBackgroundTaskInvalid;
+    }
 
     return self;
 }
@@ -124,6 +133,10 @@
     
     urlRequest = [request copy];
     
+    bgTaskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
+        bgTaskId = UIBackgroundTaskInvalid;
+        [self cancelDownloading];
+    }];
     _connection = [[NSURLConnection alloc] initWithRequest:urlRequest delegate:self];
     connectionFinished = NO;
     [_connection start];
@@ -276,6 +289,12 @@
     {
         [_delegate downloadManagerFileFailedDownload:self];
     }
+    
+    if (bgTaskId)
+    {
+        [UIApplication.sharedApplication endBackgroundTask:bgTaskId];
+        bgTaskId = UIBackgroundTaskInvalid;
+    }
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
@@ -289,6 +308,12 @@
     if (_delegate && [_delegate respondsToSelector:@selector(downloadManagerFileFinishedDownload:)])
     {
         [_delegate downloadManagerFileFinishedDownload:self];
+    }
+    
+    if (bgTaskId)
+    {
+        [UIApplication.sharedApplication endBackgroundTask:bgTaskId];
+        bgTaskId = UIBackgroundTaskInvalid;
     }
 }
 

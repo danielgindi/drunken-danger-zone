@@ -42,4 +42,9 @@
  @brief Cancels the download or removes from the queue. */
 - (instancetype)cancelFileDownload:(DGDownloadManagerFile *)file;
 
+/*!
+ @method cancelAllDownloads
+ @brief Cancels all downloads and removes them from the queue. */
+- (instancetype)cancelAllDownloads;
+
 @end

@@ -21,6 +21,9 @@
     NSMutableArray *queuedResumes;
     
     int totalCurrentDownloads;
+    
+    // This is used for the gap between queued downloads
+    UIBackgroundTaskIdentifier bgTaskId;
 }
 
 - (id)init
@@ -31,6 +34,7 @@
         downloads = [[NSMutableArray alloc] init];
         queuedDownloads = [[NSMutableArray alloc] init];
         queuedResumes = [[NSMutableArray alloc] init];
+        bgTaskId = UIBackgroundTaskInvalid;
     }
     return self;
 }
@@ -53,10 +57,32 @@
     return instance;
 }
 
+- (void)beginBackgroundTask
+{
+    if (bgTaskId == UIBackgroundTaskInvalid)
+    {
+        bgTaskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
+            bgTaskId = UIBackgroundTaskInvalid;
+            [self cancelAllDownloads];
+        }];
+    }
+}
+
+- (void)endBackgroundTaskIfNotNeeded
+{
+    if (bgTaskId != UIBackgroundTaskInvalid && downloads.count == 0 && queuedDownloads.count == 0)
+    {
+        [UIApplication.sharedApplication endBackgroundTask:bgTaskId];
+        bgTaskId = UIBackgroundTaskInvalid;
+    }
+}
+
 - (instancetype)downloadFile:(DGDownloadManagerFile *)file
 {
     @synchronized(self)
     {
+        [self beginBackgroundTask];
+        
         if (file.isDownloading) return self; // Return when called from DGDownloadManagerFile
         if (![downloads containsObject:file] && ![queuedDownloads containsObject:file])
         {
@@ -72,6 +98,8 @@
                 [queuedResumes addObject:@(NO)];
             }
         }
+        
+        [self endBackgroundTaskIfNotNeeded];
     }
     return self;
 }
@@ -80,6 +108,8 @@
 {
     @synchronized(self)
     {
+        [self beginBackgroundTask];
+        
         if (file.isDownloading) return self; // Return when called from DGDownloadManagerFile
         if (![downloads containsObject:file] && ![queuedDownloads containsObject:file])
         {
@@ -95,12 +125,15 @@
                 [queuedResumes addObject:@(YES)];
             }
         }
+        
+        [self endBackgroundTaskIfNotNeeded];
     }
     return self;
 }
 
 - (instancetype)cancelFileDownload:(DGDownloadManagerFile *)file
 {
+    [self beginBackgroundTask];
     @synchronized(self)
     {
         if (file.isDownloading)
@@ -121,6 +154,7 @@
         }
     }
     [self doNextInQueue];
+    [self endBackgroundTaskIfNotNeeded];
     return self;
 }
 
@@ -149,6 +183,28 @@
             }
         }
     }
+}
+
+- (instancetype)cancelAllDownloads
+{
+    @synchronized(self)
+    {
+        [self beginBackgroundTask];
+        
+        NSArray *currentDownloads = [downloads copy];
+        [downloads removeAllObjects];
+        [queuedDownloads removeAllObjects];
+        [queuedResumes removeAllObjects];
+        totalCurrentDownloads = 0;
+        
+        for (DGDownloadManagerFile *file in currentDownloads)
+        {
+            [file cancelDownloading];
+        }
+        
+        [self endBackgroundTaskIfNotNeeded];
+    }
+    return self;
 }
 
 @end
