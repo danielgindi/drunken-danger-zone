@@ -20,7 +20,7 @@
     NSMutableArray *queuedDownloads;
     NSMutableArray *queuedResumes;
     
-    int totalCurrentDownloads;
+    int currentDownloadsCount;
     
     // This is used for the gap between queued downloads
     UIBackgroundTaskIdentifier bgTaskId;
@@ -41,7 +41,17 @@
 
 - (int)totalCurrentDownloads
 {
-    return totalCurrentDownloads;
+    return currentDownloadsCount + queuedDownloads.count;
+}
+
+- (int)totalCurrentQueuedDownloads
+{
+    return queuedDownloads.count;
+}
+
+- (int)totalCurrentInProgressDownloads
+{
+    return currentDownloadsCount;
 }
 
 + (instancetype)sharedInstance
@@ -89,7 +99,7 @@
             if (_maximumConcurrentDownloads <= 0 || downloads.count < _maximumConcurrentDownloads)
             {
                 [downloads addObject:file];
-                totalCurrentDownloads++;
+                currentDownloadsCount++;
                 [file startDownloadingNow];
             }
             else
@@ -116,7 +126,7 @@
             if (_maximumConcurrentDownloads <= 0 || downloads.count < _maximumConcurrentDownloads)
             {
                 [downloads addObject:file];
-                totalCurrentDownloads++;
+                currentDownloadsCount++;
                 [file resumeDownloadNow];
             }
             else
@@ -144,7 +154,7 @@
         {
             int index = [downloads indexOfObject:file];
             [downloads removeObjectAtIndex:index];
-            totalCurrentDownloads--;
+            currentDownloadsCount--;
         }
         else if ([queuedDownloads containsObject:file])
         {
@@ -171,7 +181,7 @@
                 [downloads addObject:file];
                 [queuedDownloads removeObjectAtIndex:0];
                 [queuedResumes removeObjectAtIndex:0];
-                totalCurrentDownloads++;
+                currentDownloadsCount++;
                 if (resume)
                 {
                     [file startDownloadingNow];
@@ -195,7 +205,7 @@
         [downloads removeAllObjects];
         [queuedDownloads removeAllObjects];
         [queuedResumes removeAllObjects];
-        totalCurrentDownloads = 0;
+        currentDownloadsCount = 0;
         
         for (DGDownloadManagerFile *file in currentDownloads)
         {

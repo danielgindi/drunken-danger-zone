@@ -18,8 +18,30 @@
 
 @interface DGDownloadManager : NSObject
 
+/*!
+ @property maximumConcurrentDownloads
+ @brief The maximum concurrent downloads allowed. Downloads that exceed the limit are queued.
+ Default is 0, which means no limit.
+ */
 @property (nonatomic, assign) int maximumConcurrentDownloads;
+
+/*!
+ @property totalCurrentDownloads
+ @brief Total current downloads (waiting & in-progress).
+ */
 @property (nonatomic, assign, readonly) int totalCurrentDownloads;
+
+/*!
+ @property totalCurrentDownloads
+ @brief Total current waiting downloads.
+ */
+@property (nonatomic, assign, readonly) int totalCurrentQueuedDownloads;
+
+/*!
+ @property totalCurrentInProgressDownloads
+ @brief Total current in-progress downloads.
+ */
+@property (nonatomic, assign, readonly) int totalCurrentInProgressDownloads;
 
 /*!
  @method sharedInstance
