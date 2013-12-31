@@ -58,6 +58,7 @@ typedef enum _DGPopupViewAnimationType
 
 - (void)attachAllFieldDelegatesToPopupsScrollView;
 
+- (void)didFinishPopup;
 - (void)didFinishPopdown;
 
 #pragma mark - Utilities

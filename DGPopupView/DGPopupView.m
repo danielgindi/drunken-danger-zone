@@ -19,6 +19,7 @@
     CGPoint popupPreviousScrollTouchPoint;
     DGPopupViewAnimationType inAnimation;
     BOOL showNextAfterPopdown;
+    UITapGestureRecognizer *scrollViewTapGestureRecognizer;
 }
 @end
 
@@ -152,7 +153,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
 - (void)attachAllFieldDelegatesToPopupsScrollView
 {
     SEL selector = sel_registerName("attachAllFieldDelegates");
-    ((void (*)(id, SEL))[self methodForSelector:selector])(keyboardScrollHandler, selector);
+    ((void (*)(id, SEL))[keyboardScrollHandler methodForSelector:selector])(keyboardScrollHandler, selector);
 }
 
 - (id)popupFromView:(UIView *)parentView
@@ -227,19 +228,23 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         scrollView = [[UIScrollView alloc] initWithFrame:availableFrame];
         scrollView.contentSize = CGSizeMake(scrollView.contentSize.width, popupFrame.origin.y + popupFrame.size.height);
         
+        scrollViewTapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(popupOverlayTouchedUpInside:)];
+        scrollViewTapGestureRecognizer.cancelsTouchesInView = NO;
+        [scrollView addGestureRecognizer:scrollViewTapGestureRecognizer];
+        
         Class DGKeyboardScrollHandler = NSClassFromString(@"DGKeyboardScrollHandler");
         if (DGKeyboardScrollHandler)
         {
             keyboardScrollHandler = [[DGKeyboardScrollHandler alloc] init];
             
             SEL selector = sel_registerName("setScrollView:");
-            ((void (*)(id, SEL, id))[self methodForSelector:selector])(keyboardScrollHandler, selector, scrollView);
+            ((void (*)(id, SEL, UIScrollView *))[keyboardScrollHandler methodForSelector:selector])(keyboardScrollHandler, selector, scrollView);
             
             selector = sel_registerName("setTextFieldDelegate:");
-            ((void (*)(id, SEL, id))[self methodForSelector:selector])(keyboardScrollHandler, selector, _popupTextFieldDelegate);
+            ((void (*)(id, SEL, id<UITextFieldDelegate>))[keyboardScrollHandler methodForSelector:selector])(keyboardScrollHandler, selector, _popupTextFieldDelegate);
             
             selector = sel_registerName("setTextViewDelegate:");
-            ((void (*)(id, SEL, id))[self methodForSelector:selector])(keyboardScrollHandler, selector, _popupTextViewDelegate);
+            ((void (*)(id, SEL, id<UITextViewDelegate>))[keyboardScrollHandler methodForSelector:selector])(keyboardScrollHandler, selector, _popupTextViewDelegate);
             
             [parentView addSubview:scrollView];
         }
@@ -313,6 +318,15 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
             
         }];
     }
+    else if (animation == DGPopupViewAnimationTypeNone)
+    {
+        
+        // Set up popup
+        self.frame = popupFrame;
+        [scrollView?scrollView:parentView addSubview:self];
+        
+    }
+    
     return self;
 }
 
@@ -433,11 +447,14 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
 {
     if (theAnimation == [self.layer animationForKey:@"popup"])
     {
+        [self.layer removeAnimationForKey:@"popup"];
+        
+        [self didFinishPopup];
+        
         if ([_popupDelegate respondsToSelector:@selector(popupViewDidPopup:)])
         {
             [_popupDelegate popupViewDidPopup:self];
         }
-        [self.layer removeAnimationForKey:@"popup"];
     }
     else if (theAnimation == [self.layer animationForKey:@"popdown"])
     {
@@ -445,6 +462,11 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         
         [self finishPopDown];
     }
+}
+
+- (void)didFinishPopup
+{
+    // Do nothing, this is for overrides
 }
 
 - (void)didFinishPopdown
@@ -486,14 +508,14 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
 {
     _popupTextFieldDelegate = popupTextFieldDelegate;
     SEL selector = sel_registerName("setTextFieldDelegate:");
-    ((void (*)(id, SEL, id))[self methodForSelector:selector])(keyboardScrollHandler, selector, _popupTextFieldDelegate);
+    ((void (*)(id, SEL, id<UITextFieldDelegate>))[keyboardScrollHandler methodForSelector:selector])(keyboardScrollHandler, selector, _popupTextFieldDelegate);
 }
 
 - (void)setPopupTextViewDelegate:(id<UITextViewDelegate>)popupTextViewDelegate
 {
     _popupTextViewDelegate = popupTextViewDelegate;
     SEL selector = sel_registerName("setTextViewDelegate:");
-    ((void (*)(id, SEL, id))[self methodForSelector:selector])(keyboardScrollHandler, selector, _popupTextViewDelegate);
+    ((void (*)(id, SEL, id<UITextViewDelegate>))[keyboardScrollHandler methodForSelector:selector])(keyboardScrollHandler, selector, _popupTextViewDelegate);
 }
 
 - (void)popupOverlayTouchedUpInside:(id)sender

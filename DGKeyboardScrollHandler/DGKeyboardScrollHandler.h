@@ -23,7 +23,7 @@
 @property (nonatomic, weak) IBOutlet UIScrollView *scrollView;
 
 /*! @property viewController
-    @brief Your viewController. We sue this to automatically attach delegates and the scrollView, 
+    @brief Your viewController. We use this to automatically attach delegates and the scrollView,
            and to recognize interfaceOrientation and other stuff */
 @property (nonatomic, weak) IBOutlet UIViewController *viewController;
 
@@ -72,12 +72,12 @@
 @property (nonatomic, weak) id<UITextViewDelegate> textViewDelegate;
 
 /*! Init the DGKeyboardScrollHandler with a viewController to handle...
-    @param viewController Your viewController. We sue this to automatically attach delegates and the scrollView, 
+    @param viewController Your viewController. We use this to automatically attach delegates and the scrollView,
                           and to recognize interfaceOrientation and other stuff */
 - (id)initForViewController:(UIViewController*)viewController;
 
 /*! Convenience initializer
-    @param viewController Your viewController. We sue this to automatically attach delegates and the scrollView, 
+    @param viewController Your viewController. We use this to automatically attach delegates and the scrollView, 
                           and to recognize interfaceOrientation and other stuff */
 + (id)keyboardScrollHandlerForViewController:(UIViewController*)viewController;
 
