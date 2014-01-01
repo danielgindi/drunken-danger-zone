@@ -108,30 +108,30 @@
  @method addToDownloadQueue
  @brief Add this file to the download queue in the download manager. If the concurrent limit is not reached, then the download will start immediately.
  */
-- (DGDownloadManagerFile *)addToDownloadQueue;
+- (void)addToDownloadQueue;
 
 /*!
  @method startDownloadingNow
  @brief Starts the download immediately, potentially exceeding the download manager concurrent limit.
  */
-- (DGDownloadManagerFile *)startDownloadingNow;
+- (void)startDownloadingNow;
 
 /*!
  @method cancelDownloading
  @brief Cancels the download or removes from the queue.
  */
-- (DGDownloadManagerFile *)cancelDownloading;
+- (void)cancelDownloading;
 
 /*!
  @method resumeDownloadNow
  @brief This will resume the download if stopped or failed in progress. If resume is not supported - it will restart the download.
  */
-- (DGDownloadManagerFile *)resumeDownloadNow;
+- (void)resumeDownloadNow;
 
 /*!
  @method addToDownloadQueueForResuming
  @brief Add this file to the download queue in the download manager. If the concurrent limit is not reached, then the download will start immediately. This will try to resume the download from where it stopped, if the server supports resume.
  */
-- (DGDownloadManagerFile *)addToDownloadQueueForResuming;
+- (void)addToDownloadQueueForResuming;
 
 @end

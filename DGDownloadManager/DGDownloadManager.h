@@ -44,6 +44,24 @@
 @property (nonatomic, assign, readonly) int totalCurrentInProgressDownloads;
 
 /*!
+ @property currentDownloads
+ @brief Current downloads (waiting & in-progress).
+ */
+@property (nonatomic, strong, readonly) NSArray *currentDownloads;
+
+/*!
+ @property currentQueuedDownloads
+ @brief Current waiting downloads.
+ */
+@property (nonatomic, strong, readonly) NSArray *currentQueuedDownloads;
+
+/*!
+ @property currentInProgressDownloads
+ @brief Current in-progress downloads.
+ */
+@property (nonatomic, strong, readonly) NSArray *currentInProgressDownloads;
+
+/*!
  @method sharedInstance
  @brief Returns the singleton instance.
  */
@@ -52,21 +70,21 @@
 /*!
  @method downloadFile:
  @brief Add this file to the download queue in the download manager. If the concurrent limit is not reached, then the download will start immediately. */
-- (instancetype)downloadFile:(DGDownloadManagerFile *)file;
+- (void)downloadFile:(DGDownloadManagerFile *)file;
 
 /*!
  @method resumeFileDownload:
  @brief This will resume the download if stopped or failed in progress. If resume is not supported - it will restart the download. */
-- (instancetype)resumeFileDownload:(DGDownloadManagerFile *)file;
+- (void)resumeFileDownload:(DGDownloadManagerFile *)file;
 
 /*!
  @method cancelFileDownload:
  @brief Cancels the download or removes from the queue. */
-- (instancetype)cancelFileDownload:(DGDownloadManagerFile *)file;
+- (void)cancelFileDownload:(DGDownloadManagerFile *)file;
 
 /*!
  @method cancelAllDownloads
  @brief Cancels all downloads and removes them from the queue. */
-- (instancetype)cancelAllDownloads;
+- (void)cancelAllDownloads;
 
 @end

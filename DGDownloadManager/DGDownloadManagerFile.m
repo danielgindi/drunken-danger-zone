@@ -77,9 +77,9 @@
     return path;
 }
 
-- (DGDownloadManagerFile *)startDownloadingNow
+- (void)startDownloadingNow
 {
-    if (_connection || !_url) return self;
+    if (_connection || !_url) return;
     urlRequest = [[NSURLRequest alloc] initWithURL:_url cachePolicy:_cachePolicy timeoutInterval:_requestTimeout];
     _connection = [[NSURLConnection alloc] initWithRequest:urlRequest delegate:self];
     connectionFinished = NO;
@@ -91,13 +91,11 @@
     {
         [_delegate downloadManagerFileStartedDownload:self];
     }
-    
-    return self;
 }
 
-- (DGDownloadManagerFile *)cancelDownloading
+- (void)cancelDownloading
 {
-    if (!_connection) return self;
+    if (!_connection) return;
     [_connection cancel];
     _connection = nil;
     urlRequest = nil;
@@ -114,13 +112,11 @@
         [UIApplication.sharedApplication endBackgroundTask:bgTaskId];
         bgTaskId = UIBackgroundTaskInvalid;
     }
-
-    return self;
 }
 
-- (DGDownloadManagerFile *)resumeDownloadNow
+- (void)resumeDownloadNow
 {
-    if (_connection) return self;
+    if (_connection) return;
     
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:_url
                                                            cachePolicy:_cachePolicy
@@ -147,20 +143,16 @@
     {
         [_delegate downloadManagerFileStartedDownload:self];
     }
-    
-    return self;
 }
 
-- (DGDownloadManagerFile *)addToDownloadQueue
+- (void)addToDownloadQueue
 {
     [[DGDownloadManager sharedInstance] downloadFile:self];
-    return self;
 }
 
-- (DGDownloadManagerFile *)addToDownloadQueueForResuming
+- (void)addToDownloadQueueForResuming
 {
     [[DGDownloadManager sharedInstance] resumeFileDownload:self];
-    return self;
 }
 
 #pragma mark - Accessors

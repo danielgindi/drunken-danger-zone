@@ -54,6 +54,32 @@
     return currentDownloadsCount;
 }
 
+- (NSArray *)currentDownloads
+{
+    @synchronized(self)
+    {
+        NSMutableArray *allDownloads = [downloads mutableCopy];
+        [allDownloads addObjectsFromArray:queuedDownloads];
+        return [allDownloads copy];
+    }
+}
+
+- (NSArray *)currentQueuedDownloads
+{
+    @synchronized(self)
+    {
+        return [queuedDownloads copy];
+    }
+}
+
+- (NSArray *)currentInProgressDownloads
+{
+    @synchronized(self)
+    {
+        return [downloads copy];
+    }
+}
+
 + (instancetype)sharedInstance
 {
     static id instance = nil;
@@ -87,13 +113,13 @@
     }
 }
 
-- (instancetype)downloadFile:(DGDownloadManagerFile *)file
+- (void)downloadFile:(DGDownloadManagerFile *)file
 {
     @synchronized(self)
     {
         [self beginBackgroundTask];
         
-        if (file.isDownloading) return self; // Return when called from DGDownloadManagerFile
+        if (file.isDownloading) return; // Return when called from DGDownloadManagerFile
         if (![downloads containsObject:file] && ![queuedDownloads containsObject:file])
         {
             if (_maximumConcurrentDownloads <= 0 || downloads.count < _maximumConcurrentDownloads)
@@ -111,16 +137,15 @@
         
         [self endBackgroundTaskIfNotNeeded];
     }
-    return self;
 }
 
-- (instancetype)resumeFileDownload:(DGDownloadManagerFile *)file
+- (void)resumeFileDownload:(DGDownloadManagerFile *)file
 {
     @synchronized(self)
     {
         [self beginBackgroundTask];
         
-        if (file.isDownloading) return self; // Return when called from DGDownloadManagerFile
+        if (file.isDownloading) return; // Return when called from DGDownloadManagerFile
         if (![downloads containsObject:file] && ![queuedDownloads containsObject:file])
         {
             if (_maximumConcurrentDownloads <= 0 || downloads.count < _maximumConcurrentDownloads)
@@ -138,10 +163,9 @@
         
         [self endBackgroundTaskIfNotNeeded];
     }
-    return self;
 }
 
-- (instancetype)cancelFileDownload:(DGDownloadManagerFile *)file
+- (void)cancelFileDownload:(DGDownloadManagerFile *)file
 {
     [self beginBackgroundTask];
     @synchronized(self)
@@ -165,7 +189,6 @@
     }
     [self doNextInQueue];
     [self endBackgroundTaskIfNotNeeded];
-    return self;
 }
 
 - (void)doNextInQueue
@@ -195,7 +218,7 @@
     }
 }
 
-- (instancetype)cancelAllDownloads
+- (void)cancelAllDownloads
 {
     @synchronized(self)
     {
@@ -214,7 +237,6 @@
         
         [self endBackgroundTaskIfNotNeeded];
     }
-    return self;
 }
 
 @end
