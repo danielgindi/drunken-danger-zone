@@ -439,6 +439,10 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         {
             [_popupDelegate popupViewDidPopup:self];
         }
+        if (_didPopupBlock)
+        {
+            _didPopupBlock();
+        }
     }
     return self;
 }
@@ -454,6 +458,10 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         if ([_popupDelegate respondsToSelector:@selector(popupViewDidPopup:)])
         {
             [_popupDelegate popupViewDidPopup:self];
+        }
+        if (_didPopupBlock)
+        {
+            _didPopupBlock();
         }
     }
     else if (theAnimation == [self.layer animationForKey:@"popdown"])
@@ -485,6 +493,10 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
     if ([_popupDelegate respondsToSelector:@selector(popupViewDidPopdown:)])
     {
         [_popupDelegate popupViewDidPopdown:self];
+    }
+    if (_didPopdownBlock)
+    {
+        _didPopdownBlock();
     }
     
     if ([self hasPopupInCache:self])

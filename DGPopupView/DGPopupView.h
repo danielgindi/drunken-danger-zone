@@ -39,6 +39,8 @@ typedef enum _DGPopupViewAnimationType
 @property (nonatomic, assign) BOOL popupInsideScrollView;
 @property (nonatomic, strong) UIColor *overlayColor;
 @property (nonatomic, unsafe_unretained) id<DGPopupViewDelegate> popupDelegate;
+@property (nonatomic, copy) void (^didPopupBlock)();
+@property (nonatomic, copy) void (^didPopdownBlock)();
 
 /* These are for when popupInsideScrollView is used, and there are textfields that need to be handled when the keyboard scrolls */
 @property (nonatomic, unsafe_unretained) id<UITextFieldDelegate> popupTextFieldDelegate;
