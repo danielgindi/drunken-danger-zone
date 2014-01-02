@@ -11,7 +11,7 @@
 #import "DGInputAccessoryToolbar.h"
 
 #ifndef IS_IOS7_OR_GREATER
-#define IS_IOS7_OR_GREATER                  ([UIDevice.currentDevice.systemVersion compare:@"7.0" options:NSNumericSearch] == NSOrderedSame)
+#define IS_IOS7_OR_GREATER                  ([UIDevice.currentDevice.systemVersion compare:@"7.0" options:NSNumericSearch] >= NSOrderedSame)
 #endif
 
 @interface DGInputAccessoryToolbar ()
@@ -34,12 +34,13 @@
     if (IS_IOS7_OR_GREATER)
     {
         self.barStyle = UIBarStyleDefault;
+        self.tintColor = UIColor.blackColor;
     }
     else
     {
         self.barStyle = UIBarStyleBlackTranslucent;
         self.translucent = YES;
-        //self.tintColor = [UIColor darkGrayColor];
+        //self.tintColor = UIColor.darkGrayColor;
     }
     
     NSString *prevString, *nextString;
@@ -73,6 +74,7 @@
         {
             segmented.tintColor = [UIColor darkGrayColor];
         }
+        
         segmented.momentary = YES;
         [items addObject:[[UIBarButtonItem alloc] initWithCustomView:segmented]];
     }
