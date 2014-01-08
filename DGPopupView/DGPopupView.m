@@ -176,8 +176,11 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
 
 - (void)attachAllFieldDelegatesToPopupsScrollView
 {
-    SEL selector = sel_registerName("attachAllFieldDelegates");
-    ((void (*)(id, SEL))[keyboardScrollHandler methodForSelector:selector])(keyboardScrollHandler, selector);
+    if (keyboardScrollHandler)
+    {
+        SEL selector = sel_registerName("attachAllFieldDelegates");
+        ((void (*)(id, SEL))[keyboardScrollHandler methodForSelector:selector])(keyboardScrollHandler, selector);
+    }
 }
 
 - (id)popupFromView:(UIView *)parentView
@@ -309,6 +312,8 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         popupAnimation.keyTimes = @[@0.f, @0.4f, @0.7f, @1.f];
         popupAnimation.timingFunctions = @[overShoot, easeOut, overShoot];
         popupAnimation.fillMode = kCAFillModeBoth;
+        popupAnimation.delegate = self;
+        popupAnimation.removedOnCompletion = NO; // So we can keep track of it in animationDidStop:finished:
         
         self.layer.transform = CATransform3DIdentity;
         [self.layer addAnimation:popupAnimation forKey:@"popup"];
@@ -341,7 +346,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         [UIView animateWithDuration:0.4 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.frame = toFrame;
         } completion:^(BOOL finished) {
-            
+            [self finishPopup];
         }];
     }
     else // if (animation == DGPopupViewAnimationTypeNone)
@@ -350,6 +355,8 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         // Set up popup
         self.frame = popupFrame;
         [scrollView?scrollView:parentView addSubview:self];
+        
+        [self finishPopup];
         
     }
     
@@ -397,6 +404,12 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         return self;
     }
     
+    if (keyboardScrollHandler)
+    {
+        SEL selector = sel_registerName("viewWillDisappear");
+        ((void (*)(id, SEL))[keyboardScrollHandler methodForSelector:selector])(keyboardScrollHandler, selector);
+    }
+    
     DGPopupViewAnimationType animationType = _popdownAnimation;
     if (animationType == DGPopupViewAnimationTypeAutomatic)
     {
@@ -421,7 +434,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
             overlayAnimation.toValue = @0.f;
             
             popupOverlayView.layer.opacity = 0.f;
-            [popupOverlayView.layer addAnimation:overlayAnimation forKey:@"popup"];
+            [popupOverlayView.layer addAnimation:overlayAnimation forKey:@"popdown"];
         }
         
         // Set up animation for popup
@@ -455,9 +468,8 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
             overlayAnimation.toValue = @0.f;
             
             popupOverlayView.layer.opacity = 0.f;
-            [popupOverlayView.layer addAnimation:overlayAnimation forKey:@"popup"];
+            [popupOverlayView.layer addAnimation:overlayAnimation forKey:@"popdown"];
         }
-        
         
         // Set up animation for popup
         
@@ -470,20 +482,15 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
             self.frame = toFrame;
         } completion:^(BOOL finished) {
             
-            [self finishPopDown];
+            [self finishPopdown];
             
         }];
     }
     else // if (animationType == DGPopupViewAnimationTypeNone)
     {
-        if ([_popupDelegate respondsToSelector:@selector(popupViewDidPopup:)])
-        {
-            [_popupDelegate popupViewDidPopup:self];
-        }
-        if (_didPopupBlock)
-        {
-            _didPopupBlock();
-        }
+        
+        [self finishPopdown];
+        
     }
     return self;
 }
@@ -494,36 +501,49 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
     {
         [self.layer removeAnimationForKey:@"popup"];
         
-        [self didFinishPopup];
-        
-        if ([_popupDelegate respondsToSelector:@selector(popupViewDidPopup:)])
-        {
-            [_popupDelegate popupViewDidPopup:self];
-        }
-        if (_didPopupBlock)
-        {
-            _didPopupBlock();
-        }
+        [self finishPopup];
     }
     else if (theAnimation == [self.layer animationForKey:@"popdown"])
     {
         [self.layer removeAnimationForKey:@"popdown"]; // Because of removedOnCompletion=NO
         
-        [self finishPopDown];
+        [self finishPopdown];
     }
 }
 
 - (void)didFinishPopup
 {
-    // Do nothing, this is for overrides
+    if (keyboardScrollHandler)
+    {
+        SEL selector = sel_registerName("viewDidAppear");
+        ((void (*)(id, SEL))[keyboardScrollHandler methodForSelector:selector])(keyboardScrollHandler, selector);
+    }
 }
 
 - (void)didFinishPopdown
 {
-    // Do nothing, this is for overrides
+    if (keyboardScrollHandler)
+    {
+        SEL selector = sel_registerName("viewDidDisappear");
+        ((void (*)(id, SEL))[keyboardScrollHandler methodForSelector:selector])(keyboardScrollHandler, selector);
+    }
 }
 
-- (void)finishPopDown
+- (void)finishPopup
+{
+    [self didFinishPopup];
+    
+    if ([_popupDelegate respondsToSelector:@selector(popupViewDidPopup:)])
+    {
+        [_popupDelegate popupViewDidPopup:self];
+    }
+    if (_didPopupBlock)
+    {
+        _didPopupBlock();
+    }
+}
+
+- (void)finishPopdown
 {
     [popupOverlayView removeFromSuperview];
     popupOverlayView = nil;
@@ -567,15 +587,21 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
 - (void)setPopupTextFieldDelegate:(id<UITextFieldDelegate>)popupTextFieldDelegate
 {
     _popupTextFieldDelegate = popupTextFieldDelegate;
-    SEL selector = sel_registerName("setTextFieldDelegate:");
-    ((void (*)(id, SEL, id<UITextFieldDelegate>))[keyboardScrollHandler methodForSelector:selector])(keyboardScrollHandler, selector, _popupTextFieldDelegate);
+    if (keyboardScrollHandler)
+    {
+        SEL selector = sel_registerName("setTextFieldDelegate:");
+        ((void (*)(id, SEL, __weak id<UITextFieldDelegate>))[keyboardScrollHandler methodForSelector:selector])(keyboardScrollHandler, selector, _popupTextFieldDelegate);
+    }
 }
 
 - (void)setPopupTextViewDelegate:(id<UITextViewDelegate>)popupTextViewDelegate
 {
     _popupTextViewDelegate = popupTextViewDelegate;
-    SEL selector = sel_registerName("setTextViewDelegate:");
-    ((void (*)(id, SEL, id<UITextViewDelegate>))[keyboardScrollHandler methodForSelector:selector])(keyboardScrollHandler, selector, _popupTextViewDelegate);
+    if (keyboardScrollHandler)
+    {
+        SEL selector = sel_registerName("setTextViewDelegate:");
+        ((void (*)(id, SEL, __weak id<UITextViewDelegate>))[keyboardScrollHandler methodForSelector:selector])(keyboardScrollHandler, selector, _popupTextViewDelegate);
+    }
 }
 
 - (void)popupOverlayTouchedUpInside:(id)sender
