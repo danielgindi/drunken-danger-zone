@@ -58,6 +58,14 @@
     return self;
 }
 
+- (void)dealloc
+{
+	NSNotificationCenter *dc = [NSNotificationCenter defaultCenter];
+    
+	[dc removeObserver:self name:UIKeyboardWillShowNotification object:nil];
+	[dc removeObserver:self name:UIKeyboardWillHideNotification object:nil];
+}
+
 - (id)initForViewController:(UIViewController*)viewController
 {
     self = [self init];
@@ -78,6 +86,9 @@
 	[_scrollView flashScrollIndicators];
     
 	NSNotificationCenter *dc = [NSNotificationCenter defaultCenter];
+    
+	[dc removeObserver:self name:UIKeyboardWillShowNotification object:nil];
+	[dc removeObserver:self name:UIKeyboardWillHideNotification object:nil];
     
 	[dc addObserver:self
            selector:@selector(keyboardWillShow:)
@@ -385,9 +396,8 @@
 {
 	/*if (self.viewController.navigationController.topViewController == self ||
      (!self.viewController.navigationController && !self.modalViewController))*/
-	if ((self.viewController.navigationController.topViewController == self.viewController ||
-         self.viewController.navigationController.presentedViewController == self.viewController ||
-         (self.viewController.navigationController == nil)) && self.viewController.isViewLoaded && self.viewController.view.window && !_suppressKeyboardEvents)
+	if ((!self.viewController || ((self.viewController.navigationController.topViewController == self.viewController || self.viewController.navigationController.presentedViewController == self.viewController || self.viewController.navigationController == nil) &&
+        self.viewController.isViewLoaded && self.viewController.view.window)) && !_suppressKeyboardEvents)
     {
         _isKeyboardShowingForThisVC = YES;
         
@@ -464,10 +474,20 @@
              }
          } completion:^(BOOL finished)
          {
-             if (_staticScrollOffset.height != 0.f)
+             if (_scrollOffsetBlock != nil)
+             {
+                 CGPoint offset = _scrollOffsetBlock(_scrollView, keyboardFrame);
+                 
+                 [UIView animateWithDuration:0.15f delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+                     _scrollView.contentOffset = offset;
+                 } completion:^(BOOL finished) {
+                     
+                 }];
+             }
+             else if (_staticScrollOffset.y != 0.f)
              {
                  [UIView animateWithDuration:0.15f delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-                     _scrollView.contentOffset = CGPointMake(_scrollView.contentOffset.x, _staticScrollOffset.height);
+                     _scrollView.contentOffset = CGPointMake(_scrollView.contentOffset.x, _staticScrollOffset.y);
                  } completion:^(BOOL finished) {
                      
                  }];
@@ -484,9 +504,9 @@
 {
 	//if (self.navigationController.topViewController == self ||
     //    (!self.navigationController && !self.modalViewController))
-	if ((self.viewController.navigationController.topViewController == self.viewController ||
+	if ((!self.viewController || ((self.viewController.navigationController.topViewController == self.viewController ||
          self.viewController.navigationController.presentedViewController == self.viewController ||
-         (self.viewController.navigationController == nil)) && self.viewController.isViewLoaded && self.viewController.view.window && !_suppressKeyboardEvents)
+         (self.viewController.navigationController == nil)) && self.viewController.isViewLoaded && self.viewController.view.window)) && !_suppressKeyboardEvents)
     {
         _isKeyboardShowingForThisVC = NO;
         

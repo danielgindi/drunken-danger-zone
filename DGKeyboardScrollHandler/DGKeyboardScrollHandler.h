@@ -37,6 +37,8 @@
 
 #import <Foundation/Foundation.h>
 
+typedef CGPoint (^DGKeyboardScrollHandlerScrollAmountBlock)(UIScrollView *scrollView, CGRect keyboardFrame);
+
 @interface DGKeyboardScrollHandler : NSObject <UITextFieldDelegate, UITextViewDelegate>
 
 /*! @property scrollView
@@ -56,9 +58,14 @@
 @property (nonatomic, assign) BOOL scrollToOriginalPositionAfterKeyboardHide;
 
 /*! @property staticScrollOffset
-    @brief Set this property if you need, for some reason, to add an arbitrary offset to the scroll when the keyboard is first showing. 
-           Default is {0, 0} */
-@property (nonatomic, assign) CGSize staticScrollOffset;
+ @brief Set this property if you need, for some reason, to add an arbitrary offset to the scroll when the keyboard is first showing.
+ Default is {0, 0} */
+@property (nonatomic, assign) CGPoint staticScrollOffset;
+
+/*! @property scrollOffsetBlock
+ @brief Set this property if you need, for some reason, to calculate your own scroll offset to animate to when the keyboard is showing.
+ Default is nil */
+@property (nonatomic, copy) DGKeyboardScrollHandlerScrollAmountBlock scrollOffsetBlock;
 
 /*! @property suppressKeyboardEvents
     @brief Set this to YES if you want us to ignore keyboard showing/hiding events for a while.
