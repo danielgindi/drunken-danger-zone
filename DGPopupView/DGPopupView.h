@@ -38,8 +38,10 @@
 typedef enum _DGPopupViewAnimationType
 {
     DGPopupViewAnimationTypeNone,
+    DGPopupViewAnimationTypeAutomatic,
     DGPopupViewAnimationTypePopup,
-    DGPopupViewAnimationTypeTopBottom
+    DGPopupViewAnimationTypeTopBottom,
+    DGPopupViewAnimationTypeBottomTop
 } DGPopupViewAnimationType;
 
 @class DGPopupView;
@@ -57,6 +59,7 @@ typedef enum _DGPopupViewAnimationType
 + (instancetype)popupFromXib;
 
 @property (nonatomic, assign) BOOL hasOverflay;
+@property (nonatomic, assign) DGPopupViewAnimationType popdownAnimation;
 @property (nonatomic, assign) BOOL closesFromOverlay;
 @property (nonatomic, assign) BOOL popupInsideScrollView;
 @property (nonatomic, strong) UIColor *overlayColor;
@@ -75,8 +78,9 @@ typedef enum _DGPopupViewAnimationType
 - (id)popupFromView:(UIView*)parentView withPopupFrame:(CGRect)popupFrame animation:(DGPopupViewAnimationType)animation now:(BOOL)now;
 - (id)popupFromView:(UIView*)parentView animation:(DGPopupViewAnimationType)animation;
 - (id)popupFromView:(UIView*)parentView animation:(DGPopupViewAnimationType)animation now:(BOOL)now;
-- (id)popdown;
-- (id)popdownShowNext:(BOOL)showNext; // If an override needed, override this!
+- (id)popdown; // Synonym for popdownAnimated:
+- (id)popdownAnimated:(BOOL)animated;
+- (id)popdownShowNext:(BOOL)showNext animated:(BOOL)animated; // If an override needed, override this!
 
 - (CGRect)calculatePopupPositionInsideFrame:(CGRect)parentFrame;
 

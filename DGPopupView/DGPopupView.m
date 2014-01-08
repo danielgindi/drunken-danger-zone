@@ -35,6 +35,7 @@
 
 @interface DGPopupView ()
 {
+    UIView *currentParentView;
     UIButton *popupOverlayView;
     NSObject *keyboardScrollHandler;
     UIScrollView *scrollView;
@@ -142,7 +143,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
     self = [super initWithFrame:frame];
     if (self)
     {
-        [self _popupview_initialize];
+        [self DGPopupView_initialize];
     }
     return self;
 }
@@ -152,7 +153,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
     self = [super initWithCoder:aDecoder];
     if (self)
     {
-        [self _popupview_initialize];
+        [self DGPopupView_initialize];
     }
     return self;
 }
@@ -165,10 +166,11 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
     }
 }
 
-- (void)_popupview_initialize
+- (void)DGPopupView_initialize
 {
     _hasOverflay = YES;
     _closesFromOverlay = YES;
+    _popdownAnimation = DGPopupViewAnimationTypeAutomatic;
     _overlayColor = [UIColor colorWithWhite:0.f alpha:.6f];
 }
 
@@ -220,6 +222,8 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         }
         if (self.currentPopup != self) return self;
     }
+    
+    currentParentView = parentView;
     
     inAnimation = animation;
     
@@ -309,7 +313,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         self.layer.transform = CATransform3DIdentity;
         [self.layer addAnimation:popupAnimation forKey:@"popup"];
     }
-    else if (animation == DGPopupViewAnimationTypeTopBottom)
+    else if (animation == DGPopupViewAnimationTypeTopBottom || animation == DGPopupViewAnimationTypeBottomTop)
     {
         if (popupOverlayView)
         {
@@ -331,7 +335,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         
         CGRect fromFrame = self.frame;
         CGRect toFrame = self.frame;
-        fromFrame.origin.y = -fromFrame.size.height;
+        fromFrame.origin.y = animation == DGPopupViewAnimationTypeTopBottom ? (-fromFrame.size.height) : (self.superview.bounds.size.height);
         self.frame = fromFrame;
         
         [UIView animateWithDuration:0.4 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -340,7 +344,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
             
         }];
     }
-    else if (animation == DGPopupViewAnimationTypeNone)
+    else // if (animation == DGPopupViewAnimationTypeNone)
     {
         
         // Set up popup
@@ -362,10 +366,15 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
 
 - (id)popdown
 {
-    return [self popdownShowNext:YES];
+    return [self popdownAnimated:YES];
 }
 
-- (id)popdownShowNext:(BOOL)showNext
+- (id)popdownAnimated:(BOOL)animated
+{
+    return [self popdownShowNext:YES animated:YES];
+}
+
+- (id)popdownShowNext:(BOOL)showNext animated:(BOOL)animated
 {
     showNextAfterPopdown = showNext;
     
@@ -388,7 +397,17 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         return self;
     }
     
-    if (inAnimation == DGPopupViewAnimationTypePopup)
+    DGPopupViewAnimationType animationType = _popdownAnimation;
+    if (animationType == DGPopupViewAnimationTypeAutomatic)
+    {
+        animationType = inAnimation;
+    }
+    if (!animated)
+    {
+        animationType = DGPopupViewAnimationTypeNone;
+    }
+    
+    if (animationType == DGPopupViewAnimationTypePopup)
     {
         if (popupOverlayView)
         {
@@ -422,7 +441,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         self.layer.transform = CATransform3DMakeScale(0.f, 0.f, 1.f);
         [self.layer addAnimation:popdownAnimation forKey:@"popdown"];
     }
-    else if (inAnimation == DGPopupViewAnimationTypeTopBottom)
+    else if (animationType == DGPopupViewAnimationTypeTopBottom || animationType == DGPopupViewAnimationTypeBottomTop)
     {
         if (popupOverlayView)
         {
@@ -444,7 +463,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         
         CGRect fromFrame = self.frame;
         CGRect toFrame = self.frame;
-        toFrame.origin.y = -toFrame.size.height;
+        toFrame.origin.y = animationType == DGPopupViewAnimationTypeTopBottom ? (-toFrame.size.height) : (self.superview.bounds.size.height);
         self.frame = fromFrame;
         
         [UIView animateWithDuration:0.2 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -455,7 +474,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
             
         }];
     }
-    else // DGPopupViewAnimationTypeNone
+    else // if (animationType == DGPopupViewAnimationTypeNone)
     {
         if ([_popupDelegate respondsToSelector:@selector(popupViewDidPopup:)])
         {
@@ -512,6 +531,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
     scrollView = nil;
     keyboardScrollHandler = nil;
     [self removeFromSuperview];
+    currentParentView = nil;
     if ([_popupDelegate respondsToSelector:@selector(popupViewDidPopdown:)])
     {
         [_popupDelegate popupViewDidPopdown:self];
@@ -531,7 +551,13 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
         NSDictionary *nextOne = self.currentPopupCache;
         if (nextOne)
         {
-            [nextOne[@"popup"] popupFromView:nextOne[@"fromView"] withPopupFrame:[((NSValue*)nextOne[@"frame"]) CGRectValue] animation:(DGPopupViewAnimationType)[nextOne[@"animation"] intValue] now:NO];
+            DGPopupView *popup = nextOne[@"popup"];
+            if (popup.superview && popup->currentParentView == nextOne[@"fromView"])
+            {
+                // Already popped up
+                return;
+            }
+            [popup popupFromView:nextOne[@"fromView"] withPopupFrame:[((NSValue*)nextOne[@"frame"]) CGRectValue] animation:(DGPopupViewAnimationType)[nextOne[@"animation"] intValue] now:NO];
         }
     }
     
