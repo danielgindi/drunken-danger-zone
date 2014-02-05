@@ -81,7 +81,7 @@
     fileWriteHandle = nil;
     if (filePath)
     {
-        [[[NSFileManager alloc] init] removeItemAtPath:filePath error:nil];
+        [[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
         filePath = nil;
     }
 }
@@ -237,7 +237,7 @@
     
     if (!fileWriteHandle)
     {
-        NSFileManager *fileManager = [[NSFileManager alloc] init];
+        NSFileManager *fileManager = [NSFileManager defaultManager];
         filePath = self.newTempFilePath;
         int tries = 3;
         BOOL success = [fileManager createFileAtPath:filePath contents:nil attributes:nil];
