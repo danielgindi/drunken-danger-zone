@@ -430,6 +430,17 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     NSString *path = paths.count ? paths[0] : [NSHomeDirectory() stringByAppendingString:@"/Library/Caches"];
     path = [path stringByAppendingPathComponent:@"dg-image-loader"];
     
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    if (![fileManager fileExistsAtPath:path])
+    {
+        NSError *error = nil;
+        if (![fileManager createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:&error])
+        {
+            NSLog(@"Can't create cache folder, error: %@", error);
+            return nil;
+        }
+    }
+    
     const char *urlStr = url.absoluteString.UTF8String;
     unsigned char md5result[16];
     CC_MD5(urlStr, (CC_LONG)strlen(urlStr), md5result); // This is the md5 call
