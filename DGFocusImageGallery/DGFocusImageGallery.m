@@ -40,7 +40,8 @@
 {
     NSMutableArray *_downloadConnectionRequests;
     NSMutableArray *_downloadConnections;
-    NSMutableArray *_downloadConnectionsData;
+    NSMutableArray *_downloadConnectionsFilePaths;
+    NSMutableArray *_downloadConnectionsWriteHandles;
     NSMutableArray *_activeConnections;
     
     NSMutableArray *_imageViewContainers;
@@ -74,7 +75,8 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
         
         _downloadConnectionRequests = [NSMutableArray array];
         _downloadConnections = [NSMutableArray array];
-        _downloadConnectionsData = [NSMutableArray array];
+        _downloadConnectionsFilePaths = [NSMutableArray array];
+        _downloadConnectionsWriteHandles = [NSMutableArray array];
         _activeConnections = [NSMutableArray array];
         _imageViews = [NSMutableArray array];
         _imageViewContainers = [NSMutableArray array];
@@ -358,6 +360,20 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
         {
             [self layoutViewWithFrame:newFrame];
         }
+    }
+}
+
+- (void)closeAndRemoveTempFile:(NSString *)filePath writeHandle:(NSFileHandle *)fileWriteHandle
+{
+    if (fileWriteHandle)
+    {
+        [fileWriteHandle closeFile];
+        fileWriteHandle = nil;
+    }
+    if (filePath)
+    {
+        [[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
+        filePath = nil;
     }
 }
 
@@ -654,6 +670,43 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
     return box;
 }
 
+- (NSString *)newTempFilePath
+{
+    CFUUIDRef uuid = CFUUIDCreate(NULL);
+    CFStringRef uuidStr = CFUUIDCreateString(NULL, uuid);
+    
+    NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"image-loader-%@", uuidStr]];
+    
+    CFRelease(uuidStr);
+    CFRelease(uuid);
+    
+    return path;
+}
+
+- (NSFileHandle *)fileHandleToANewTempFile:(out NSString **)filePath
+{
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSString *tempFilePath = self.newTempFilePath;
+    int tries = 3;
+    BOOL success = [fileManager createFileAtPath:tempFilePath contents:nil attributes:nil];
+    while (!success && --tries)
+    {
+        tempFilePath = self.newTempFilePath;
+        success = [fileManager createFileAtPath:tempFilePath contents:nil attributes:nil];
+    }
+    
+    if (success)
+    {
+        if (filePath)
+        {
+            *filePath = tempFilePath;
+        }
+        return [NSFileHandle fileHandleForWritingAtPath:tempFilePath];
+    }
+    
+    return nil;
+}
+
 #pragma mark - Caching stuff
 
 + (NSString *)getLocalCachePathForUrl:(NSURL *)url
@@ -712,8 +765,7 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
 {
     @synchronized(_downloadConnections)
     {
-        NSMutableData *data = _downloadConnectionsData[[_downloadConnections indexOfObject:connection]];
-        [data appendData:incrementalData];
+        [(NSFileHandle *)_downloadConnectionsWriteHandles[[_downloadConnections indexOfObject:connection]] writeData:incrementalData];
     }
     
 }
@@ -725,27 +777,36 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
         NSInteger connectionIndex = [_downloadConnections indexOfObject:connection];
         [_downloadConnections removeObjectAtIndex:connectionIndex];
         [_downloadConnectionRequests removeObjectAtIndex:connectionIndex];
-        [_downloadConnectionsData removeObjectAtIndex:connectionIndex];
+        
+        [(NSFileHandle *)_downloadConnectionsWriteHandles[connectionIndex] closeFile];
+        [[NSFileManager defaultManager] removeItemAtPath:_downloadConnectionsFilePaths[connectionIndex] error:nil];
+        
+        [_downloadConnectionsWriteHandles removeObjectAtIndex:connectionIndex];
+        [_downloadConnectionsFilePaths removeObjectAtIndex:connectionIndex];
     }
     [self continueConnectionQueue];
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-    NSMutableData *imageData = nil;
-    NSURL *currentUrl = nil;
+    NSString *imageFilePath;
+    NSURL *currentUrl;
     @synchronized(_downloadConnections)
     {
         NSInteger connectionIndex = [_downloadConnections indexOfObject:connection];
-        imageData = _downloadConnectionsData[connectionIndex];
+        
+        [(NSFileHandle *)_downloadConnectionsWriteHandles[connectionIndex] closeFile];
+        imageFilePath = _downloadConnectionsFilePaths[connectionIndex];
+        
         currentUrl = ((NSURLRequest *)_downloadConnectionRequests[connectionIndex]).URL;
         [_downloadConnections removeObjectAtIndex:connectionIndex];
         [_downloadConnectionRequests removeObjectAtIndex:connectionIndex];
-        [_downloadConnectionsData removeObjectAtIndex:connectionIndex];
+        [_downloadConnectionsWriteHandles removeObjectAtIndex:connectionIndex];
+        [_downloadConnectionsFilePaths removeObjectAtIndex:connectionIndex];
     }
     [self continueConnectionQueue];
     
-	if (imageData != nil)
+	if (imageFilePath.length)
 	{
         __block __typeof(self) _self = self;
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -753,10 +814,10 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
             NSInteger imageIndex = [_self->_galleryUrls indexOfObject:currentUrl];
             
             NSString *cachePath = [DGFocusImageGallery getLocalCachePathForUrl:currentUrl];
-            [imageData writeToFile:cachePath options:NSDataWritingAtomic error:nil];
+            [[NSFileManager defaultManager] moveItemAtPath:imageFilePath toPath:cachePath error:nil];
             
             UIActivityIndicatorView *activityIndicatorView = _imageViews[imageIndex];
-            UIImage *viewImage = [UIImage imageWithData:imageData];
+            UIImage *viewImage = [UIImage imageWithContentsOfFile:cachePath];
             
             if (viewImage)
             {
@@ -790,7 +851,12 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
         
         [_downloadConnectionRequests addObject:urlRequest];
         [_downloadConnections addObject:urlConnection];
-        [_downloadConnectionsData addObject:[NSMutableData data]];
+        
+        NSString *filePath;
+        NSFileHandle *fileWriteHandler = [self fileHandleToANewTempFile:&filePath];
+        
+        [_downloadConnectionsFilePaths addObject:filePath];
+        [_downloadConnectionsWriteHandles addObject:fileWriteHandler];
     }
     [self continueConnectionQueue];
 }
@@ -854,9 +920,18 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
         {
             [conn cancel];
         }
+        for (NSFileHandle *writeHandle in _downloadConnectionsWriteHandles)
+        {
+            [writeHandle closeFile];
+        }
+        for (NSString *tempFilePath in _downloadConnectionsFilePaths)
+        {
+            [[NSFileManager defaultManager] removeItemAtPath:tempFilePath error:nil];
+        }
         _downloadConnections = nil;
-        _downloadConnectionsData = nil;
         _downloadConnectionRequests = nil;
+        _downloadConnectionsWriteHandles = nil;
+        _downloadConnectionsFilePaths = nil;
         _activeConnections = nil;
     }
 }
