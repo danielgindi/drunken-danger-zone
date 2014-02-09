@@ -118,28 +118,38 @@ typedef enum _DGImageLoaderViewCropAnchor
     Default: YES */
 @property (nonatomic, assign) BOOL asyncLoadImages;
 
-/*! @property resizeImagesToNeededSize
+/*! @property resizeImages
     @brief Post process images to resize to requested size.
     Disable this if images are known to always come in the correct size.
     Default: YES */
-@property (nonatomic, assign) BOOL resizeImagesToNeededSize;
+@property (nonatomic, assign) BOOL resizeImages;
+
+/*! @property detectScaleFromFileName
+    @brief Set this to YES if you want to specify urls that contain the @2x for scale. Otherwise, scale will be set according to current screen.
+    Default: YES */
+@property (nonatomic, assign) BOOL detectScaleFromFileName;
 
 /*! Load the image from an URL
     @param url  The URL of the image to load
     @param animationType  The kind of animation to use when displaying the image. */
-- (void)loadImageFromURL:(NSURL*)url andAnimationType:(DGImageLoaderViewAnimationType)animationType;
+- (void)loadImageFromURL:(NSURL *)url andAnimationType:(DGImageLoaderViewAnimationType)animationType;
 
 /*! Load the image from an URL
     @param url  The URL of the image to load
     @param animationType  The kind of animation to use when displaying the image.
     @param immediate  If set to YES, will override any delaying of loading or displaying, and will immediately load and display the image. 
     @param isLocalUrl Tells it that the URL is of a local file, which should NOT be cached, as it exists locally already */
-- (void)loadImageFromURL:(NSURL*)url andAnimationType:(DGImageLoaderViewAnimationType)animationType immediate:(BOOL)immediate isLocalUrl:(BOOL)localUrl;
+- (void)loadImageFromURL:(NSURL *)url andAnimationType:(DGImageLoaderViewAnimationType)animationType immediate:(BOOL)immediate isLocalUrl:(BOOL)isLocalUrl;
+
+/*! Load the image from a local URL
+ @param url  The URL of the image to load
+ @param animationType  The kind of animation to use when displaying the image. */
+- (void)loadImageFromLocalURL:(NSURL *)url andAnimationType:(DGImageLoaderViewAnimationType)animationType;
 
 /*! Load the image from an UIImage
     This is useful when you want to use the "resize" feature on an available UIImage
     @param animationType  The kind of animation to use when displaying the image. */
-- (void)loadImage:(UIImage*)image withAnimationType:(DGImageLoaderViewAnimationType)animationType;
+- (void)loadImage:(UIImage *)image withAnimationType:(DGImageLoaderViewAnimationType)animationType;
 
 /*! Stops any loading of image in progress */
 - (void)stop;

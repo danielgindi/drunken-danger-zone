@@ -38,19 +38,21 @@
 
 @interface DGImageLoaderView ()
 {
-    BOOL isDefaultLoaded;
+    BOOL _isDefaultLoaded;
     DGImageLoaderViewAnimationType _animationType;
-    BOOL waitingForDisplay, waitingForDisplayWithAnimation;
+    BOOL _waitingForDisplay, _waitingForDisplayWithAnimation;
     BOOL _hasImageLoaded;
-    BOOL nextUrlToLoadIsLocal;
+    BOOL _nextUrlToLoadIsLocal;
     
-    NSURL * nextUrlToLoad;
-    int asyncOperationCounter;
+    NSURL *_nextUrlToLoad;
+    int _asyncOperationCounter;
+    
+    NSString *_tempFilePath;
+    NSFileHandle *_fileWriteHandle;
 }
 
 @property (nonatomic, strong) NSURLRequest *urlRequest;
 @property (nonatomic, strong) NSURLConnection *urlConnection;
-@property (nonatomic, strong) NSMutableData *connectionData;
 
 @property (nonatomic, strong) UIActivityIndicatorView *indicator;
 @property (nonatomic, strong) UIImageView *nextImageView;
@@ -65,14 +67,14 @@
 
 static int s_DGImageLoaderView_maxAsyncConnections = DEFAULT_MAX_ASYNC_CONNECTIONS;
 static int s_DGImageLoaderView_currentActiveConnections = 0;
-static NSMutableArray * s_DGImageLoaderView_queuedConnectionsArray = nil;
-static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
+static NSMutableArray *s_DGImageLoaderView_queuedConnectionsArray = nil;
+static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 
 #pragma mark - Init
 
 - (id)init 
 {
-    if ((self=[super init])) 
+    if ((self = [super init]))
 	{
 		[self initialize];
     }
@@ -81,7 +83,7 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
 
 - (id)initWithCoder:(NSCoder *)aDecoder
 {
-	if ((self=[super initWithCoder:aDecoder])) 
+	if ((self = [super initWithCoder:aDecoder]))
 	{
 		[self initialize];
     }
@@ -90,7 +92,7 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
 
 - (id)initWithFrame:(CGRect)frame
 {
-	if ((self=[super initWithFrame:frame]))
+	if ((self = [super initWithFrame:frame]))
 	{
 		[self initialize];
     }
@@ -110,20 +112,112 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
     
     _delayActualLoadUntilDisplay = NO;
     _delayImageShowUntilDisplay = YES;
-    waitingForDisplay = waitingForDisplayWithAnimation = NO;
-    isDefaultLoaded = YES;
+    _waitingForDisplay = NO;
+    _waitingForDisplayWithAnimation = NO;
+    _isDefaultLoaded = YES;
     _keepAspectRatio = YES;
     _animationDuration = 0.8;
     _asyncLoadImages = YES;
-    _resizeImagesToNeededSize = YES;
+    _resizeImages = YES;
     _cropAnchor = DGImageLoaderViewCropAnchorCenterCenter;
+    _detectScaleFromFileName = YES;
+    
     self.clipsToBounds = YES;
+    
     if (self.defaultImage)
     {
         self.oldImageView = [[UIImageView alloc] initWithImage:self.defaultImage];
         self.oldImageView.contentMode = UIViewContentModeScaleToFill;
-        self.oldImageView.frame = [self calculateFrameForImage:self.oldImageView.image];
+        self.oldImageView.frame = [self rectForImage:self.oldImageView.image];
         [self addSubview:self.oldImageView];
+    }
+}
+
+- (void)dealloc
+{
+    [self closeAndRemoveTempFile];
+}
+
+- (void)closeAndRemoveTempFile
+{
+    if (_fileWriteHandle)
+    {
+        [_fileWriteHandle closeFile];
+        _fileWriteHandle = nil;
+    }
+    if (_tempFilePath)
+    {
+        [[NSFileManager defaultManager] removeItemAtPath:_tempFilePath error:nil];
+        _tempFilePath = nil;
+    }
+}
+
+
+- (void)loadImageFromPath:(NSString *)path originalUrl:(NSURL *)originalURL forceAnimation:(BOOL)forceAnimation
+{
+    BOOL asyncLoadImages = _asyncLoadImages;
+    int asyncIndex = ++_asyncOperationCounter;
+    
+    void (^loadBlock)() = ^
+    {
+        @autoreleasepool
+        {
+            // If current operation is irrelevant by the time we got here...
+            if (asyncIndex != _asyncOperationCounter) return;
+            
+            UIImage *image = [UIImage imageWithContentsOfFile:path];
+            
+            // If current operation is irrelevant by the time we finished loading the image from file
+            if (asyncIndex != _asyncOperationCounter) return;
+            
+            self.nextImage = image;
+            if (image)
+            {
+                if (_tempFilePath)
+                {
+                    [[NSFileManager defaultManager] moveItemAtPath:_tempFilePath toPath:[self getLocalCachePathForUrl:originalURL] error:nil];
+                }
+                
+                BOOL loadedThumbFromFile = YES;
+                if (_resizeImages)
+                {
+                    image = [self imageThumbnailOfImage:image fromCacheOfURL:originalURL isFromFile:&loadedThumbFromFile];
+                    
+                    // If current operation is irrelevant by the time we finished thumbnailing the image from file
+                    if (asyncIndex != _asyncOperationCounter) return;
+                }
+                
+                self.nextImage = image;
+                
+                BOOL animate = forceAnimation || !_doNotAnimateFromCache || !loadedThumbFromFile;
+                void (^playBlock)() = ^
+                {
+                    // If current operation is irrelevant by the time we made it to the main queue
+                    if (asyncIndex != _asyncOperationCounter) return;
+                    [self playWithAnimation:animate immediate:NO];
+                };
+                
+                if (asyncLoadImages)
+                { // Return to main queue for UI operations
+                    dispatch_async(dispatch_get_main_queue(), playBlock);
+                }
+                else
+                { // Go on, we are on the main thread already
+                    playBlock();
+                }
+            }
+            
+        } // @autoreleasepool
+        
+    };
+    
+    if (asyncLoadImages)
+    {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), loadBlock);
+    }
+    else
+    {
+        loadBlock();
     }
 }
 
@@ -133,11 +227,11 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
 {
     if (self.oldImageView)
     {
-        self.oldImageView.frame = [self calculateFrameForImage:self.oldImageView.image];
+        self.oldImageView.frame = [self rectForImage:self.oldImageView.image];
     }
     if (self.nextImageView)
     {
-        self.nextImageView.frame = [self calculateFrameForImage:self.nextImageView.image];
+        self.nextImageView.frame = [self rectForImage:self.nextImageView.image];
     }
     if (self.indicator)
     {
@@ -151,29 +245,40 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
 - (void)drawRect:(CGRect)rect
 {
     [super drawRect:rect];
-    if (waitingForDisplay)
-    {
-        waitingForDisplay = NO;
-        [self playWithAnimation:waitingForDisplayWithAnimation immediate:YES];
+    
+    if (_waitingForDisplay)
+    { // Image is present, we are just waiting for this moment to start animating it, when the view came into view...
+        _waitingForDisplay = NO;
+        [self playWithAnimation:_waitingForDisplayWithAnimation immediate:YES];
     }
-    if (nextUrlToLoad)
-    {
-        [self loadImageFromURL:nextUrlToLoad andAnimationType:_animationType immediate:YES isLocalUrl:nextUrlToLoadIsLocal];
-        nextUrlToLoad = nil;
-        nextUrlToLoadIsLocal = NO;
+    
+    if (_nextUrlToLoad)
+    { // We are waiting for this moment to start loading the image, when the view came into view...
+        [self loadImageFromURL:_nextUrlToLoad andAnimationType:_animationType immediate:YES isLocalUrl:_nextUrlToLoadIsLocal];
+        _nextUrlToLoad = nil;
+        _nextUrlToLoadIsLocal = NO;
     }
 }
 
 #pragma mark - Utilities
 
-- (CGRect)calculateFrameForImage:(UIImage*)image
+- (CGRect)rectForImage:(UIImage *)image
 {
-    return [self calculateFrameForWidth:image.size.width andHeight:image.size.height keepAspectRatio:_keepAspectRatio fitFromOutside:_fitFromOutside cropAnchor:_cropAnchor];
+    float scale = image.scale / UIScreen.mainScreen.scale;
+    return [self rectForWidth:image.size.width * scale
+                     andHeight:image.size.height * scale
+               keepAspectRatio:_keepAspectRatio
+                fitFromOutside:_fitFromOutside
+                    cropAnchor:_cropAnchor];
 }
 
-- (CGRect)calculateFrameForWidth:(CGFloat)cx andHeight:(CGFloat)cy keepAspectRatio:(BOOL)keepAspectRatio fitFromOutside:(BOOL)fitFromOutside cropAnchor:(DGImageLoaderViewCropAnchor)cropAnchor
++ (CGRect)rectForWidth:(CGFloat)cx
+             andHeight:(CGFloat)cy
+               inFrame:(CGRect)parentBox
+       keepAspectRatio:(BOOL)keepAspectRatio
+        fitFromOutside:(BOOL)fitFromOutside
+            cropAnchor:(DGImageLoaderViewCropAnchor)cropAnchor
 {
-    CGRect parentBox = self.frame;
     CGRect box = parentBox;
     if (keepAspectRatio)
     {
@@ -252,25 +357,78 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
         box.origin.x = 0.f;
         box.origin.y = 0.f;
     }
+    
+    box.origin.x += parentBox.origin.x;
+    box.origin.y += parentBox.origin.y;
+    
     return box;
 }
 
-- (UIImage*)imageByScalingImage:(UIImage*)image toSize:(CGSize)size
+- (CGRect)rectForWidth:(CGFloat)cx
+              andHeight:(CGFloat)cy
+        keepAspectRatio:(BOOL)keepAspectRatio
+         fitFromOutside:(BOOL)fitFromOutside
+             cropAnchor:(DGImageLoaderViewCropAnchor)cropAnchor
 {
-    UIGraphicsBeginImageContextWithOptions(size, NO, image.scale);
-    [image drawInRect:CGRectMake(0,0,size.width,size.height)];
-    UIImage* newImage = UIGraphicsGetImageFromCurrentImageContext();
+    return [DGImageLoaderView rectForWidth:cx andHeight:cy inFrame:self.bounds keepAspectRatio:keepAspectRatio fitFromOutside:fitFromOutside cropAnchor:cropAnchor];
+}
+
+- (UIImage *)imageByScalingImage:(UIImage *)image toSize:(CGSize)size
+{
+    UIGraphicsBeginImageContextWithOptions(size, NO, UIScreen.mainScreen.scale);
+    [image drawInRect:CGRectMake(0, 0, size.width, size.height)];
+    UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return newImage;
 }
 
+- (NSString *)newTempFilePath
+{
+    CFUUIDRef uuid = CFUUIDCreate(NULL);
+    CFStringRef uuidStr = CFUUIDCreateString(NULL, uuid);
+    
+    NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"image-loader-%@", uuidStr]];
+    
+    CFRelease(uuidStr);
+    CFRelease(uuid);
+    
+    return path;
+}
+
+- (NSFileHandle *)fileHandleToANewTempFile:(out NSString **)filePath
+{
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSString *tempFilePath = self.newTempFilePath;
+    int tries = 3;
+    BOOL success = [fileManager createFileAtPath:tempFilePath contents:nil attributes:nil];
+    while (!success && --tries)
+    {
+        tempFilePath = self.newTempFilePath;
+        success = [fileManager createFileAtPath:tempFilePath contents:nil attributes:nil];
+    }
+    
+    if (success)
+    {
+        if (filePath)
+        {
+            *filePath = tempFilePath;
+        }
+        return [NSFileHandle fileHandleForWritingAtPath:tempFilePath];
+    }
+    
+    return nil;
+}
+
 #pragma mark - Caching stuff
 
-- (NSString*)getLocalCachePathForUrl:(NSURL*)url
+- (NSString *)getLocalCachePathForUrl:(NSURL *)url
 {
+    if (!url) return nil; // Silence Xcode's Analyzer
+    
     // an alternative to the NSTemporaryDirectory
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
     NSString *path = paths.count ? paths[0] : [NSHomeDirectory() stringByAppendingString:@"/Library/Caches"];
+    path = [path stringByAppendingPathComponent:@"dg-image-loader"];
     
     const char *urlStr = url.absoluteString.UTF8String;
     unsigned char md5result[16];
@@ -283,20 +441,35 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
              md5result[8], md5result[9], md5result[10], md5result[11],
              md5result[12], md5result[13], md5result[14], md5result[15]
              ]];
+    
+    NSString *fn = url.lastPathComponent.lowercaseString;
+    
+    BOOL doubleScale = _detectScaleFromFileName ? [[fn stringByDeletingPathExtension] hasSuffix:@"@2x"] : (UIScreen.mainScreen.scale == 2.f);
+    
+    if (doubleScale)
+    {
+        path = [path stringByAppendingString:@"@2x"];
+    }
+    
+    if (fn.pathExtension.length)
+    {
+        path = [path stringByAppendingPathExtension:fn.pathExtension];
+    }
+    
     return path;
 }
 
-- (NSString*)getLocalCachePathForUrl:(NSURL*)url withThumbnailSize:(CGSize)thumbnailSize
+- (NSString *)getLocalCachePathForUrl:(NSURL *)url withThumbnailSize:(CGSize)thumbnailSize
 {
     // an alternative to the NSTemporaryDirectory
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
     NSString *path = paths.count ? paths[0] : [NSHomeDirectory() stringByAppendingString:@"/Library/Caches"];
-    path = [path stringByAppendingFormat:@"/Thumbnail%f,%f", thumbnailSize.width, thumbnailSize.height];
+    path = [path stringByAppendingPathComponent:[NSString stringWithFormat:@"dg-image-loader/Thumbnail%f,%f", thumbnailSize.width, thumbnailSize.height]];
     
-    NSFileManager * fileManager = [NSFileManager defaultManager];
+    NSFileManager *fileManager = [NSFileManager defaultManager];
     if (![fileManager fileExistsAtPath:path])
     {
-        NSError* error = nil;
+        NSError *error = nil;
         if (![fileManager createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:&error])
         {
             NSLog(@"Can't create cache folder, error: %@", error);
@@ -306,7 +479,7 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
     
     const char *urlStr = url.absoluteString.UTF8String;
     unsigned char md5result[16];
-    CC_MD5(urlStr, strlen(urlStr), md5result); // This is the md5 call
+    CC_MD5(urlStr, strlen(urlStr), md5result);
     path = [path stringByAppendingPathComponent:
             [NSString stringWithFormat:
              @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
@@ -315,27 +488,46 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
              md5result[8], md5result[9], md5result[10], md5result[11],
              md5result[12], md5result[13], md5result[14], md5result[15]
              ]];
+    
+    NSString *fn = url.lastPathComponent.lowercaseString;
+    
+    path = [path stringByAppendingString:@"@2x"];
+    
+    if (fn.pathExtension.length)
+    {
+        path = [path stringByAppendingPathExtension:fn.pathExtension];
+    }
+    
     return path;
 }
 
-- (UIImage*)imageThumbnailOfImage:(UIImage*)image fromCacheOfURL:(NSURL*)url isFromFile:(BOOL*)fromFile
+- (UIImage *)imageThumbnailOfImage:(UIImage *)image fromCacheOfURL:(NSURL *)url isFromFile:(BOOL *)fromFile
 {
-    CGSize neededSize = [self calculateFrameForImage:image].size;
-    CGFloat scale = UIScreen.mainScreen.scale;
-    neededSize.width *= scale;
-    neededSize.height *= scale;
+    CGSize neededSize = [self rectForImage:image].size;
+    
     CGSize currentSize = image.size;
-    if (fromFile) *fromFile = YES;
-    if (neededSize.width != currentSize.width || neededSize.height != currentSize.height)
+    float scale = image.scale / UIScreen.mainScreen.scale;
+    currentSize.width *= scale;
+    currentSize.height *= scale;
+    
+    if (fromFile)
+    {
+        *fromFile = YES;
+    }
+    
+    if (neededSize.width != currentSize.width ||
+        neededSize.height != currentSize.height)
     {
         neededSize.width = roundf(neededSize.width);
         neededSize.height = roundf(neededSize.height);
-        NSString * thumbCachePath = url ? [self getLocalCachePathForUrl:url withThumbnailSize:neededSize] : nil;
+        
+        NSString *thumbCachePath = url ? [self getLocalCachePathForUrl:url withThumbnailSize:neededSize] : nil;
+        
         if (thumbCachePath)
         {
             if ([[NSFileManager defaultManager] fileExistsAtPath:thumbCachePath])
             {
-                image = [UIImage imageWithData:[NSData dataWithContentsOfFile:thumbCachePath options:0 error:nil] scale:scale];
+                image = [UIImage imageWithContentsOfFile:thumbCachePath];
             }
             else
             {
@@ -355,17 +547,17 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
 
 #pragma mark - Accessors
 
-- (void)setDefaultImage:(UIImage*)defaultImage
+- (void)setDefaultImage:(UIImage *)defaultImage
 {
     _defaultImage = defaultImage;
-    if (isDefaultLoaded)
+    if (_isDefaultLoaded)
     {
         if (self.oldImageView)
         {
             if (_defaultImage)
             {
                 self.oldImageView.image = defaultImage;
-                self.oldImageView.frame = [self calculateFrameForImage:self.oldImageView.image];
+                self.oldImageView.frame = [self rectForImage:self.oldImageView.image];
             }
             else
             {
@@ -379,21 +571,21 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
             {
                 self.oldImageView = [[UIImageView alloc] initWithImage:_defaultImage];
                 self.oldImageView.contentMode = UIViewContentModeScaleToFill;
-                self.oldImageView.frame = [self calculateFrameForImage:self.oldImageView.image];
+                self.oldImageView.frame = [self rectForImage:self.oldImageView.image];
                 [self addSubview:self.oldImageView];
             }
         }
     }
 }
 
-- (UIImage*)currentVisibleImage
+- (UIImage *)currentVisibleImage
 {
     return self.oldImageView.image;
 }
 
-- (UIImage*)currentVisibleImageNotDefault
+- (UIImage *)currentVisibleImageNotDefault
 {
-    UIImage * result = self.oldImageView.image;
+    UIImage *result = self.oldImageView.image;
     if (result == self.defaultImage)
     {
         result = nil;
@@ -422,81 +614,34 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)incrementalData 
 {
-    if (self.connectionData==nil) 
+    if (!_fileWriteHandle)
 	{
-		self.connectionData = [[NSMutableData alloc] initWithCapacity:2048];
+        NSString *filePath;
+        _fileWriteHandle = [self fileHandleToANewTempFile:&filePath];
+        _tempFilePath = filePath;
     }
-    [self.connectionData appendData:incrementalData];
-    
+    [_fileWriteHandle writeData:incrementalData];
 }
 
--(void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
     [self stopAndRemoveConnection];
     [self.indicator stopAnimating];
     self.indicator.hidden = YES;
 }
 
-- (void)connectionDidFinishLoading:(NSURLConnection*)connection
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-	if (self.connectionData != nil)
+	if (_fileWriteHandle)
 	{
         [self stopAndRemoveConnection];
+        [_fileWriteHandle closeFile];
+        _fileWriteHandle = nil;
+        
         [self.indicator stopAnimating];
         self.indicator.hidden = YES;
         
-        // Make sure we are using the right URL even on other threads
-        NSURL * url = _urlRequest.URL;
-        
-        BOOL async = _asyncLoadImages;
-        int asyncIndex = ++asyncOperationCounter;
-        void(^loadBlock)() = ^{
-            
-            @autoreleasepool {
-                
-                if (asyncIndex != asyncOperationCounter) return; // Check, maybe we were cancelled, and another operation is on the go...
-                UIImage * image = [UIImage imageWithData:_connectionData]; // Might be a heavey operation
-                if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
-                
-                self.nextImage = image;
-                if (self.nextImage)
-                {
-                    NSString *cachePath = [self getLocalCachePathForUrl:url];
-                    [self.connectionData writeToFile:cachePath options:NSDataWritingAtomic error:nil];
-                    
-                    if (_resizeImagesToNeededSize)
-                    {
-                        if (asyncIndex != asyncOperationCounter) return; // Check, maybe we were cancelled, and another operation is on the go...
-                        image = [self imageThumbnailOfImage:image fromCacheOfURL:url isFromFile:NULL]; // Might be a heavey operation
-                        if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
-                        self.nextImage = image;
-                    }
-                    
-                    void(^playBlock)() = ^{
-                        if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
-                        [self playWithAnimation:YES immediate:NO];
-                    };
-                    if (async)
-                    {
-                        dispatch_async(dispatch_get_main_queue(), playBlock);
-                    }
-                    else
-                    {
-                        playBlock();
-                    }
-                }
-                
-            } // @autoreleasepool
-            
-        };
-        if (async)
-        {
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), loadBlock);
-        }
-        else
-        {
-            loadBlock();
-        }
+        [self loadImageFromPath:_tempFilePath originalUrl:_urlRequest.URL forceAnimation:YES];
 	}
     else
     {
@@ -506,76 +651,29 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
 
 #pragma mark - Public methods
 
-- (void)loadImageFromURL:(NSURL*)url andAnimationType:(DGImageLoaderViewAnimationType)animationType
+- (void)loadImageFromURL:(NSURL *)url andAnimationType:(DGImageLoaderViewAnimationType)animationType
 {
     [self loadImageFromURL:url andAnimationType:animationType immediate:NO isLocalUrl:NO];
 }
 
-- (void)loadImageFromURL:(NSURL*)url andAnimationType:(DGImageLoaderViewAnimationType)animationType immediate:(BOOL)immediate isLocalUrl:(BOOL)localUrl
+- (void)loadImageFromURL:(NSURL *)url andAnimationType:(DGImageLoaderViewAnimationType)animationType immediate:(BOOL)immediate isLocalUrl:(BOOL)isLocalUrl
 {
-    _animationType=animationType;
+    _animationType = animationType;
     
     // If we need to delay loading until the view is actually displayed, and it hasn't yet, then:
     if (_delayActualLoadUntilDisplay && !immediate)
     {
-        nextUrlToLoad = url;
-        nextUrlToLoadIsLocal = localUrl;
+        _nextUrlToLoad = url;
+        _nextUrlToLoadIsLocal = isLocalUrl;
         [self setNeedsDisplay]; // Cause drawRect: to be called when coming on-screen
         return;
     }
     
-    NSString *cachePath = localUrl ? nil : (url?[self getLocalCachePathForUrl:url]:nil);
+    NSString *cachePath = isLocalUrl ? nil : (url ? [self getLocalCachePathForUrl:url] : nil);
     
-    if (!url || localUrl || [[NSFileManager defaultManager] fileExistsAtPath:cachePath])
+    if (!url || isLocalUrl || [[NSFileManager defaultManager] fileExistsAtPath:cachePath])
     {
-        BOOL async = _asyncLoadImages;
-        int asyncIndex = ++asyncOperationCounter;
-        void(^loadBlock)() = ^{
-            
-            @autoreleasepool {
-                
-                if (asyncIndex != asyncOperationCounter) return; // Check, maybe we were cancelled, and another operation is on the go...
-                UIImage *image = url ? (localUrl ? [UIImage imageWithContentsOfFile:[url path]] : [UIImage imageWithContentsOfFile:cachePath]) : nil;
-                if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
-                
-                self.nextImage = image;
-                if (self.nextImage)
-                {
-                    BOOL loadedThumbFromFile = YES;
-                    if (_resizeImagesToNeededSize)
-                    {
-                        if (asyncIndex != asyncOperationCounter) return; // Check, maybe we were cancelled, and another operation is on the go...
-                        image = [self imageThumbnailOfImage:self.nextImage fromCacheOfURL:url isFromFile:&loadedThumbFromFile];// Might be a heavey operation
-                        if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
-                        self.nextImage = image;
-                    }
-                    
-                    BOOL animate = !_doNotAnimateFromCache || !loadedThumbFromFile;
-                    void(^playBlock)() = ^{
-                        if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
-                        [self playWithAnimation:animate immediate:immediate];
-                    };
-                    if (async)
-                    {
-                        dispatch_async(dispatch_get_main_queue(), playBlock);
-                    }
-                    else
-                    {
-                        playBlock();
-                    }
-                }
-                
-            } // @autoreleasepool
-            
-        };
-        if (async)
-        {
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), loadBlock);
-        }
-        else
-        {
-            loadBlock();
-        }
+        [self loadImageFromPath:(isLocalUrl ? url.path : cachePath) originalUrl:url forceAnimation:NO];
     }
     else
     {
@@ -587,20 +685,19 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
             rc.origin.y = (self.frame.size.height - rc.size.height) / 2.f;
             self.indicator.frame = rc;
             [self addSubview:self.indicator];
-        } else {
+        }
+        else
+        {
             self.indicator.hidden = NO;
             [self bringSubviewToFront:self.indicator];
         }
         [self.indicator startAnimating];
         
-        if (self.urlConnection!=nil)
+        if (self.urlConnection)
         {
             [self stopAndRemoveConnection];
         }
-        if (self.connectionData!=nil)
-        {
-            self.connectionData=nil;
-        }
+        [self closeAndRemoveTempFile];
         
         self.urlRequest = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:60.0];
         self.urlConnection = [[NSURLConnection alloc] initWithRequest:_urlRequest delegate:self startImmediately:NO];
@@ -615,7 +712,12 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
     }
 }
 
-- (void)loadImage:(UIImage*)image withAnimationType:(DGImageLoaderViewAnimationType)animationType
+- (void)loadImageFromLocalURL:(NSURL *)url andAnimationType:(DGImageLoaderViewAnimationType)animationType
+{
+    [self loadImageFromURL:url andAnimationType:animationType immediate:NO isLocalUrl:YES];
+}
+
+- (void)loadImage:(UIImage *)image withAnimationType:(DGImageLoaderViewAnimationType)animationType
 {
     if (!image)
     {
@@ -624,34 +726,44 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
     else
     {
         [self stopAndRemoveConnection];
-        BOOL async = _asyncLoadImages;
-        int asyncIndex = ++asyncOperationCounter;
-        void(^loadBlock)() = ^{
-            if (asyncIndex != asyncOperationCounter) return; // Check, maybe we were cancelled, and another operation is on the go...
+        
+        BOOL asyncLoadImages = _asyncLoadImages;
+        int asyncIndex = ++_asyncOperationCounter;
+        void(^loadBlock)() = ^
+        {
+            // If current operation is irrelevant by the time we got here...
+            if (asyncIndex != _asyncOperationCounter) return;
+            
             UIImage *actualImage = image;
-            if (_resizeImagesToNeededSize)
+            if (_resizeImages)
             {
                 actualImage = [self imageThumbnailOfImage:actualImage fromCacheOfURL:nil isFromFile:NULL];
+                
+                // If current operation is irrelevant by the time we finished thumbnailing the image from file
+                if (asyncIndex != _asyncOperationCounter) return;
             }
-            if (asyncIndex != asyncOperationCounter) return; // Check again, maybe we were cancelled, and another operation is on the go...
             
             self.nextImage = actualImage;
             
             BOOL animate = !_doNotAnimateFromCache;
-            void(^playBlock)() = ^{
-                if (asyncIndex != asyncOperationCounter) return; // Check, maybe we were cancelled, and another operation is on the go...
+            void(^playBlock)() = ^
+            {
+                // If current operation is irrelevant by the time we made it to the main queue
+                if (asyncIndex != _asyncOperationCounter) return;
                 [self playWithAnimation:animate immediate:NO];
             };
-            if (async)
-            {
+            
+            if (asyncLoadImages)
+            { // Return to main queue for UI operations
                 dispatch_async(dispatch_get_main_queue(), playBlock);
             }
             else
-            {
+            { // Go on, we are on the main thread already
                 playBlock();
             }
         };
-        if (async)
+        
+        if (asyncLoadImages)
         {
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), loadBlock);
         }
@@ -665,38 +777,45 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
 - (void)stop
 {
     [self stopAndRemoveConnection];
-	self.connectionData=nil;
-    waitingForDisplay = NO;
+    [self closeAndRemoveTempFile];
+    _waitingForDisplay = NO;
 }
 
 - (void)reset
 {
 	[self stop];
+    
     if (self.oldImageView)
     {
         [self.oldImageView removeFromSuperview];
         self.oldImageView = nil;
     }
+    
     if (self.nextImageView)
     {
         [self.nextImageView removeFromSuperview];
         self.nextImageView = nil;
     }
+    
     if (self.defaultImage)
     {
         self.oldImageView = [[UIImageView alloc] initWithImage:self.defaultImage];
         self.oldImageView.contentMode = UIViewContentModeScaleToFill;
-        self.oldImageView.frame = [self calculateFrameForImage:self.oldImageView.image];
+        self.oldImageView.frame = [self rectForImage:self.oldImageView.image];
         [self addSubview:self.oldImageView];
     }
+    
     [self.indicator stopAnimating];
     self.indicator.hidden = YES;
+    
     _hasImageLoaded = NO;
-    isDefaultLoaded = YES;
-    nextUrlToLoadIsLocal = NO;
-    nextUrlToLoad = nil;
-    waitingForDisplayWithAnimation = NO;
-    waitingForDisplay = NO;
+    _isDefaultLoaded = YES;
+    
+    _nextUrlToLoadIsLocal = NO;
+    _nextUrlToLoad = nil;
+    
+    _waitingForDisplayWithAnimation = NO;
+    _waitingForDisplay = NO;
 }
 
 #pragma mark - Animation stuff
@@ -718,8 +837,8 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
     // If we need to delay loading until the view is actually displayed, and it hasn't yet and also its not the default image which is already loaded to memory, then:
     if ((_delayActualLoadUntilDisplay || _delayImageShowUntilDisplay) && !immediate && self.nextImage != self.defaultImage)
     {
-        waitingForDisplay = YES;
-        waitingForDisplayWithAnimation = withAnimation;
+        _waitingForDisplay = YES;
+        _waitingForDisplayWithAnimation = withAnimation;
         [self setNeedsDisplay]; // Cause drawRect: to be called when coming on-screen
         return;
     }
@@ -730,7 +849,7 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
     // Prepare next image view for animation
     self.nextImageView = [[UIImageView alloc] initWithImage:self.nextImage];
     self.nextImageView.contentMode = UIViewContentModeScaleToFill;
-    self.nextImageView.frame = [self calculateFrameForImage:self.nextImageView.image];
+    self.nextImageView.frame = [self rectForImage:self.nextImageView.image];
     
     [self.indicator stopAnimating];
     self.indicator.hidden = YES;
@@ -804,7 +923,7 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
         {
             [s_DGImageLoaderView_activeConnectionsArray removeObject:self.urlConnection];
             
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0), dispatch_get_main_queue(), ^(void){
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1), dispatch_get_main_queue(), ^(void) {
                 [DGImageLoaderView continueConnectionQueue];
             });
         }
@@ -822,7 +941,7 @@ static NSMutableArray * s_DGImageLoaderView_activeConnectionsArray = nil;
     {
         if (s_DGImageLoaderView_queuedConnectionsArray.count && s_DGImageLoaderView_activeConnectionsArray.count < s_DGImageLoaderView_maxAsyncConnections)
         {
-            NSURLConnection * connection = [s_DGImageLoaderView_queuedConnectionsArray objectAtIndex:0];
+            NSURLConnection *connection = [s_DGImageLoaderView_queuedConnectionsArray objectAtIndex:0];
             [s_DGImageLoaderView_queuedConnectionsArray removeObject:connection];
             [s_DGImageLoaderView_activeConnectionsArray addObject:connection];
             [connection scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
