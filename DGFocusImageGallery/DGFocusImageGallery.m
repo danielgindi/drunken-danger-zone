@@ -51,7 +51,7 @@
     NSArray *_galleryUrls;
     UIScrollView *_scrollView;
     
-    NSInteger _maxAsyncConnections;
+    NSUInteger _maxAsyncConnections;
     
     NSInteger _currentSelectedImage;
     
@@ -720,7 +720,7 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
     
     const char *urlStr = url.absoluteString.UTF8String;
     unsigned char md5result[16];
-    CC_MD5(urlStr, strlen(urlStr), md5result); // This is the md5 call
+    CC_MD5(urlStr, (CC_LONG)strlen(urlStr), md5result); // This is the md5 call
     path = [path stringByAppendingPathComponent:
             [NSString stringWithFormat:
              @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
@@ -753,7 +753,7 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
 {
 	if ([response respondsToSelector:@selector(statusCode)])
 	{
-		int statusCode = [((NSHTTPURLResponse *)response) statusCode];
+		NSInteger statusCode = [((NSHTTPURLResponse *)response) statusCode];
 		if (statusCode != 200)
 		{
 			[self connection:connection didFailWithError:nil];
@@ -861,12 +861,12 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
     [self continueConnectionQueue];
 }
 
-- (int)maxAsyncConnections
+- (NSUInteger)maxAsyncConnections
 {
     return _maxAsyncConnections;
 }
 
-- (void)setMaxAsyncConnections:(int)max
+- (void)setMaxAsyncConnections:(NSUInteger)max
 {
     @synchronized(_downloadConnections)
     {
@@ -875,7 +875,7 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
     [self continueConnectionQueue];
 }
 
-- (int)activeConnections
+- (NSUInteger)activeConnections
 {
     @synchronized(_downloadConnections)
     {
@@ -883,7 +883,7 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
     }
 }
 
-- (int)totalConnections
+- (NSUInteger)totalConnections
 {
     @synchronized(_downloadConnections)
     {
@@ -965,9 +965,9 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
     [self startDownloadForImageIndex:nearestNumber + 1];
 }
 
-- (void)startDownloadForImageIndex:(int)index
+- (void)startDownloadForImageIndex:(NSUInteger)index
 {
-    if (index < 0 || index >= _startedDownload.count || _startedDownload[index] != (id)NSNull.null) return;
+    if (index == NSNotFound || index >= _startedDownload.count || _startedDownload[index] != (id)NSNull.null) return;
     
     NSString *cachePath = [DGFocusImageGallery getLocalCachePathForUrl:(NSURL *)_galleryUrls[index]];
     UIImage *viewImage = [UIImage imageWithContentsOfFile:cachePath];

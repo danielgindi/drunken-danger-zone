@@ -65,8 +65,8 @@
 
 // Performance tweaks
 
-static int s_DGImageLoaderView_maxAsyncConnections = DEFAULT_MAX_ASYNC_CONNECTIONS;
-static int s_DGImageLoaderView_currentActiveConnections = 0;
+static NSUInteger s_DGImageLoaderView_maxAsyncConnections = DEFAULT_MAX_ASYNC_CONNECTIONS;
+static NSUInteger s_DGImageLoaderView_currentActiveConnections = 0;
 static NSMutableArray *s_DGImageLoaderView_queuedConnectionsArray = nil;
 static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 
@@ -432,7 +432,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     
     const char *urlStr = url.absoluteString.UTF8String;
     unsigned char md5result[16];
-    CC_MD5(urlStr, strlen(urlStr), md5result); // This is the md5 call
+    CC_MD5(urlStr, (CC_LONG)strlen(urlStr), md5result); // This is the md5 call
     path = [path stringByAppendingPathComponent:
             [NSString stringWithFormat:
              @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
@@ -479,7 +479,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     
     const char *urlStr = url.absoluteString.UTF8String;
     unsigned char md5result[16];
-    CC_MD5(urlStr, strlen(urlStr), md5result);
+    CC_MD5(urlStr, (CC_LONG)strlen(urlStr), md5result);
     path = [path stringByAppendingPathComponent:
             [NSString stringWithFormat:
              @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
@@ -604,7 +604,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 {
 	if ([response respondsToSelector:@selector(statusCode)])
 	{
-		int statusCode = [((NSHTTPURLResponse *)response) statusCode];
+		NSInteger statusCode = [((NSHTTPURLResponse *)response) statusCode];
 		if (statusCode != 200)
 		{
 			[self connection:connection didFailWithError:nil];
@@ -886,12 +886,12 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 
 #pragma mark - Connection control
 
-+ (int)maxAsyncConnections
++ (NSUInteger)maxAsyncConnections
 {
     return s_DGImageLoaderView_maxAsyncConnections;
 }
 
-+ (void)setMaxAsyncConnections:(int)max
++ (void)setMaxAsyncConnections:(NSUInteger)max
 {
     @synchronized(s_DGImageLoaderView_queuedConnectionsArray)
     {
@@ -900,12 +900,12 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     [DGImageLoaderView continueConnectionQueue];
 }
 
-+ (int)activeConnections
++ (NSUInteger)activeConnections
 {
     return s_DGImageLoaderView_currentActiveConnections;
 }
 
-+ (int)totalConnections
++ (NSUInteger)totalConnections
 {
     @synchronized(s_DGImageLoaderView_queuedConnectionsArray)
     {

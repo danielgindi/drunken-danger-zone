@@ -45,25 +45,25 @@
  @brief The maximum concurrent downloads allowed. Downloads that exceed the limit are queued.
  Default is 0, which means no limit.
  */
-@property (nonatomic, assign) int maximumConcurrentDownloads;
+@property (nonatomic, assign) NSUInteger maximumConcurrentDownloads;
 
 /*!
  @property totalCurrentDownloads
  @brief Total current downloads (waiting & in-progress).
  */
-@property (nonatomic, assign, readonly) int totalCurrentDownloads;
+@property (nonatomic, assign, readonly) NSUInteger totalCurrentDownloads;
 
 /*!
  @property totalCurrentDownloads
  @brief Total current waiting downloads.
  */
-@property (nonatomic, assign, readonly) int totalCurrentQueuedDownloads;
+@property (nonatomic, assign, readonly) NSUInteger totalCurrentQueuedDownloads;
 
 /*!
  @property totalCurrentInProgressDownloads
  @brief Total current in-progress downloads.
  */
-@property (nonatomic, assign, readonly) int totalCurrentInProgressDownloads;
+@property (nonatomic, assign, readonly) NSUInteger totalCurrentInProgressDownloads;
 
 /*!
  @property currentDownloads

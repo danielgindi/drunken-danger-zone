@@ -42,7 +42,7 @@
     NSMutableArray *queuedDownloads;
     NSMutableArray *queuedResumes;
     
-    int currentDownloadsCount;
+    NSUInteger currentDownloadsCount;
     
     // This is used for the gap between queued downloads
     UIBackgroundTaskIdentifier bgTaskId;
@@ -61,17 +61,17 @@
     return self;
 }
 
-- (int)totalCurrentDownloads
+- (NSUInteger)totalCurrentDownloads
 {
     return currentDownloadsCount + queuedDownloads.count;
 }
 
-- (int)totalCurrentQueuedDownloads
+- (NSUInteger)totalCurrentQueuedDownloads
 {
     return queuedDownloads.count;
 }
 
-- (int)totalCurrentInProgressDownloads
+- (NSUInteger)totalCurrentInProgressDownloads
 {
     return currentDownloadsCount;
 }
@@ -198,13 +198,13 @@
         }
         if ([downloads containsObject:file])
         {
-            int index = [downloads indexOfObject:file];
+            NSUInteger index = [downloads indexOfObject:file];
             [downloads removeObjectAtIndex:index];
             currentDownloadsCount--;
         }
         else if ([queuedDownloads containsObject:file])
         {
-            int index = [queuedDownloads indexOfObject:file];
+            NSUInteger index = [queuedDownloads indexOfObject:file];
             [queuedDownloads removeObjectAtIndex:index];
             [queuedResumes removeObjectAtIndex:index];
         }

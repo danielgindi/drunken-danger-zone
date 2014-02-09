@@ -161,18 +161,18 @@ typedef enum _DGImageLoaderViewCropAnchor
     This affects this class overall in the app.
     The default is 8.
     @return The max connections */
-+ (int)maxAsyncConnections;
++ (NSUInteger)maxAsyncConnections;
 
 /*! Maximum asynchronous connections that can be used to load images
     @param int The max connections */
-+ (void)setMaxAsyncConnections:(int)max;
++ (void)setMaxAsyncConnections:(NSUInteger)max;
 
 /*! Current active connections used by this class overall in the app
     @param int The active connections count */
-+ (int)activeConnections;
++ (NSUInteger)activeConnections;
 
 /*! Total connections which include active + pending connections, used by this class overall in the app
     @param int The total connections count */
-+ (int)totalConnections;
++ (NSUInteger)totalConnections;
 
 @end

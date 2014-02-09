@@ -81,18 +81,18 @@ typedef enum _DGFocusImageGalleryCropAnchor
 /*! Maximum asynchronous connections that can be used to load images.
  The default is 8.
  @return The max connections */
-- (int)maxAsyncConnections;
+- (NSUInteger)maxAsyncConnections;
 
 /*! Maximum asynchronous connections that can be used to load images
  @param int The max connections */
-- (void)setMaxAsyncConnections:(int)max;
+- (void)setMaxAsyncConnections:(NSUInteger)max;
 
 /*! Current active connections used by this instance
  @param int The active connections count */
-- (int)activeConnections;
+- (NSUInteger)activeConnections;
 
 /*! Total connections which include active + pending connections, used by this instance
  @param int The total connections count */
-- (int)totalConnections;
+- (NSUInteger)totalConnections;
 
 @end
