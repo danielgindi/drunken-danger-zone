@@ -173,11 +173,6 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
             self.nextImage = image;
             if (image)
             {
-                if (_tempFilePath)
-                {
-                    [[NSFileManager defaultManager] moveItemAtPath:_tempFilePath toPath:[self getLocalCachePathForUrl:originalURL] error:nil];
-                }
-                
                 BOOL loadedThumbFromFile = YES;
                 if (_resizeImages)
                 {
@@ -185,6 +180,11 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
                     
                     // If current operation is irrelevant by the time we finished thumbnailing the image from file
                     if (asyncIndex != _asyncOperationCounter) return;
+                }
+                
+                if (_tempFilePath)
+                {
+                    [[NSFileManager defaultManager] moveItemAtPath:_tempFilePath toPath:[self getLocalCachePathForUrl:originalURL] error:nil];
                 }
                 
                 self.nextImage = image;
