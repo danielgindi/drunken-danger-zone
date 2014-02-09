@@ -58,11 +58,25 @@ typedef enum _DGFocusImageGalleryCropAnchor
 
 @interface DGFocusImageGallery : UIViewController
 
-+ (DGFocusImageGallery*)showInView:(UIView*)view withImageFromView:(UIView*)sourceView  andGalleryUrls:(NSArray*)galleryUrls andCurrentImageIndex:(NSInteger)currentImage whenInitImageIsFitFromOutside:(BOOL)fitFromOutside andCropAnchor:(DGFocusImageGalleryCropAnchor)cropAnchor keepingAspectRatio:(BOOL)keepAspectRatio;
++ (DGFocusImageGallery *)showInView:(UIView *)view
+                 withImageFromView:(UIView *)sourceView
+                    andGalleryUrls:(NSArray *)galleryUrls
+              andCurrentImageIndex:(NSInteger)currentImage
+     whenInitImageIsFitFromOutside:(BOOL)fitFromOutside
+                     andCropAnchor:(DGFocusImageGalleryCropAnchor)cropAnchor
+                keepingAspectRatio:(BOOL)keepAspectRatio;
 
-+ (DGFocusImageGallery*)activeGallery;
++ (DGFocusImageGallery *)activeGallery;
 
+/*! @property allowImageRotation
+ @brief Allow the user to rotate the image using multi-touch gestures.
+ Default: YES */
 @property (nonatomic, assign) BOOL allowImageRotation;
+
+/*! @property detectScaleFromFileName
+ @brief Set this to YES if you want to specify urls that contain the @2x for scale. Otherwise, scale will be set according to current screen.
+ Default: NO */
+@property (nonatomic, assign) BOOL detectScaleFromFileName;
 
 /*! Maximum asynchronous connections that can be used to load images.
  The default is 8.
