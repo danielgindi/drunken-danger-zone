@@ -48,7 +48,6 @@
     NSMutableArray *_imageViews;
     NSMutableArray *_startedDownload;
     
-    NSArray *_galleryUrls;
     UIScrollView *_scrollView;
     
     NSUInteger _maxAsyncConnections;
@@ -59,7 +58,12 @@
     UIButton *_closeButton;
     
     BOOL _recognizingPinchOnImageContainer;
+    
+    BOOL isIos7OrGreater;
 }
+
+@property (nonatomic, strong) NSArray *galleryUrls;
+
 @end
 
 @implementation DGFocusImageGallery
@@ -71,8 +75,11 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
     self = [super init];
     if (self)
     {
+        isIos7OrGreater = [[[UIDevice currentDevice] systemVersion] compare:@"7.0" options:NSNumericSearch] != NSOrderedAscending;
+            
         _maxAsyncConnections = DEFAULT_MAX_ASYNC_CONNECTIONS;
         
+        _startedDownload = [[NSMutableArray alloc] init];
         _downloadConnectionRequests = [NSMutableArray array];
         _downloadConnections = [NSMutableArray array];
         _downloadConnectionsFilePaths = [NSMutableArray array];
@@ -106,30 +113,85 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
 {
     [super viewDidLoad];
     
-    [CATransaction begin];
-    [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
-    _topControlsView = [[UIView alloc] initWithFrame:CGRectMake(0.f, 0.f, self.view.frame.size.width, 80.f)];
-    _topControlsView.backgroundColor = [UIColor clearColor];
-    _topControlsView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleBottomMargin;
-    CAGradientLayer *gradientLayer = [[CAGradientLayer alloc] init];
-    gradientLayer.backgroundColor = [UIColor clearColor].CGColor;
-    UIColor *firstColor = [UIColor colorWithWhite:2.f alpha:.1f];
-    gradientLayer.colors = @[(id)firstColor.CGColor, (id)[firstColor colorWithAlphaComponent:0.f].CGColor];
-    gradientLayer.locations = @[@.8f, @1.f];
-    gradientLayer.frame = _topControlsView.layer.bounds;
-    [_topControlsView.layer addSublayer:gradientLayer];
-    _topControlsView.alpha = 0.f;
-    [CATransaction commit];
+    UITapGestureRecognizer *globalTapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(globalTapGestureRecognized:)];
+    globalTapGestureRecognizer.numberOfTapsRequired = 1;
+    globalTapGestureRecognizer.numberOfTouchesRequired = 1;
+    [self.view addGestureRecognizer:globalTapGestureRecognizer];
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
     
-    UIImage *buttonImage = [UIImage imageNamed:@"DGFocusImageGallery-Close.png"];
-    CGRect rc;
-    rc.size = buttonImage.size;
-    rc.origin.y = 10.f;
-    rc.origin.x = _topControlsView.frame.size.width - rc.size.width - 10.f;
-    _closeButton = [[UIButton alloc] initWithFrame:rc];
-    [_closeButton setBackgroundImage:buttonImage forState:UIControlStateNormal];
-    [_closeButton addTarget:self action:@selector(closeButtonTouchedUpInside:) forControlEvents:UIControlEventTouchDown];
-    [_topControlsView addSubview:_closeButton];
+    if (!_scrollView)
+    {
+        _scrollView = [[UIScrollView alloc] initWithFrame:self.view.bounds];
+        _scrollView.pagingEnabled = YES;
+        _scrollView.delegate = self;
+        _scrollView.showsHorizontalScrollIndicator = NO;
+        _scrollView.scrollsToTop = NO;
+        _scrollView.clipsToBounds = YES;
+        _scrollView.contentSize = CGSizeMake(_scrollView.frame.size.width * _galleryUrls.count, _scrollView.frame.size.height);
+        _scrollView.backgroundColor = [UIColor clearColor];
+        _scrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        
+        float xOffset = self.view.frame.size.width * ((float)_currentSelectedImage);
+        _scrollView.contentOffset = CGPointMake(xOffset, 0.f);
+    }
+    if (!_topControlsView)
+    {
+        [CATransaction begin];
+        [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+        _topControlsView = [[UIView alloc] initWithFrame:CGRectMake(0.f, 0.f, self.view.frame.size.width, 80.f)];
+        _topControlsView.backgroundColor = [UIColor clearColor];
+        _topControlsView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleBottomMargin;
+        CAGradientLayer *gradientLayer = [[CAGradientLayer alloc] init];
+        gradientLayer.backgroundColor = [UIColor clearColor].CGColor;
+        UIColor *firstColor = [UIColor colorWithWhite:2.f alpha:.1f];
+        gradientLayer.colors = @[(id)firstColor.CGColor, (id)[firstColor colorWithAlphaComponent:0.f].CGColor];
+        gradientLayer.locations = @[@.8f, @1.f];
+        gradientLayer.frame = _topControlsView.layer.bounds;
+        [_topControlsView.layer addSublayer:gradientLayer];
+        _topControlsView.alpha = 0.f;
+        [CATransaction commit];
+        
+        UIImage *buttonImage = [UIImage imageNamed:@"DGFocusImageGallery-Close.png"];
+        CGRect rc;
+        rc.size = buttonImage.size;
+        rc.origin.y = 10.f + (isIos7OrGreater ? [[UIApplication sharedApplication] statusBarFrame].size.height : 0.f);
+        rc.origin.x = _topControlsView.frame.size.width - rc.size.width - 10.f;
+        _closeButton = [[UIButton alloc] initWithFrame:rc];
+        [_closeButton setBackgroundImage:buttonImage forState:UIControlStateNormal];
+        [_closeButton addTarget:self action:@selector(closeButtonTouchedUpInside:) forControlEvents:UIControlEventTouchDown];
+        [_topControlsView addSubview:_closeButton];
+    }
+    
+    [self.view addSubview:_scrollView];
+    [self.view bringSubviewToFront:_topControlsView];
+    
+    if (isIos7OrGreater)
+    {
+        [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
+    }
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    
+    [self startDownloadForImageIndex:_currentSelectedImage];
+}
+
+- (void)viewDidDisappear:(BOOL)animated
+{
+    [super viewDidDisappear:animated];
+    
+    [_scrollView removeFromSuperview];
+    _scrollView = nil;
+    
+    [_topControlsView removeFromSuperview];
+    _topControlsView = nil;
+    _closeButton = nil;
 }
 
 - (void)didReceiveMemoryWarning
@@ -138,28 +200,30 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
     // Dispose of any resources that can be recreated.
 }
 
-+ (DGFocusImageGallery *)showInView:(UIView *)view
-                 withImageFromView:(UIView *)sourceView
-                    andGalleryUrls:(NSArray *)galleryUrls
-              andCurrentImageIndex:(NSInteger)currentImage
-     whenInitImageIsFitFromOutside:(BOOL)fitFromOutside
-                     andCropAnchor:(DGFocusImageGalleryCropAnchor)cropAnchor
-                keepingAspectRatio:(BOOL)keepAspectRatio
+- (id)initWithGalleryUrls:(NSArray *)galleryUrls
 {
-    NSMutableArray *urls = [NSMutableArray array];
-    for (NSObject *obj in galleryUrls)
+    self = [self init];
+    if (self)
     {
-        if (![obj isKindOfClass:[NSURL class]])
-        {
-            [urls addObject:[NSURL URLWithString:(NSString *)obj]];
-        }
-        else
-        {
-            [urls addObject:obj];
-        }
+        self.galleryUrls = galleryUrls;
     }
+    return self;
+}
+
++ (DGFocusImageGallery *)showInViewController:(UIViewController *)viewController
+                            withImageFromView:(UIView *)sourceView
+                               andGalleryUrls:(NSArray *)galleryUrls
+                         andCurrentImageIndex:(NSInteger)currentImage
+                whenInitImageIsFitFromOutside:(BOOL)fitFromOutside
+                                andCropAnchor:(DGFocusImageGalleryCropAnchor)cropAnchor
+                           keepingAspectRatio:(BOOL)keepAspectRatio
+{
     
-    NSString *cachePath = [DGFocusImageGallery getLocalCachePathForUrl:(NSURL *)urls[currentImage]];
+    DGFocusImageGallery *vc = [[DGFocusImageGallery alloc] init];
+    vc.galleryUrls = galleryUrls;
+    vc->_currentSelectedImage = currentImage;
+    
+    NSString *cachePath = [DGFocusImageGallery getLocalCachePathForUrl:(NSURL *)vc.galleryUrls[currentImage]];
     UIImage *viewImage = [UIImage imageWithContentsOfFile:cachePath];
     BOOL isFullImage = YES;
     
@@ -172,43 +236,13 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
         UIGraphicsEndImageContext();
     }
     
-    DGFocusImageGallery *vc = [[DGFocusImageGallery alloc] init];
-    vc->_galleryUrls = urls;
-    vc->_currentSelectedImage = currentImage;
-    vc->_startedDownload = [[NSMutableArray alloc] init];
-    
-    for (NSObject *obj in galleryUrls)
-    {
-        [vc->_imageViews addObject:[NSNull null]];
-        [vc->_imageViewContainers addObject:[NSNull null]];
-        [vc->_startedDownload addObject:[NSNull null]];
-    }
-    
-    vc.view.frame = CGRectMake(0.f, 0.f, view.frame.size.width, view.frame.size.height);
-    [view addSubview:vc.view];
-    
-    vc->_scrollView = [[UIScrollView alloc] initWithFrame:vc.view.bounds];
-	vc->_scrollView.pagingEnabled = YES;
-    vc->_scrollView.delegate = vc;
-    vc->_scrollView.showsHorizontalScrollIndicator = NO;
-    vc->_scrollView.scrollsToTop = NO;
-    vc->_scrollView.clipsToBounds = YES;
-    vc->_scrollView.contentSize = CGSizeMake(vc->_scrollView.frame.size.width * galleryUrls.count, vc->_scrollView.frame.size.height);
-    vc->_scrollView.backgroundColor = [UIColor clearColor];
-    vc->_scrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    
-    float xOffset = vc.view.frame.size.width * ((float)currentImage);
-    vc->_scrollView.contentOffset = CGPointMake(xOffset, 0.f);
-    
-    UITapGestureRecognizer *globalTapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:vc action:@selector(globalTapGestureRecognized:)];
-    globalTapGestureRecognizer.numberOfTapsRequired = 1;
-    globalTapGestureRecognizer.numberOfTouchesRequired = 1;
-    [vc.view addGestureRecognizer:globalTapGestureRecognizer];
+    vc.view.frame = CGRectMake(0.f, 0.f, viewController.view.frame.size.width, viewController.view.frame.size.height);
+    [viewController.view addSubview:vc.view];
     
     UIImageView *imageView = [vc createImageViewForImage:viewImage atIndex:currentImage];
     CGRect rcDest = imageView.frame;
     
-    CGRect rcOrg = [sourceView.superview convertRect:sourceView.frame toView:view];
+    CGRect rcOrg = [sourceView.superview convertRect:sourceView.frame toView:viewController.view];
     
     float scale = viewImage.scale / UIScreen.mainScreen.scale;
     rcOrg = [DGFocusImageGallery rectForWidth:viewImage.size.width * scale
@@ -221,16 +255,13 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
     imageView.frame = rcOrg;
     imageView.alpha = 0.f;
     
-    [vc.view addSubview:vc->_scrollView];
-    [vc.view bringSubviewToFront:vc->_topControlsView];
-    
     if (!isFullImage)
     {
         UIActivityIndicatorView *activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
         activityIndicator.center = (CGPoint){rcOrg.size.width / 2.f, rcOrg.size.height / 2.f};
         [imageView addSubview:activityIndicator];
         [activityIndicator startAnimating];
-        [vc startDownloadingImageAtUrl:urls[currentImage]];
+        [vc startDownloadingImageAtUrl:vc.galleryUrls[currentImage]];
     }
     [vc->_startedDownload replaceObjectAtIndex:currentImage withObject:@(YES)];
     
@@ -241,6 +272,8 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
         imageView.alpha = 1.f;
         
     } completion:^(BOOL finished) {
+        
+        [viewController presentViewController:vc animated:NO completion:nil];
         
     }];
     
@@ -320,13 +353,28 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
     [self layoutViewWithFrame:rc];
 }
 
+- (UIStatusBarStyle)preferredStatusBarStyle
+{
+    return UIStatusBarStyleDefault;
+}
+
+- (UIStatusBarAnimation)preferredStatusBarUpdateAnimation
+{
+    return UIStatusBarAnimationFade;
+}
+
+- (BOOL)prefersStatusBarHidden
+{
+    return _topControlsView.alpha == 0.f;
+}
+
 - (void)layoutViewWithFrame:(CGRect)frame
 {
     _topControlsView.frame = CGRectMake(0.f, 0.f, frame.size.width, 80.f);
     ((CALayer *)_topControlsView.layer.sublayers[0]).frame = _topControlsView.layer.bounds;
     
     CGRect rc = _closeButton.frame;
-    rc.origin.y = 10.f;
+    rc.origin.y = 10.f + (isIos7OrGreater ? [[UIApplication sharedApplication] statusBarFrame].size.height : 0.f);
     rc.origin.x = frame.size.width - rc.size.width - 10.f;
     _closeButton.frame = rc;
     
@@ -377,6 +425,34 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
     }
 }
 
+- (void)setGalleryUrls:(NSArray *)galleryUrls
+{
+    NSMutableArray *urls = [NSMutableArray array];
+    for (NSObject *obj in galleryUrls)
+    {
+        if (![obj isKindOfClass:[NSURL class]])
+        {
+            [urls addObject:[DGFocusImageGallery normalizedUrlForUrl:[NSURL URLWithString:(NSString *)obj]]];
+        }
+        else
+        {
+            [urls addObject:[DGFocusImageGallery normalizedUrlForUrl:(NSURL *)obj]];
+        }
+    }
+    _galleryUrls = urls;
+    
+    [_imageViews removeAllObjects];
+    [_imageViewContainers removeAllObjects];
+    [_startedDownload removeAllObjects];
+    
+    for (NSObject *obj in _galleryUrls)
+    {
+        [_imageViews addObject:[NSNull null]];
+        [_imageViewContainers addObject:[NSNull null]];
+        [_startedDownload addObject:[NSNull null]];
+    }
+}
+
 #pragma mark - Actions
 
 - (void)closeButtonTouchedUpInside:(id)sender
@@ -399,9 +475,11 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
 
 - (void)globalTapGestureRecognized:(UITapGestureRecognizer *)recognizer
 {
+    BOOL show = _topControlsView.alpha == 0.f;
+    
     [UIView animateWithDuration:.3f delay:0 options:UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionAllowUserInteraction animations:^{
         
-        if (_topControlsView.alpha == 0.f)
+        if (show)
         {
             [self.view addSubview:_topControlsView];
             _topControlsView.alpha = 1.f;
@@ -409,6 +487,12 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
         else
         {
             _topControlsView.alpha = 0.f;
+        }
+        
+        if (isIos7OrGreater)
+        {
+            [[UIApplication sharedApplication] setStatusBarHidden:!show withAnimation:UIStatusBarAnimationFade];
+            [self setNeedsStatusBarAppearanceUpdate];
         }
         
     } completion:^(BOOL finished) {
@@ -705,6 +789,27 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
     }
     
     return nil;
+}
+
++ (NSURL *)normalizedUrlForUrl:(NSURL *)url
+{
+    if (url.isFileURL)
+    {
+        if (UIScreen.mainScreen.scale == 2.f && ![[[url lastPathComponent] stringByDeletingPathExtension] hasSuffix:@"@2x"])
+        {
+            NSString *path = [[url path] stringByDeletingPathExtension];
+            path = [path stringByAppendingString:@"@2x"];
+            if (url.pathExtension.length || [[url lastPathComponent] hasSuffix:@"."])
+            {
+                path = [path stringByAppendingPathExtension:url.pathExtension];
+            }
+            if ([[NSFileManager defaultManager] fileExistsAtPath:path])
+            {
+                return [[NSURL alloc] initFileURLWithPath:path];
+            }
+        }
+    }
+    return url;
 }
 
 #pragma mark - Caching stuff

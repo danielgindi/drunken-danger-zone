@@ -58,13 +58,15 @@ typedef enum _DGFocusImageGalleryCropAnchor
 
 @interface DGFocusImageGallery : UIViewController
 
-+ (DGFocusImageGallery *)showInView:(UIView *)view
-                 withImageFromView:(UIView *)sourceView
-                    andGalleryUrls:(NSArray *)galleryUrls
-              andCurrentImageIndex:(NSInteger)currentImage
-     whenInitImageIsFitFromOutside:(BOOL)fitFromOutside
-                     andCropAnchor:(DGFocusImageGalleryCropAnchor)cropAnchor
-                keepingAspectRatio:(BOOL)keepAspectRatio;
+- (id)initWithGalleryUrls:(NSArray *)galleryUrls;
+
++ (DGFocusImageGallery *)showInViewController:(UIViewController *)viewController
+                            withImageFromView:(UIView *)sourceView
+                               andGalleryUrls:(NSArray *)galleryUrls
+                         andCurrentImageIndex:(NSInteger)currentImage
+                whenInitImageIsFitFromOutside:(BOOL)fitFromOutside
+                                andCropAnchor:(DGFocusImageGalleryCropAnchor)cropAnchor
+                           keepingAspectRatio:(BOOL)keepAspectRatio;
 
 + (DGFocusImageGallery *)activeGallery;
 
