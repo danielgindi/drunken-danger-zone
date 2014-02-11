@@ -121,6 +121,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     _resizeImages = YES;
     _cropAnchor = DGImageLoaderViewCropAnchorCenterCenter;
     _detectScaleFromFileName = YES;
+    _autoFindScaledUrlForFileUrls = YES;
     
     self.clipsToBounds = YES;
     
@@ -419,6 +420,27 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     return nil;
 }
 
+- (NSURL *)normalizedUrlForUrl:(NSURL *)url
+{
+    if (_autoFindScaledUrlForFileUrls && url.isFileURL)
+    {
+        if (UIScreen.mainScreen.scale == 2.f && ![[[url lastPathComponent] stringByDeletingPathExtension] hasSuffix:@"@2x"])
+        {
+            NSString *path = [[url path] stringByDeletingPathExtension];
+            path = [path stringByAppendingString:@"@2x"];
+            if (url.pathExtension.length || [[url lastPathComponent] hasSuffix:@"."])
+            {
+                path = [path stringByAppendingPathExtension:url.pathExtension];
+            }
+            if ([[NSFileManager defaultManager] fileExistsAtPath:path])
+            {
+                return [[NSURL alloc] initFileURLWithPath:path];
+            }
+        }
+    }
+    return url;
+}
+
 #pragma mark - Caching stuff
 
 - (NSString *)getLocalCachePathForUrl:(NSURL *)url
@@ -669,6 +691,8 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 
 - (void)loadImageFromURL:(NSURL *)url andAnimationType:(DGImageLoaderViewAnimationType)animationType immediate:(BOOL)immediate isLocalUrl:(BOOL)isLocalUrl
 {
+    url = [self normalizedUrlForUrl:url];
+    
     _animationType = animationType;
     
     // If we need to delay loading until the view is actually displayed, and it hasn't yet, then:

@@ -129,6 +129,11 @@ typedef enum _DGImageLoaderViewCropAnchor
     Default: YES */
 @property (nonatomic, assign) BOOL detectScaleFromFileName;
 
+/*! @property autoFindScaledUrlForFileUrls
+    @brief If set to YES, then the behavior is similar to UIImage - looking for an @2x version of the file first if exists.
+    Default: YES */
+@property (nonatomic, assign) BOOL autoFindScaledUrlForFileUrls;
+
 /*! Load the image from an URL
     @param url  The URL of the image to load
     @param animationType  The kind of animation to use when displaying the image. */
