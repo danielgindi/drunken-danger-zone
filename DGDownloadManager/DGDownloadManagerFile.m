@@ -213,6 +213,17 @@
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {
+    if ([response isKindOfClass:NSHTTPURLResponse.class])
+    {
+        int statusCode = [(NSHTTPURLResponse *)response statusCode];
+        if (statusCode >= 400)
+        {
+            [connection cancel];
+            [self connection:connection didFailWithError:[NSError errorWithDomain:response.URL.absoluteString code:statusCode userInfo:@{}]];
+            return;
+        }
+    }
+    
     _suggestedFilename = response.suggestedFilename;
     _expectedContentLength = response.expectedContentLength;
     
