@@ -457,6 +457,15 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
 
 - (void)closeButtonTouchedUpInside:(id)sender
 {
+    NSArray *subviews = self.view.subviews;
+    UIView *superview = self.view.superview;
+    [self.presentingViewController dismissViewControllerAnimated:NO completion:nil];
+    [superview addSubview:self.view];
+    for (UIView *view in subviews)
+    {
+        [self.view addSubview:view];
+    }
+
     [UIView animateWithDuration:.5f delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
         
         self.view.alpha = 0.f;
