@@ -124,14 +124,6 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     _autoFindScaledUrlForFileUrls = YES;
     
     self.clipsToBounds = YES;
-    
-    if (self.defaultImage)
-    {
-        self.oldImageView = [[UIImageView alloc] initWithImage:self.defaultImage];
-        self.oldImageView.contentMode = UIViewContentModeScaleToFill;
-        self.oldImageView.frame = [self rectForImage:self.oldImageView.image];
-        [self addSubview:self.oldImageView];
-    }
 }
 
 - (void)dealloc
