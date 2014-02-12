@@ -122,6 +122,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     _cropAnchor = DGImageLoaderViewCropAnchorCenterCenter;
     _detectScaleFromFileName = YES;
     _autoFindScaledUrlForFileUrls = YES;
+    _landscapeMode = DGImageLoaderViewLandscapeModeNone;
     
     self.clipsToBounds = YES;
 }
@@ -220,11 +221,11 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 {
     if (self.oldImageView)
     {
-        self.oldImageView.frame = [self rectForImage:self.oldImageView.image];
+        self.oldImageView.frame = [self rectForImage:self.oldImageView.image flipForSuperview:YES];
     }
     if (self.nextImageView)
     {
-        self.nextImageView.frame = [self rectForImage:self.nextImageView.image];
+        self.nextImageView.frame = [self rectForImage:self.nextImageView.image flipForSuperview:YES];
     }
     if (self.indicator)
     {
@@ -255,14 +256,74 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 
 #pragma mark - Utilities
 
-- (CGRect)rectForImage:(UIImage *)image
+// These are more accurate than CGAffineTransformMakeRotation, because of rounding errors
+#define TRANSFORM_ROTATE_PLUS_90 ((CGAffineTransform){0.f, 1.f, -1.f, 0.f, 0.f, 0.f})
+#define TRANSFORM_ROTATE_MINUS_90 ((CGAffineTransform){0.f, -1.f, 1.f, 0.f, 0.f, 0.f})
+
+- (BOOL)requiresTransformForImage:(UIImage *)image
+{
+    if (_landscapeMode != DGImageLoaderViewLandscapeModeNone)
+    {
+        CGSize size = self.bounds.size, imageSize = image.size;
+        return ((imageSize.width > imageSize.height &&
+             size.height > size.width) ||
+            (imageSize.height > imageSize.width &&
+             size.width > size.height));
+    }
+    return NO;
+}
+
+- (CGAffineTransform)transformForImage:(UIImage *)image
+{
+    if ([self requiresTransformForImage:image])
+    {
+        switch (_landscapeMode)
+        {
+            case DGImageLoaderViewLandscapeModeLeft:
+                return TRANSFORM_ROTATE_MINUS_90;
+            case DGImageLoaderViewLandscapeModeRight:
+                return TRANSFORM_ROTATE_PLUS_90;
+            default:
+                break;
+        }
+    }
+    return CGAffineTransformIdentity;
+}
+
+- (CGRect)rectForImage:(UIImage *)image flipForSuperview:(BOOL)flipForSuperview
 {
     float scale = image.scale / UIScreen.mainScreen.scale;
-    return [self rectForWidth:image.size.width * scale
-                     andHeight:image.size.height * scale
-               keepAspectRatio:_keepAspectRatio
-                fitFromOutside:_fitFromOutside
-                    cropAnchor:_cropAnchor];
+    BOOL flipSize = [self requiresTransformForImage:image];
+    CGSize imageSize = image.size;
+    CGRect bounds = self.bounds;
+    if (flipSize)
+    {
+        CGFloat temp = bounds.size.height;
+        bounds.size.height = bounds.size.width;
+        bounds.size.width = temp;
+        temp = bounds.origin.y;
+        bounds.origin.y = bounds.origin.x;
+        bounds.origin.x = temp;
+    }
+    
+    bounds = [DGImageLoaderView rectForWidth:imageSize.width * scale
+                                 andHeight:imageSize.height * scale
+                                   inFrame:bounds
+                           keepAspectRatio:_keepAspectRatio
+                            fitFromOutside:_fitFromOutside
+                                cropAnchor:_cropAnchor];
+    
+    if (flipForSuperview && flipSize)
+    {
+        CGFloat temp = bounds.size.height;
+        bounds.size.height = bounds.size.width;
+        bounds.size.width = temp;
+        temp = bounds.origin.y;
+        bounds.origin.y = bounds.origin.x;
+        bounds.origin.x = temp;
+    }
+    
+    return bounds;
 }
 
 + (CGRect)rectForWidth:(CGFloat)cx
@@ -355,15 +416,6 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     box.origin.y += parentBox.origin.y;
     
     return box;
-}
-
-- (CGRect)rectForWidth:(CGFloat)cx
-              andHeight:(CGFloat)cy
-        keepAspectRatio:(BOOL)keepAspectRatio
-         fitFromOutside:(BOOL)fitFromOutside
-             cropAnchor:(DGImageLoaderViewCropAnchor)cropAnchor
-{
-    return [DGImageLoaderView rectForWidth:cx andHeight:cy inFrame:self.bounds keepAspectRatio:keepAspectRatio fitFromOutside:fitFromOutside cropAnchor:cropAnchor];
 }
 
 - (UIImage *)imageByScalingImage:(UIImage *)image toSize:(CGSize)size
@@ -528,7 +580,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 
 - (UIImage *)imageThumbnailOfImage:(UIImage *)image fromCacheOfURL:(NSURL *)url isFromFile:(BOOL *)fromFile
 {
-    CGSize neededSize = [self rectForImage:image].size;
+    CGSize neededSize = [self rectForImage:image flipForSuperview:NO].size;
     
     CGSize currentSize = image.size;
     float scale = image.scale / UIScreen.mainScreen.scale;
@@ -577,16 +629,18 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     _defaultImage = defaultImage;
     if (_isDefaultLoaded)
     {
-        if (self.oldImageView)
+        UIImageView *oldImageView = self.oldImageView;
+        if (oldImageView)
         {
             if (_defaultImage)
             {
-                self.oldImageView.image = defaultImage;
-                self.oldImageView.frame = [self rectForImage:self.oldImageView.image];
+                oldImageView.image = defaultImage;
+                oldImageView.transform = [self transformForImage:oldImageView.image];
+                oldImageView.frame = [self rectForImage:oldImageView.image flipForSuperview:YES];
             }
             else
             {
-                [self.oldImageView removeFromSuperview];
+                [oldImageView removeFromSuperview];
                 self.oldImageView = nil;
             }
         }
@@ -594,10 +648,11 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
         {
             if (defaultImage)
             {
-                self.oldImageView = [[UIImageView alloc] initWithImage:_defaultImage];
-                self.oldImageView.contentMode = UIViewContentModeScaleToFill;
-                self.oldImageView.frame = [self rectForImage:self.oldImageView.image];
-                [self addSubview:self.oldImageView];
+                self.oldImageView = oldImageView = [[UIImageView alloc] initWithImage:_defaultImage];
+                oldImageView.contentMode = UIViewContentModeScaleToFill;
+                oldImageView.transform = [self transformForImage:oldImageView.image];
+                oldImageView.frame = [self rectForImage:oldImageView.image flipForSuperview:YES];
+                [self addSubview:oldImageView];
             }
         }
     }
@@ -826,10 +881,11 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     
     if (self.defaultImage)
     {
-        self.oldImageView = [[UIImageView alloc] initWithImage:self.defaultImage];
-        self.oldImageView.contentMode = UIViewContentModeScaleToFill;
-        self.oldImageView.frame = [self rectForImage:self.oldImageView.image];
-        [self addSubview:self.oldImageView];
+        UIImageView *oldImageView = self.oldImageView = [[UIImageView alloc] initWithImage:self.defaultImage];
+        oldImageView.contentMode = UIViewContentModeScaleToFill;
+        oldImageView.transform = [self transformForImage:oldImageView.image];
+        oldImageView.frame = [self rectForImage:oldImageView.image flipForSuperview:YES];
+        [self addSubview:oldImageView];
     }
     
     [self.indicator stopAnimating];
@@ -874,9 +930,10 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     DGImageLoaderViewAnimationType animationType = withAnimation?_animationType:DGImageLoaderViewAnimationTypeNone;
     
     // Prepare next image view for animation
-    self.nextImageView = [[UIImageView alloc] initWithImage:self.nextImage];
-    self.nextImageView.contentMode = UIViewContentModeScaleToFill;
-    self.nextImageView.frame = [self rectForImage:self.nextImageView.image];
+    UIImageView *nextImageView = self.nextImageView = [[UIImageView alloc] initWithImage:self.nextImage];
+    nextImageView.contentMode = UIViewContentModeScaleToFill;
+    nextImageView.transform = [self transformForImage:nextImageView.image];
+    nextImageView.frame = [self rectForImage:nextImageView.image flipForSuperview:YES];
     
     [self.indicator stopAnimating];
     self.indicator.hidden = YES;

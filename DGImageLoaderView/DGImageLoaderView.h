@@ -51,6 +51,13 @@ typedef enum _DGImageLoaderViewCropAnchor
     DGImageLoaderViewCropAnchorBottomRight
 } DGImageLoaderViewCropAnchor;
 
+typedef enum _DGImageLoaderViewLandscapeMode
+{
+	DGImageLoaderViewLandscapeModeNone,
+	DGImageLoaderViewLandscapeModeLeft,
+	DGImageLoaderViewLandscapeModeRight
+} DGImageLoaderViewLandscapeMode;
+
 @interface DGImageLoaderView : UIView <NSURLConnectionDelegate>
 
 /*! @property hasImageLoaded
@@ -133,6 +140,11 @@ typedef enum _DGImageLoaderViewCropAnchor
     @brief If set to YES, then the behavior is similar to UIImage - looking for an @2x version of the file first if exists.
     Default: YES */
 @property (nonatomic, assign) BOOL autoFindScaledUrlForFileUrls;
+
+/*! @property landscapeMode
+    @brief If set, will automatically rotate landscape images.
+    Default: DGImageLoaderViewLandscapeModeNone */
+@property (nonatomic, assign) DGImageLoaderViewLandscapeMode landscapeMode;
 
 /*! Load the image from an URL
     @param url  The URL of the image to load
