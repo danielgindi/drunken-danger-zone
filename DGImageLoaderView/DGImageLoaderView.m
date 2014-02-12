@@ -114,7 +114,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     _delayImageShowUntilDisplay = YES;
     _waitingForDisplay = NO;
     _waitingForDisplayWithAnimation = NO;
-    _isDefaultLoaded = YES;
+    _isDefaultLoaded = NO;
     _keepAspectRatio = YES;
     _animationDuration = 0.8;
     _asyncLoadImages = YES;
@@ -123,6 +123,8 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     _detectScaleFromFileName = YES;
     _autoFindScaledUrlForFileUrls = YES;
     _landscapeMode = DGImageLoaderViewLandscapeModeNone;
+    _enlargeImage = YES;
+    _defaultImageEnlarge = NO;
     
     self.clipsToBounds = YES;
 }
@@ -221,11 +223,11 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 {
     if (self.oldImageView)
     {
-        self.oldImageView.frame = [self rectForImage:self.oldImageView.image flipForSuperview:YES];
+        self.oldImageView.frame = [self rectForImage:self.oldImageView.image allowEnlarge:((_isDefaultLoaded && !self.nextImageView) ? _defaultImageEnlarge : _enlargeImage) flipForSuperview:YES];
     }
     if (self.nextImageView)
     {
-        self.nextImageView.frame = [self rectForImage:self.nextImageView.image flipForSuperview:YES];
+        self.nextImageView.frame = [self rectForImage:self.nextImageView.image allowEnlarge:(_isDefaultLoaded ? _defaultImageEnlarge : _enlargeImage) flipForSuperview:YES];
     }
     if (self.indicator)
     {
@@ -290,7 +292,9 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     return CGAffineTransformIdentity;
 }
 
-- (CGRect)rectForImage:(UIImage *)image flipForSuperview:(BOOL)flipForSuperview
+- (CGRect)rectForImage:(UIImage *)image
+      allowEnlarge:(BOOL)allowEnlarge
+      flipForSuperview:(BOOL)flipForSuperview
 {
     float scale = image.scale / UIScreen.mainScreen.scale;
     BOOL flipSize = [self requiresTransformForImage:image];
@@ -307,11 +311,12 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     }
     
     bounds = [DGImageLoaderView rectForWidth:imageSize.width * scale
-                                 andHeight:imageSize.height * scale
-                                   inFrame:bounds
-                           keepAspectRatio:_keepAspectRatio
-                            fitFromOutside:_fitFromOutside
-                                cropAnchor:_cropAnchor];
+                                   andHeight:imageSize.height * scale
+                                     inFrame:bounds
+                                allowEnlarge:allowEnlarge
+                             keepAspectRatio:_keepAspectRatio
+                              fitFromOutside:_fitFromOutside
+                                  cropAnchor:_cropAnchor];
     
     if (flipForSuperview && flipSize)
     {
@@ -329,32 +334,40 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 + (CGRect)rectForWidth:(CGFloat)cx
              andHeight:(CGFloat)cy
                inFrame:(CGRect)parentBox
+          allowEnlarge:(BOOL)allowEnlarge
        keepAspectRatio:(BOOL)keepAspectRatio
         fitFromOutside:(BOOL)fitFromOutside
             cropAnchor:(DGImageLoaderViewCropAnchor)cropAnchor
 {
-    CGRect box = parentBox;
+    CGRect box;
     if (keepAspectRatio)
     {
-        CGFloat ratio = cy == 0 ? 1 : (cx / cy);
-        CGFloat newRatio = parentBox.size.height == 0 ? 1 : (parentBox.size.width / parentBox.size.height);
-        
-        if ((newRatio > ratio && !fitFromOutside) ||
-            (newRatio < ratio && fitFromOutside))
+        if (cx <= box.size.width && cy <= box.size.height && !allowEnlarge)
         {
-            box.size.height = parentBox.size.height;
-            box.size.width = box.size.height * ratio;
-        }
-        else if ((newRatio > ratio && fitFromOutside) ||
-                 (newRatio < ratio && !fitFromOutside))
-        {
-            box.size.width = parentBox.size.width;
-            box.size.height = box.size.width / ratio;
+            box.size.width = cx;
+            box.size.height = cy;
         }
         else
         {
-            box.size.width = parentBox.size.width;
-            box.size.height = parentBox.size.height;
+            CGFloat ratio = cy == 0 ? 1 : (cx / cy);
+            CGFloat newRatio = parentBox.size.height == 0 ? 1 : (parentBox.size.width / parentBox.size.height);
+            
+            if ((newRatio > ratio && !fitFromOutside) ||
+                (newRatio < ratio && fitFromOutside))
+            {
+                box.size.height = parentBox.size.height;
+                box.size.width = box.size.height * ratio;
+            }
+            else if ((newRatio > ratio && fitFromOutside) ||
+                     (newRatio < ratio && !fitFromOutside))
+            {
+                box.size.width = parentBox.size.width;
+                box.size.height = box.size.width / ratio;
+            }
+            else
+            {
+                box.size = parentBox.size;
+            }
         }
         
         if (fitFromOutside)
@@ -580,7 +593,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 
 - (UIImage *)imageThumbnailOfImage:(UIImage *)image fromCacheOfURL:(NSURL *)url isFromFile:(BOOL *)fromFile
 {
-    CGSize neededSize = [self rectForImage:image flipForSuperview:NO].size;
+    CGSize neededSize = [self rectForImage:image allowEnlarge:_enlargeImage flipForSuperview:NO].size;
     
     CGSize currentSize = image.size;
     float scale = image.scale / UIScreen.mainScreen.scale;
@@ -627,34 +640,42 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 - (void)setDefaultImage:(UIImage *)defaultImage
 {
     _defaultImage = defaultImage;
-    if (_isDefaultLoaded)
+    if (!_hasImageLoaded)
     {
-        UIImageView *oldImageView = self.oldImageView;
-        if (oldImageView)
+        UIImageView *imageView = self.nextImageView ?: self.oldImageView;
+        if (imageView)
         {
             if (_defaultImage)
-            {
-                oldImageView.image = defaultImage;
-                oldImageView.transform = [self transformForImage:oldImageView.image];
-                oldImageView.frame = [self rectForImage:oldImageView.image flipForSuperview:YES];
+            { // There's a default image, set it to the existing view
+                imageView.image = defaultImage;
+                imageView.transform = [self transformForImage:imageView.image];
+                imageView.frame = [self rectForImage:imageView.image allowEnlarge:_defaultImageEnlarge flipForSuperview:YES];
             }
             else
-            {
-                [oldImageView removeFromSuperview];
-                self.oldImageView = nil;
+            { // There's no default image, remove the view
+                [imageView removeFromSuperview];
+                if (imageView == self.nextImageView)
+                {
+                    self.nextImageView = nil;
+                }
+                else if (imageView == self.oldImageView)
+                {
+                    self.oldImageView = nil;
+                }
             }
         }
         else
-        {
+        { // There's no image view
             if (defaultImage)
             {
-                self.oldImageView = oldImageView = [[UIImageView alloc] initWithImage:_defaultImage];
-                oldImageView.contentMode = UIViewContentModeScaleToFill;
-                oldImageView.transform = [self transformForImage:oldImageView.image];
-                oldImageView.frame = [self rectForImage:oldImageView.image flipForSuperview:YES];
-                [self addSubview:oldImageView];
+                self.oldImageView = imageView = [[UIImageView alloc] initWithImage:_defaultImage];
+                imageView.contentMode = UIViewContentModeScaleToFill;
+                imageView.transform = [self transformForImage:imageView.image];
+                imageView.frame = [self rectForImage:imageView.image allowEnlarge:_defaultImageEnlarge flipForSuperview:YES];
+                [self addSubview:imageView];
             }
         }
+        _isDefaultLoaded = !!defaultImage;
     }
 }
 
@@ -665,12 +686,11 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 
 - (UIImage *)currentVisibleImageNotDefault
 {
-    UIImage *result = self.oldImageView.image;
-    if (result == self.defaultImage)
+    if (!_isDefaultLoaded)
     {
-        result = nil;
+        return self.oldImageView.image;
     }
-    return result;
+    return nil;
 }
 
 - (BOOL)hasImageLoaded
@@ -884,7 +904,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
         UIImageView *oldImageView = self.oldImageView = [[UIImageView alloc] initWithImage:self.defaultImage];
         oldImageView.contentMode = UIViewContentModeScaleToFill;
         oldImageView.transform = [self transformForImage:oldImageView.image];
-        oldImageView.frame = [self rectForImage:oldImageView.image flipForSuperview:YES];
+        oldImageView.frame = [self rectForImage:oldImageView.image allowEnlarge:_defaultImageEnlarge flipForSuperview:YES];
         [self addSubview:oldImageView];
     }
     
@@ -892,7 +912,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     self.indicator.hidden = YES;
     
     _hasImageLoaded = NO;
-    _isDefaultLoaded = YES;
+    _isDefaultLoaded = !!self.defaultImage;
     
     _nextUrlToLoadIsLocal = NO;
     _nextUrlToLoad = nil;
@@ -915,10 +935,15 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     {
         self.nextImage = self.defaultImage;
         _hasImageLoaded = NO;
+        _isDefaultLoaded = !!self.nextImage;
+    }
+    else
+    {
+        _isDefaultLoaded = NO;
     }
     
     // If we need to delay loading until the view is actually displayed, and it hasn't yet and also its not the default image which is already loaded to memory, then:
-    if ((_delayActualLoadUntilDisplay || _delayImageShowUntilDisplay) && !immediate && self.nextImage != self.defaultImage)
+    if (self.nextImage && (_delayActualLoadUntilDisplay || _delayImageShowUntilDisplay) && !immediate && !_isDefaultLoaded)
     {
         _waitingForDisplay = YES;
         _waitingForDisplayWithAnimation = withAnimation;
@@ -929,11 +954,14 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     // Clear animation type if the [withAnimation] argument is not set
     DGImageLoaderViewAnimationType animationType = withAnimation?_animationType:DGImageLoaderViewAnimationTypeNone;
     
-    // Prepare next image view for animation
-    UIImageView *nextImageView = self.nextImageView = [[UIImageView alloc] initWithImage:self.nextImage];
-    nextImageView.contentMode = UIViewContentModeScaleToFill;
-    nextImageView.transform = [self transformForImage:nextImageView.image];
-    nextImageView.frame = [self rectForImage:nextImageView.image flipForSuperview:YES];
+    if (self.nextImage)
+    {
+        // Prepare next image view for animation
+        UIImageView *nextImageView = self.nextImageView = [[UIImageView alloc] initWithImage:self.nextImage];
+        nextImageView.contentMode = UIViewContentModeScaleToFill;
+        nextImageView.transform = [self transformForImage:nextImageView.image];
+        nextImageView.frame = [self rectForImage:nextImageView.image allowEnlarge:_defaultImageEnlarge flipForSuperview:YES];
+    }
     
     [self.indicator stopAnimating];
     self.indicator.hidden = YES;
@@ -945,7 +973,10 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
         default:
         case DGImageLoaderViewAnimationTypeNone:
         {
-            [self addSubview:self.nextImageView];
+            if (self.nextImageView)
+            {
+                [self addSubview:self.nextImageView];
+            }
             [self.oldImageView removeFromSuperview];
             self.oldImageView = self.nextImageView;
             self.nextImageView = nil;
@@ -954,7 +985,10 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
         case DGImageLoaderViewAnimationTypeFade:
         {
             self.nextImageView.alpha = 0;
-            [self addSubview:self.nextImageView];
+            if (self.nextImageView)
+            {
+                [self addSubview:self.nextImageView];
+            }
             [UIView animateWithDuration:_animationDuration delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                 self.nextImageView.alpha = 1;
                 self.oldImageView.alpha = 0;

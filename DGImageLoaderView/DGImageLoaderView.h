@@ -70,6 +70,11 @@ typedef enum _DGImageLoaderViewLandscapeMode
  */
 @property (nonatomic, strong) UIImage *defaultImage;
 
+/*! @property defaultImageEnlarge
+    @brief Should we enlarge the image if it's smaller than the view?
+    Default: NO */
+@property (nonatomic, assign) BOOL defaultImageEnlarge;
+
 /*! @property keepAspectRatio
     @brief Should we keep the aspect ration when resizing the image?
     Default: YES
@@ -81,6 +86,13 @@ typedef enum _DGImageLoaderViewLandscapeMode
     Default: NO
  */
 @property (nonatomic, assign) BOOL fitFromOutside;
+
+/*! @property enlargeImage
+    @brief Should we enlarge the image if it's smaller than the view?
+        This does not affect the defaultImage
+    Default: YES
+ */
+@property (nonatomic, assign) BOOL enlargeImage;
 
 /*! @property cropAnchor
     @brief If fitFromOutside is set, this property determines which part you want to be most visible in the image. Or more precisely, which part of the image you want to "crop" to the required size.
