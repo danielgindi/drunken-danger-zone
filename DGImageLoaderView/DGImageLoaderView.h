@@ -166,14 +166,8 @@ typedef enum _DGImageLoaderViewLandscapeMode
 /*! Load the image from an URL
     @param url  The URL of the image to load
     @param animationType  The kind of animation to use when displaying the image.
-    @param immediate  If set to YES, will override any delaying of loading or displaying, and will immediately load and display the image. 
-    @param isLocalUrl Tells it that the URL is of a local file, which should NOT be cached, as it exists locally already */
-- (void)loadImageFromURL:(NSURL *)url andAnimationType:(DGImageLoaderViewAnimationType)animationType immediate:(BOOL)immediate isLocalUrl:(BOOL)isLocalUrl;
-
-/*! Load the image from a local URL
- @param url  The URL of the image to load
- @param animationType  The kind of animation to use when displaying the image. */
-- (void)loadImageFromLocalURL:(NSURL *)url andAnimationType:(DGImageLoaderViewAnimationType)animationType;
+    @param immediate  If set to YES, will override any delaying of loading or displaying, and will immediately load and display the image. */
+- (void)loadImageFromURL:(NSURL *)url andAnimationType:(DGImageLoaderViewAnimationType)animationType immediate:(BOOL)immediate;
 
 /*! Load the image from an UIImage
     This is useful when you want to use the "resize" feature on an available UIImage

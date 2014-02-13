@@ -42,7 +42,6 @@
     DGImageLoaderViewAnimationType _animationType;
     BOOL _waitingForDisplay, _waitingForDisplayWithAnimation;
     BOOL _hasImageLoaded;
-    BOOL _nextUrlToLoadIsLocal;
     
     NSURL *_nextUrlToLoad;
     int _asyncOperationCounter;
@@ -250,9 +249,8 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     
     if (_nextUrlToLoad)
     { // We are waiting for this moment to start loading the image, when the view came into view...
-        [self loadImageFromURL:_nextUrlToLoad andAnimationType:_animationType immediate:YES isLocalUrl:_nextUrlToLoadIsLocal];
+        [self loadImageFromURL:_nextUrlToLoad andAnimationType:_animationType immediate:YES];
         _nextUrlToLoad = nil;
-        _nextUrlToLoadIsLocal = NO;
     }
 }
 
@@ -753,10 +751,10 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 
 - (void)loadImageFromURL:(NSURL *)url andAnimationType:(DGImageLoaderViewAnimationType)animationType
 {
-    [self loadImageFromURL:url andAnimationType:animationType immediate:NO isLocalUrl:NO];
+    [self loadImageFromURL:url andAnimationType:animationType immediate:NO];
 }
 
-- (void)loadImageFromURL:(NSURL *)url andAnimationType:(DGImageLoaderViewAnimationType)animationType immediate:(BOOL)immediate isLocalUrl:(BOOL)isLocalUrl
+- (void)loadImageFromURL:(NSURL *)url andAnimationType:(DGImageLoaderViewAnimationType)animationType immediate:(BOOL)immediate
 {
     url = [self normalizedUrlForUrl:url];
     
@@ -766,16 +764,17 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     if (_delayActualLoadUntilDisplay && !immediate)
     {
         _nextUrlToLoad = url;
-        _nextUrlToLoadIsLocal = isLocalUrl;
         [self setNeedsDisplay]; // Cause drawRect: to be called when coming on-screen
         return;
     }
     
-    NSString *cachePath = isLocalUrl ? nil : (url ? [self getLocalCachePathForUrl:url] : nil);
+    BOOL isFileURL = url.isFileURL;
     
-    if (!url || isLocalUrl || [[NSFileManager defaultManager] fileExistsAtPath:cachePath])
+    NSString *cachePath = isFileURL ? nil : (url ? [self getLocalCachePathForUrl:url] : nil);
+    
+    if (!url || isFileURL || [[NSFileManager defaultManager] fileExistsAtPath:cachePath])
     {
-        [self loadImageFromPath:(isLocalUrl ? url.path : cachePath) originalUrl:url forceAnimation:NO];
+        [self loadImageFromPath:(isFileURL ? url.path : cachePath) originalUrl:url forceAnimation:NO];
     }
     else
     {
@@ -812,11 +811,6 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
             });
         }
     }
-}
-
-- (void)loadImageFromLocalURL:(NSURL *)url andAnimationType:(DGImageLoaderViewAnimationType)animationType
-{
-    [self loadImageFromURL:url andAnimationType:animationType immediate:NO isLocalUrl:YES];
 }
 
 - (void)loadImage:(UIImage *)image withAnimationType:(DGImageLoaderViewAnimationType)animationType
@@ -913,10 +907,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     
     _hasImageLoaded = NO;
     _isDefaultLoaded = !!self.defaultImage;
-    
-    _nextUrlToLoadIsLocal = NO;
     _nextUrlToLoad = nil;
-    
     _waitingForDisplayWithAnimation = NO;
     _waitingForDisplay = NO;
 }
