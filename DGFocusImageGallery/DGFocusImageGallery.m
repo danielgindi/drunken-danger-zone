@@ -236,13 +236,23 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
         UIGraphicsEndImageContext();
     }
     
-    vc.view.frame = CGRectMake(0.f, 0.f, viewController.view.frame.size.width, viewController.view.frame.size.height);
-    [viewController.view addSubview:vc.view];
+    UIView *superview = viewController.view;
+    if (viewController.navigationController)
+    {
+        superview = viewController.navigationController.view;
+    }
+    if ([NSStringFromClass(superview.class) isEqualToString:@"UILayoutContainerView"])
+    {
+        superview = superview.superview;
+    }
+    
+    vc.view.frame = CGRectMake(0.f, 0.f, superview.frame.size.width, superview.frame.size.height);
+    [superview addSubview:vc.view];
     
     UIImageView *imageView = [vc createImageViewForImage:viewImage atIndex:currentImage];
     CGRect rcDest = imageView.frame;
     
-    CGRect rcOrg = [sourceView.superview convertRect:sourceView.frame toView:viewController.view];
+    CGRect rcOrg = [sourceView.superview convertRect:sourceView.frame toView:superview];
     
     float scale = viewImage.scale / UIScreen.mainScreen.scale;
     rcOrg = [DGFocusImageGallery rectForWidth:viewImage.size.width * scale
@@ -302,6 +312,7 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
     imageView.frame = rcDest;
     imageView.backgroundColor = [UIColor clearColor];
     imageView.autoresizingMask = UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    imageView.contentMode = UIViewContentModeScaleAspectFit;
     
     UIView *imageViewContainer = [[UIView alloc] initWithFrame:CGRectMake(self.view.frame.origin.x + self.view.frame.size.width * ((float)index), 0.f, self.view.frame.size.width, self.view.frame.size.height)];
     imageViewContainer.backgroundColor = [UIColor clearColor];
@@ -390,6 +401,18 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
         
         view.frame = CGRectMake(((float)idx++) * _scrollView.frame.size.width, 0.f, _scrollView.frame.size.width, _scrollView.frame.size.height);
     }
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    
+    [UIView animateWithDuration:0.15 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        
+        [self layoutViewWithFrame:self.view.frame];
+        
+    } completion:^(BOOL finished) {
+    }];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
