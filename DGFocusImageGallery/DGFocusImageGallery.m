@@ -778,6 +778,7 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
     {
         box.origin.x = 0.f;
         box.origin.y = 0.f;
+        box.size = parentBox.size;
     }
     
     box.origin.x += parentBox.origin.x;

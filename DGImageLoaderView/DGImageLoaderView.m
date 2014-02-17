@@ -340,7 +340,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     CGRect box;
     if (keepAspectRatio)
     {
-        if (cx <= box.size.width && cy <= box.size.height && !allowEnlarge)
+        if (cx <= parentBox.size.width && cy <= parentBox.size.height && !allowEnlarge)
         {
             box.size.width = cx;
             box.size.height = cy;
@@ -421,6 +421,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     {
         box.origin.x = 0.f;
         box.origin.y = 0.f;
+        box.size = parentBox.size;
     }
     
     box.origin.x += parentBox.origin.x;
