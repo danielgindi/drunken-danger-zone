@@ -48,6 +48,8 @@
     
     NSString *_tempFilePath;
     NSFileHandle *_fileWriteHandle;
+    
+    UIView *animatingViewToRemove;
 }
 
 @property (nonatomic, strong) NSURLRequest *urlRequest;
@@ -147,72 +149,63 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     }
 }
 
-
-- (void)loadImageFromPath:(NSString *)path originalUrl:(NSURL *)originalURL forceAnimation:(BOOL)forceAnimation
+- (void)loadImageFromPath:(NSString *)path originalUrl:(NSURL *)originalURL notFromCache:(BOOL)notFromCache immediate:(BOOL)immediate
 {
-    BOOL asyncLoadImages = _asyncLoadImages;
     int asyncIndex = ++_asyncOperationCounter;
     
-    void (^loadBlock)() = ^
+    NSString *tempFilePath = _tempFilePath;
+    
+    if ([[NSFileManager defaultManager] fileExistsAtPath:path])
     {
-        @autoreleasepool
+        void (^loadBlock)(UIImage *, BOOL) = ^(UIImage *image, BOOL fromCache)
         {
-            // If current operation is irrelevant by the time we got here...
-            if (asyncIndex != _asyncOperationCounter) return;
-            
-            UIImage *image = [UIImage imageWithContentsOfFile:path];
-            
-            // If current operation is irrelevant by the time we finished loading the image from file
-            if (asyncIndex != _asyncOperationCounter) return;
-            
-            self.nextImage = image;
-            if (image)
+            if (tempFilePath)
             {
-                BOOL loadedThumbFromFile = YES;
-                if (_resizeImages)
+                [[NSFileManager defaultManager] moveItemAtPath:tempFilePath toPath:[self getLocalCachePathForUrl:originalURL] error:nil];
+                if (_tempFilePath == tempFilePath)
                 {
-                    image = [self imageThumbnailOfImage:image fromCacheOfURL:originalURL isFromFile:&loadedThumbFromFile];
-                    
-                    // If current operation is irrelevant by the time we finished thumbnailing the image from file
-                    if (asyncIndex != _asyncOperationCounter) return;
-                }
-                
-                if (_tempFilePath)
-                {
-                    [[NSFileManager defaultManager] moveItemAtPath:_tempFilePath toPath:[self getLocalCachePathForUrl:originalURL] error:nil];
-                }
-                
-                self.nextImage = image;
-                
-                BOOL animate = forceAnimation || !_doNotAnimateFromCache || !loadedThumbFromFile;
-                void (^playBlock)() = ^
-                {
-                    // If current operation is irrelevant by the time we made it to the main queue
-                    if (asyncIndex != _asyncOperationCounter) return;
-                    [self playWithAnimation:animate immediate:NO];
-                };
-                
-                if (asyncLoadImages)
-                { // Return to main queue for UI operations
-                    dispatch_async(dispatch_get_main_queue(), playBlock);
-                }
-                else
-                { // Go on, we are on the main thread already
-                    playBlock();
+                    _tempFilePath = nil;
                 }
             }
             
-        } // @autoreleasepool
+            self.nextImage = image;
+            
+            BOOL animate = notFromCache || !_doNotAnimateFromCache || !fromCache;
+            [self playWithAnimation:animate immediate:immediate];
+        };
         
-    };
-    
-    if (asyncLoadImages)
-    {
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), loadBlock);
-    }
-    else
-    {
-        loadBlock();
+        if (_resizeImages)
+        {
+            [self generateImageThumbnailForImage:nil localPath:path fromCacheOfURL:originalURL completion:^(UIImage *thumbnailImage, BOOL fromCache) {
+                
+                // If current operation is irrelevant by the time we finished thumbnailing the image from file, then cancel
+                if (asyncIndex != _asyncOperationCounter) return;
+                
+                loadBlock(thumbnailImage, fromCache);
+            }];
+        }
+        else
+        {
+            if (notFromCache || !_doNotAnimateFromCache)
+            { // Load from file on another queue
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                    
+                    UIImage *image = [UIImage imageWithContentsOfFile:path];
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        
+                        // If current operation is irrelevant by the time we finished thumbnailing the image from file, then cancel
+                        if (asyncIndex != _asyncOperationCounter) return;
+                        
+                        loadBlock(image, NO);
+                    });
+                    
+                });
+            }
+            else
+            { // Load immediately, on main queue, to prevent visual hiccups
+                loadBlock([UIImage imageWithContentsOfFile:path], YES);
+            }
+        }
     }
 }
 
@@ -222,11 +215,11 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 {
     if (self.oldImageView)
     {
-        self.oldImageView.frame = [self rectForImage:self.oldImageView.image allowEnlarge:((_isDefaultLoaded && !self.nextImageView) ? _defaultImageEnlarge : _enlargeImage) flipForSuperview:YES];
+        self.oldImageView.frame = [self rectForImageSize:_oldImageView.image.size imageScale:_oldImageView.image.scale allowEnlarge:((_isDefaultLoaded && !self.nextImageView) ? _defaultImageEnlarge : _enlargeImage) flipForSuperview:YES];
     }
     if (self.nextImageView)
     {
-        self.nextImageView.frame = [self rectForImage:self.nextImageView.image allowEnlarge:(_isDefaultLoaded ? _defaultImageEnlarge : _enlargeImage) flipForSuperview:YES];
+        self.nextImageView.frame = [self rectForImageSize:_nextImageView.image.size imageScale:_nextImageView.image.scale allowEnlarge:(_isDefaultLoaded ? _defaultImageEnlarge : _enlargeImage) flipForSuperview:YES];
     }
     if (self.indicator)
     {
@@ -260,11 +253,11 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 #define TRANSFORM_ROTATE_PLUS_90 ((CGAffineTransform){0.f, 1.f, -1.f, 0.f, 0.f, 0.f})
 #define TRANSFORM_ROTATE_MINUS_90 ((CGAffineTransform){0.f, -1.f, 1.f, 0.f, 0.f, 0.f})
 
-- (BOOL)requiresTransformForImage:(UIImage *)image
+- (BOOL)requiresTransformForImageSize:(CGSize)imageSize
 {
     if (_landscapeMode != DGImageLoaderViewLandscapeModeNone)
     {
-        CGSize size = self.bounds.size, imageSize = image.size;
+        CGSize size = self.bounds.size;
         return ((imageSize.width > imageSize.height &&
              size.height > size.width) ||
             (imageSize.height > imageSize.width &&
@@ -275,7 +268,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 
 - (CGAffineTransform)transformForImage:(UIImage *)image
 {
-    if ([self requiresTransformForImage:image])
+    if ([self requiresTransformForImageSize:image.size])
     {
         switch (_landscapeMode)
         {
@@ -290,13 +283,13 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     return CGAffineTransformIdentity;
 }
 
-- (CGRect)rectForImage:(UIImage *)image
-      allowEnlarge:(BOOL)allowEnlarge
-      flipForSuperview:(BOOL)flipForSuperview
+- (CGRect)rectForImageSize:(CGSize)imageSize
+                imageScale:(CGFloat)imageScale
+              allowEnlarge:(BOOL)allowEnlarge
+          flipForSuperview:(BOOL)flipForSuperview
 {
-    float scale = image.scale / UIScreen.mainScreen.scale;
-    BOOL flipSize = [self requiresTransformForImage:image];
-    CGSize imageSize = image.size;
+    float scale = imageScale / UIScreen.mainScreen.scale;
+    BOOL flipSize = [self requiresTransformForImageSize:imageSize];
     CGRect bounds = self.bounds;
     if (flipSize)
     {
@@ -497,6 +490,141 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     return url;
 }
 
+- (CGSize)sizeOfImageAtFilePath:(NSString *)filePath
+{
+    BOOL success = NO;
+    CGSize size = {-1.f, -1.f};
+    
+    FILE *file = fopen([[NSFileManager defaultManager] fileSystemRepresentationWithPath:filePath], "r");
+    if (file)
+    {
+        uint8_t buffer[4];
+        if (fread(buffer, 1, 4, file) == 4 &&
+            memcmp(buffer, (uint8_t[4]){0xff, 0xd8, 0xff, 0xe0}, 4) == 0)
+        {
+            // JPEG?
+            if (fread(buffer, 1, 2, file) == 2)
+            {
+                int blockLength = ((buffer[0] << 8) + buffer[1]);
+                
+                if (fread(buffer, 1, 4, file) == 4 &&
+                    strncmp((char *)buffer, "JFIF", 4) == 0 &&
+                    fread(buffer, 1, 1, file) == 1 &&
+                    buffer[0] == 0)
+                {
+                    // JPEG!
+                    
+                    int reverseBytes = 7;
+                    while (!success && !feof(file))
+                    {
+                        if (fseek(file, blockLength - reverseBytes, SEEK_CUR))
+                        {
+                            break;
+                        }
+                        
+                        if (fread(buffer, 1, 4, file) == 4)
+                        {
+                            reverseBytes = 4;
+                            blockLength = ((buffer[2] << 8) + buffer[3]);
+                            
+                            if (blockLength >= 7 && buffer[0] == 0xff && buffer[1] == 0xc0)
+                            {
+                                if (fseek(file, 1, SEEK_CUR))
+                                {
+                                    break;
+                                }
+                                reverseBytes++;
+                                
+                                if (fread(buffer, 1, 4, file) == 4)
+                                {
+                                    size = (CGSize){((buffer[2] << 8) + buffer[3]), ((buffer[0] << 8) + buffer[1])};
+                                    success = YES;
+                                    break;
+                                }
+                            }
+                            reverseBytes -= 2;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (!success)
+        {
+            fseek(file, 0, SEEK_SET);
+            
+            if (fread(buffer, 1, 4, file) == 4 &&
+                memcmp(buffer, (uint8_t[4]){0x89, 0x50, 0x4E, 0x47}, 4) == 0 &&
+                fread(buffer, 1, 4, file) == 4 &&
+                memcmp(buffer, (uint8_t[4]){0x0D, 0x0A, 0x1A, 0x0A}, 4) == 0)
+            {
+                // PNG
+                
+                if (!fseek(file, 8, SEEK_CUR))
+                {
+                    if (fread(buffer, 1, 4, file) == 4)
+                    {
+                        size.width = (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3];
+                    }
+                    if (fread(buffer, 1, 4, file) == 4)
+                    {
+                        size.height = (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3];
+                        success = YES;
+                    }
+                }
+            }
+        }
+        
+        if (!success)
+        {
+            fseek(file, 0, SEEK_SET);
+            
+            if (fread(buffer, 1, 3, file) == 3 &&
+                strncmp((char *)buffer, "GIF", 3) == 0)
+            {
+                // GIF
+                
+                if (!fseek(file, 3, SEEK_CUR)) // 87a / 89a
+                {
+                    if (fread(buffer, 1, 4, file) == 4)
+                    {
+                        size = (CGSize){*((int16_t*)buffer), *((int16_t*)(buffer + 2))};
+                        success = YES;
+                    }
+                }
+            }
+        }
+        
+        if (!success)
+        {
+            fseek(file, 0, SEEK_SET);
+            
+            if (fread(buffer, 1, 2, file) == 2 &&
+                memcmp(buffer, (uint8_t[2]){0x42, 0x4D}, 2) == 0)
+            {
+                // BMP
+                
+                if (!fseek(file, 16, SEEK_CUR))
+                {
+                    if (fread(buffer, 1, 4, file) == 4)
+                    {
+                        size.width = *((int32_t*)buffer);
+                    }
+                    if (fread(buffer, 1, 4, file) == 4)
+                    {
+                        size.height = *((int32_t*)buffer);
+                        // success = YES; // Not needed, analyzer...
+                    }
+                }
+            }
+        }
+        
+        fclose(file);
+    }
+    
+    return size;
+}
+
 #pragma mark - Caching stuff
 
 - (NSString *)getLocalCachePathForUrl:(NSURL *)url
@@ -590,19 +718,38 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     return path;
 }
 
-- (UIImage *)imageThumbnailOfImage:(UIImage *)image fromCacheOfURL:(NSURL *)url isFromFile:(BOOL *)fromFile
+- (void)generateImageThumbnailForImage:(UIImage *)image localPath:(NSString *)path fromCacheOfURL:(NSURL *)url completion:(void(^)(UIImage *thumbnailImage, BOOL fromCache))completion
 {
-    CGSize neededSize = [self rectForImage:image allowEnlarge:_enlargeImage flipForSuperview:NO].size;
+    CGSize neededSize, imageSize = CGSizeZero;
+    CGFloat imageScale = 1.f;
     
-    CGSize currentSize = image.size;
-    float scale = image.scale / UIScreen.mainScreen.scale;
+    if (image)
+    {
+        imageSize = image.size;
+        imageScale = image.scale;
+    }
+    else if (path)
+    {
+        imageSize = [self sizeOfImageAtFilePath:path];
+        if (imageSize.width == -1.f)
+        {
+            image = [UIImage imageWithContentsOfFile:path];
+            imageSize = image.size;
+            imageScale = image.scale;
+        }
+    }
+    if (imageSize.width <= 0.f || imageSize.height <= 0.f)
+    {
+        completion(nil, YES);
+        return;
+    }
+    
+    neededSize = [self rectForImageSize:imageSize imageScale:imageScale allowEnlarge:_enlargeImage flipForSuperview:NO].size;
+    
+    CGSize currentSize = imageSize;
+    float scale = imageScale / UIScreen.mainScreen.scale;
     currentSize.width *= scale;
     currentSize.height *= scale;
-    
-    if (fromFile)
-    {
-        *fromFile = YES;
-    }
     
     if (neededSize.width != currentSize.width ||
         neededSize.height != currentSize.height)
@@ -617,21 +764,54 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
             if ([[NSFileManager defaultManager] fileExistsAtPath:thumbCachePath])
             {
                 image = [UIImage imageWithContentsOfFile:thumbCachePath];
+                completion(image, YES);
             }
             else
             {
-                if (fromFile) *fromFile = NO;
-                image = [self imageByScalingImage:image toSize:neededSize];
-                [UIImageJPEGRepresentation(image, 1.f) writeToFile:thumbCachePath options:NSDataWritingAtomic error:nil];
+                if (_asyncLoadImages)
+                {
+                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                        UIImage *originalImage = image ?: [UIImage imageWithContentsOfFile:path];
+                        UIImage *thumbnailImage = [self imageByScalingImage:originalImage toSize:neededSize];
+                        originalImage = nil;
+                        [UIImageJPEGRepresentation(thumbnailImage, 1.f) writeToFile:thumbCachePath options:NSDataWritingAtomic error:nil];
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            completion(thumbnailImage, NO);
+                        });
+                    });
+                }
+                else
+                {
+                    UIImage *originalImage = image ?: [UIImage imageWithContentsOfFile:path];
+                    UIImage *thumbnailImage = [self imageByScalingImage:originalImage toSize:neededSize];
+                    originalImage = nil;
+                    [UIImageJPEGRepresentation(thumbnailImage, 1.f) writeToFile:thumbCachePath options:NSDataWritingAtomic error:nil];
+                    completion(thumbnailImage, NO);
+                }
             }
         }
         else
         {
-            if (fromFile) *fromFile = NO;
-            image = [self imageByScalingImage:image toSize:neededSize];
+            if (_asyncLoadImages)
+            {
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                    UIImage *originalImage = image ?: [UIImage imageWithContentsOfFile:path];
+                    UIImage *thumbnailImage = [self imageByScalingImage:originalImage toSize:neededSize];
+                    originalImage = nil;
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        completion(thumbnailImage, NO);
+                    });
+                });
+            }
+            else
+            {
+                UIImage *originalImage = image ?: [UIImage imageWithContentsOfFile:path];
+                UIImage *thumbnailImage = [self imageByScalingImage:originalImage toSize:neededSize];
+                originalImage = nil;
+                completion(thumbnailImage, NO);
+            }
         }
     }
-    return image;
 }
 
 #pragma mark - Accessors
@@ -648,7 +828,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
             { // There's a default image, set it to the existing view
                 imageView.image = defaultImage;
                 imageView.transform = [self transformForImage:imageView.image];
-                imageView.frame = [self rectForImage:imageView.image allowEnlarge:_defaultImageEnlarge flipForSuperview:YES];
+                imageView.frame = [self rectForImageSize:imageView.image.size imageScale:imageView.image.scale allowEnlarge:_defaultImageEnlarge flipForSuperview:YES];
             }
             else
             { // There's no default image, remove the view
@@ -670,7 +850,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
                 self.oldImageView = imageView = [[UIImageView alloc] initWithImage:_defaultImage];
                 imageView.contentMode = UIViewContentModeScaleToFill;
                 imageView.transform = [self transformForImage:imageView.image];
-                imageView.frame = [self rectForImage:imageView.image allowEnlarge:_defaultImageEnlarge flipForSuperview:YES];
+                imageView.frame = [self rectForImageSize:imageView.image.size imageScale:imageView.image.scale allowEnlarge:_defaultImageEnlarge flipForSuperview:YES];
                 [self addSubview:imageView];
             }
         }
@@ -740,7 +920,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
         [self.indicator stopAnimating];
         self.indicator.hidden = YES;
         
-        [self loadImageFromPath:_tempFilePath originalUrl:_urlRequest.URL forceAnimation:YES];
+        [self loadImageFromPath:_tempFilePath originalUrl:_urlRequest.URL notFromCache:YES immediate:NO];
 	}
     else
     {
@@ -761,6 +941,8 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     
     _animationType = animationType;
     
+    _nextUrlToLoad = nil;
+    
     // If we need to delay loading until the view is actually displayed, and it hasn't yet, then:
     if (_delayActualLoadUntilDisplay && !immediate)
     {
@@ -775,7 +957,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     
     if (!url || isFileURL || [[NSFileManager defaultManager] fileExistsAtPath:cachePath])
     {
-        [self loadImageFromPath:(isFileURL ? url.path : cachePath) originalUrl:url forceAnimation:NO];
+        [self loadImageFromPath:(isFileURL ? url.path : cachePath) originalUrl:url notFromCache:NO immediate:immediate];
     }
     else
     {
@@ -816,6 +998,8 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 
 - (void)loadImage:(UIImage *)image withAnimationType:(DGImageLoaderViewAnimationType)animationType
 {
+    _nextUrlToLoad = nil;
+    
     if (!image)
     {
         [self reset];
@@ -824,49 +1008,28 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     {
         [self stopAndRemoveConnection];
         
-        BOOL asyncLoadImages = _asyncLoadImages;
         int asyncIndex = ++_asyncOperationCounter;
-        void(^loadBlock)() = ^
+        
+        void (^loadBlock)(UIImage *, BOOL) = ^(UIImage *image, BOOL fromCache)
         {
-            // If current operation is irrelevant by the time we got here...
-            if (asyncIndex != _asyncOperationCounter) return;
-            
-            UIImage *actualImage = image;
-            if (_resizeImages)
-            {
-                actualImage = [self imageThumbnailOfImage:actualImage fromCacheOfURL:nil isFromFile:NULL];
-                
-                // If current operation is irrelevant by the time we finished thumbnailing the image from file
-                if (asyncIndex != _asyncOperationCounter) return;
-            }
-            
-            self.nextImage = actualImage;
+            self.nextImage = image;
             
             BOOL animate = !_doNotAnimateFromCache;
-            void(^playBlock)() = ^
-            {
-                // If current operation is irrelevant by the time we made it to the main queue
-                if (asyncIndex != _asyncOperationCounter) return;
-                [self playWithAnimation:animate immediate:NO];
-            };
-            
-            if (asyncLoadImages)
-            { // Return to main queue for UI operations
-                dispatch_async(dispatch_get_main_queue(), playBlock);
-            }
-            else
-            { // Go on, we are on the main thread already
-                playBlock();
-            }
+            [self playWithAnimation:animate immediate:NO];
         };
         
-        if (asyncLoadImages)
+        if (_resizeImages)
         {
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), loadBlock);
+            [self generateImageThumbnailForImage:image localPath:nil fromCacheOfURL:nil completion:^(UIImage *thumbnailImage, BOOL fromCache) {
+                // If current operation is irrelevant by the time we finished thumbnailing the image from file
+                if (asyncIndex != _asyncOperationCounter) return;
+                
+                loadBlock(thumbnailImage, fromCache);
+            }];
         }
         else
         {
-            loadBlock();
+            loadBlock(image, YES);
         }
     }
 }
@@ -876,6 +1039,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     [self stopAndRemoveConnection];
     [self closeAndRemoveTempFile];
     _waitingForDisplay = NO;
+    _nextUrlToLoad = nil;
 }
 
 - (void)reset
@@ -894,12 +1058,18 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
         self.nextImageView = nil;
     }
     
+    if (animatingViewToRemove)
+    {
+        [animatingViewToRemove removeFromSuperview];
+        animatingViewToRemove = nil;
+    }
+    
     if (self.defaultImage)
     {
         UIImageView *oldImageView = self.oldImageView = [[UIImageView alloc] initWithImage:self.defaultImage];
         oldImageView.contentMode = UIViewContentModeScaleToFill;
         oldImageView.transform = [self transformForImage:oldImageView.image];
-        oldImageView.frame = [self rectForImage:oldImageView.image allowEnlarge:_defaultImageEnlarge flipForSuperview:YES];
+        oldImageView.frame = [self rectForImageSize:oldImageView.image.size imageScale:oldImageView.image.scale allowEnlarge:_defaultImageEnlarge flipForSuperview:YES];
         [self addSubview:oldImageView];
     }
     
@@ -952,7 +1122,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
         UIImageView *nextImageView = self.nextImageView = [[UIImageView alloc] initWithImage:self.nextImage];
         nextImageView.contentMode = UIViewContentModeScaleToFill;
         nextImageView.transform = [self transformForImage:nextImageView.image];
-        nextImageView.frame = [self rectForImage:nextImageView.image allowEnlarge:_defaultImageEnlarge flipForSuperview:YES];
+        nextImageView.frame = [self rectForImageSize:nextImageView.image.size imageScale:nextImageView.image.scale allowEnlarge:_defaultImageEnlarge flipForSuperview:YES];
     }
     
     [self.indicator stopAnimating];
@@ -976,18 +1146,30 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
             break;
         case DGImageLoaderViewAnimationTypeFade:
         {
+            if (animatingViewToRemove)
+            {
+                [animatingViewToRemove removeFromSuperview];
+                animatingViewToRemove = nil;
+            }
+            
             self.nextImageView.alpha = 0;
             if (self.nextImageView)
             {
                 [self addSubview:self.nextImageView];
             }
+            UIView *oldView = self.oldImageView, *nextView = self.nextImageView;
+            self.oldImageView = self.nextImageView;
+            self.nextImageView = nil;
+            animatingViewToRemove = oldView;
             [UIView animateWithDuration:_animationDuration delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                self.nextImageView.alpha = 1;
-                self.oldImageView.alpha = 0;
+                nextView.alpha = 1;
+                oldView.alpha = 0;
             } completion:^(BOOL finished) {
-                [self.oldImageView removeFromSuperview];
-                self.oldImageView = self.nextImageView;
-                self.nextImageView = nil;
+                [oldView removeFromSuperview];
+                if (animatingViewToRemove == oldView)
+                {
+                    animatingViewToRemove = nil;
+                }
             }];
         }
             break;
