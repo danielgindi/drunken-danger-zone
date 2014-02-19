@@ -252,9 +252,9 @@
         [queuedResumes removeAllObjects];
         currentDownloadsCount = 0;
         
-        for (DGDownloadManagerFile *file in currentDownloads)
+        while (currentDownloads.count)
         {
-            [file cancelDownloading];
+            [currentDownloads.firstObject cancelDownloading];
         }
         
         [self endBackgroundTaskIfNotNeeded];
