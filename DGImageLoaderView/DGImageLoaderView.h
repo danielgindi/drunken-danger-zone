@@ -185,7 +185,15 @@ typedef enum _DGImageLoaderViewLandscapeMode
 /*! Stops any loading of image in progress, and resets to the defaultImage if present */
 - (void)reset;
 
-/*! Maximum asynchronous connections that can be used to load images. 
+/*! Remove a specific URL from the cache
+ @param url  The URL of the image to clear
+ @return count of cache files deleted */
++ (int)removeImageFromCache:(NSURL *)url;
+
+/*! Removes all images and thumbnails from cache */
++ (void)clearCache;
+
+/*! Maximum asynchronous connections that can be used to load images.
     This affects this class overall in the app.
     The default is 8.
     @return The max connections */

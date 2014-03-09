@@ -1077,6 +1077,50 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     _waitingForDisplay = NO;
 }
 
++ (int)removeImageFromCache:(NSURL *)url
+{
+    if (!url) return 0;
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    NSString *path = paths.count ? paths[0] : [NSHomeDirectory() stringByAppendingString:@"/Library/Caches"];
+    path = [path stringByAppendingPathComponent:@"dg-image-loader"];
+    
+    NSString *fileNameToRemove = [self md5ForString:url.absoluteString];
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    
+    int deleted = 0;
+    
+    for (NSURL *subFolder in [fileManager enumeratorAtURL:[[NSURL alloc] initFileURLWithPath:path isDirectory:YES] includingPropertiesForKeys:nil options:NSDirectoryEnumerationSkipsSubdirectoryDescendants errorHandler:nil])
+    {
+        for (NSURL *fileName in [fileManager enumeratorAtURL:subFolder includingPropertiesForKeys:nil options:NSDirectoryEnumerationSkipsSubdirectoryDescendants errorHandler:nil])
+        {
+            if ([[fileName lastPathComponent] hasPrefix:fileNameToRemove])
+            {
+                NSError *error;
+                [fileManager removeItemAtURL:fileName error:&error];
+                deleted++;
+            }
+        }
+    }
+    
+    return deleted;
+}
+
++ (void)clearCache
+{
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    NSString *path = paths.count ? paths[0] : [NSHomeDirectory() stringByAppendingString:@"/Library/Caches"];
+    path = [path stringByAppendingPathComponent:@"dg-image-loader"];
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    
+    for (NSURL *url in [fileManager enumeratorAtURL:[[NSURL alloc] initFileURLWithPath:path isDirectory:YES] includingPropertiesForKeys:nil options:NSDirectoryEnumerationSkipsSubdirectoryDescendants errorHandler:nil])
+    {
+        [fileManager removeItemAtURL:url error:nil];
+    }
+}
+
 #pragma mark - Animation stuff
 
 - (void)playWithAnimation:(BOOL)withAnimation immediate:(BOOL)immediate
