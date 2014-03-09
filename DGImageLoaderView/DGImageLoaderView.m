@@ -755,7 +755,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
         
         if (thumbCachePath)
         {
-            if ([[NSFileManager defaultManager] fileExistsAtPath:thumbCachePath])
+            if (!_noCache && [[NSFileManager defaultManager] fileExistsAtPath:thumbCachePath])
             {
                 image = [UIImage imageWithContentsOfFile:thumbCachePath];
                 completion(image, YES);
@@ -949,7 +949,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     
     NSString *cachePath = isFileURL ? nil : (url ? [self getLocalCachePathForUrl:url] : nil);
     
-    if (!url || isFileURL || [[NSFileManager defaultManager] fileExistsAtPath:cachePath])
+    if (!url || isFileURL || (!_noCache && [[NSFileManager defaultManager] fileExistsAtPath:cachePath]))
     {
         [self loadImageFromPath:(isFileURL ? url.path : cachePath) originalUrl:url notFromCache:NO immediate:immediate];
     }

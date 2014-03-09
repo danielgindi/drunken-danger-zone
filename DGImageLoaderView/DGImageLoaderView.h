@@ -70,6 +70,11 @@ typedef enum _DGImageLoaderViewLandscapeMode
  */
 @property (nonatomic, strong) UIImage *defaultImage;
 
+/*! @property noCache
+ @brief Should we skip local caching?
+ Default: NO */
+@property (nonatomic, assign) BOOL noCache;
+
 /*! @property defaultImageEnlarge
     @brief Should we enlarge the image if it's smaller than the view?
     Default: NO */
