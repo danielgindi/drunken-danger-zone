@@ -648,7 +648,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     // an alternative to the NSTemporaryDirectory
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
     NSString *path = paths.count ? paths[0] : [NSHomeDirectory() stringByAppendingString:@"/Library/Caches"];
-    path = [path stringByAppendingPathComponent:@"dg-image-loader"];
+    path = [path stringByAppendingPathComponent:@"dg-image-loader/original"];
     
     NSFileManager *fileManager = [NSFileManager defaultManager];
     if (![fileManager fileExistsAtPath:path])
