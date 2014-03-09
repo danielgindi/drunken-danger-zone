@@ -627,6 +627,20 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 
 #pragma mark - Caching stuff
 
++ (NSString *)md5ForString:(NSString *)string
+{
+    const char *urlStr = string.UTF8String;
+    unsigned char md5result[16];
+    CC_MD5(urlStr, (CC_LONG)strlen(urlStr), md5result); // This is the md5 call
+    return [NSString stringWithFormat:
+             @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+             md5result[0], md5result[1], md5result[2], md5result[3],
+             md5result[4], md5result[5], md5result[6], md5result[7],
+             md5result[8], md5result[9], md5result[10], md5result[11],
+             md5result[12], md5result[13], md5result[14], md5result[15]
+             ];
+}
+
 - (NSString *)getLocalCachePathForUrl:(NSURL *)url
 {
     if (!url) return nil; // Silence Xcode's Analyzer
@@ -647,17 +661,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
         }
     }
     
-    const char *urlStr = url.absoluteString.UTF8String;
-    unsigned char md5result[16];
-    CC_MD5(urlStr, (CC_LONG)strlen(urlStr), md5result); // This is the md5 call
-    path = [path stringByAppendingPathComponent:
-            [NSString stringWithFormat:
-             @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-             md5result[0], md5result[1], md5result[2], md5result[3],
-             md5result[4], md5result[5], md5result[6], md5result[7],
-             md5result[8], md5result[9], md5result[10], md5result[11],
-             md5result[12], md5result[13], md5result[14], md5result[15]
-             ]];
+    path = [path stringByAppendingPathComponent:[DGImageLoaderView md5ForString:url.absoluteString]];
     
     NSString *fn = url.lastPathComponent.lowercaseString;
     
@@ -694,17 +698,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
         }
     }
     
-    const char *urlStr = url.absoluteString.UTF8String;
-    unsigned char md5result[16];
-    CC_MD5(urlStr, (CC_LONG)strlen(urlStr), md5result);
-    path = [path stringByAppendingPathComponent:
-            [NSString stringWithFormat:
-             @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-             md5result[0], md5result[1], md5result[2], md5result[3],
-             md5result[4], md5result[5], md5result[6], md5result[7],
-             md5result[8], md5result[9], md5result[10], md5result[11],
-             md5result[12], md5result[13], md5result[14], md5result[15]
-             ]];
+    path = [path stringByAppendingPathComponent:[DGImageLoaderView md5ForString:url.absoluteString]];
     
     NSString *fn = url.lastPathComponent.lowercaseString;
     
