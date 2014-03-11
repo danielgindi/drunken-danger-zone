@@ -616,7 +616,7 @@ static NSString *s_DGPopupView_syncObject = @"DGPopupView_syncObject";
     UIGraphicsBeginImageContextWithOptions(size, NO, UIScreen.mainScreen.scale);
     CGContextRef context = UIGraphicsGetCurrentContext();
     
-    int locationsCount = locations.count;
+    NSUInteger locationsCount = locations.count;
     CGFloat *fLocations = locationsCount ? malloc(locations.count * sizeof(CGFloat)) : NULL;
     CGFloat *location = fLocations;
     if (locationsCount)

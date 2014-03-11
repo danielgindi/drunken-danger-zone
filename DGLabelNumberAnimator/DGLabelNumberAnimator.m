@@ -79,7 +79,7 @@ typedef enum _DGLabelNumberAnimatorNumberType
     {
         _numberType = DGLabelNumberAnimatorNumberTypeFloat;
     }
-    else if (strcmp([_from objCType], @encode(__INT64_TYPE__)) == 0)
+    else if (strcmp([_from objCType], @encode(long long)) == 0)
     {
         _numberType = DGLabelNumberAnimatorNumberTypeLongLong;
     }
@@ -150,7 +150,7 @@ typedef enum _DGLabelNumberAnimatorNumberType
     }
     else if (_numberType == DGLabelNumberAnimatorNumberTypeLongLong)
     {
-        __INT64_TYPE__ current = ([_to longLongValue] - [_from longLongValue]) * dt + [_from longLongValue];
+        long long current = ([_to longLongValue] - [_from longLongValue]) * dt + [_from longLongValue];
         _label.text = _numberFormatter ? ([_numberFormatter isKindOfClass:NSNumberFormatter.class] ? [(NSNumberFormatter *)_numberFormatter stringFromNumber:@(current)] : ((DGLabelNumberAnimatorNumberFormatter)_numberFormatter)(@(current))) : [@(current) stringValue];
     }
     else
