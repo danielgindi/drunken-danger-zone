@@ -66,7 +66,7 @@
 	[dc removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
-- (id)initForViewController:(UIViewController*)viewController
+- (id)initForViewController:(UIViewController *)viewController
 {
     self = [self init];
     if (self)
@@ -76,7 +76,7 @@
     return self;
 }
 
-+ (id)keyboardScrollHandlerForViewController:(UIViewController*)viewController
++ (id)keyboardScrollHandlerForViewController:(UIViewController *)viewController
 {
     return [[DGKeyboardScrollHandler alloc] initForViewController:viewController];
 }
@@ -142,17 +142,17 @@
     [self attachAllFieldDelegatesFromView:self.scrollView];
 }
 
-- (void)attachAllFieldDelegatesFromView:(UIView*)view
+- (void)attachAllFieldDelegatesFromView:(UIView *)view
 {
     for (UIView *subview in view.subviews)
     {
         if ([subview isKindOfClass:[UITextField class]])
         {
-            ((UITextField*)subview).delegate = self;
+            ((UITextField *)subview).delegate = self;
         }
         else if ([subview isKindOfClass:[UITextView class]])
         {
-            ((UITextView*)subview).delegate = self;
+            ((UITextView *)subview).delegate = self;
         }
         else
         {
@@ -194,7 +194,7 @@
 
 #pragma mark - Actions
 
-- (void)scrollViewTapGestureRecognized:(UIGestureRecognizer*)recognizer
+- (void)scrollViewTapGestureRecognized:(UIGestureRecognizer *)recognizer
 {
     if (_isKeyboardShowingForThisVC)
     {
@@ -211,7 +211,7 @@
     }
 }
 
-- (void)viewBecameFirstResponder:(UIView*)firstResponder
+- (void)viewBecameFirstResponder:(UIView *)firstResponder
 {
 	self.currentFirstResponder = firstResponder;
     if (_isKeyboardShowingForThisVC)
@@ -392,7 +392,7 @@
 
 #pragma mark Keyboard Management
 
-- (void)keyboardWillShow:(NSNotification*)notification
+- (void)keyboardWillShow:(NSNotification *)notification
 {
 	/*if (self.viewController.navigationController.topViewController == self ||
      (!self.viewController.navigationController && !self.modalViewController))*/
@@ -406,9 +406,9 @@
             _scrollView.scrollEnabled = YES;
         }
         
-		NSDictionary*userInfo = [notification userInfo];
+		NSDictionary *userInfo = [notification userInfo];
         
-		NSValue*keyboardFrameValue = userInfo[UIKeyboardFrameEndUserInfoKey];
+		NSValue *keyboardFrameValue = userInfo[UIKeyboardFrameEndUserInfoKey];
         CGRect keyboardFrame = [keyboardFrameValue CGRectValue];
 		if (UIInterfaceOrientationLandscapeLeft == self.viewController.interfaceOrientation || UIInterfaceOrientationLandscapeRight == self.viewController.interfaceOrientation)
         {
@@ -494,13 +494,13 @@
              }
              else
              {
-                 [_scrollView scrollRectToVisible:[((UIView*)_currentFirstResponder).superview convertRect:((UIView*)_currentFirstResponder).frame toView:_scrollView] animated:YES];
+                 [_scrollView scrollRectToVisible:[((UIView *)_currentFirstResponder).superview convertRect:((UIView *)_currentFirstResponder).frame toView:_scrollView] animated:YES];
              }
          }];
 	}
 }
 
-- (void)keyboardWillHide:(NSNotification*)notification
+- (void)keyboardWillHide:(NSNotification *)notification
 {
 	//if (self.navigationController.topViewController == self ||
     //    (!self.navigationController && !self.modalViewController))
@@ -510,7 +510,7 @@
     {
         _isKeyboardShowingForThisVC = NO;
         
-		NSDictionary*userInfo = [notification userInfo];
+		NSDictionary *userInfo = [notification userInfo];
         
         UIViewAnimationOptions animOptions = 0;
         switch ([[userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue])

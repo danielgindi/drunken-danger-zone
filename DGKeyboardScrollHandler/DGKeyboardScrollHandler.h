@@ -103,12 +103,12 @@ typedef CGPoint (^DGKeyboardScrollHandlerScrollAmountBlock)(UIScrollView *scroll
 /*! Init the DGKeyboardScrollHandler with a viewController to handle...
     @param viewController Your viewController. We use this to automatically attach delegates and the scrollView,
                           and to recognize interfaceOrientation and other stuff */
-- (id)initForViewController:(UIViewController*)viewController;
+- (id)initForViewController:(UIViewController *)viewController;
 
 /*! Convenience initializer
     @param viewController Your viewController. We use this to automatically attach delegates and the scrollView, 
                           and to recognize interfaceOrientation and other stuff */
-+ (id)keyboardScrollHandlerForViewController:(UIViewController*)viewController;
++ (id)keyboardScrollHandlerForViewController:(UIViewController *)viewController;
 
 /*! This will traverse the scrollView and find all UITextFields and UITextViews, and set their delegate.
     Note that inside a UITableView this method is faulty, as cells are added and removed as you scroll. So set the delegate manually. */
@@ -134,6 +134,6 @@ typedef CGPoint (^DGKeyboardScrollHandlerScrollAmountBlock)(UIScrollView *scroll
 /*! This you need to call when you *know* that a view has become the first responder, 
     and that view is NOT a UITextField or a UITextView that is delegated to DGKeyboardScrollHandler 
     @param firstResponder The view that became first responder */
-- (void)viewBecameFirstResponder:(UIView*)firstResponder;
+- (void)viewBecameFirstResponder:(UIView *)firstResponder;
 
 @end
