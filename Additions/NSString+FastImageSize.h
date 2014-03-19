@@ -34,6 +34,6 @@
 
 @interface NSString (FastImageSize)
 
-- (CGSize *)sizeOfImageForFilePath;
+- (CGSize)sizeOfImageForFilePath;
 
 @end

@@ -490,6 +490,23 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     return url;
 }
 
+#define JPEG_HEADER (uint8_t[2]){ 0xff, 0xd8 }
+#define JPEG_JFIF_HEADER (uint8_t[4]){ 'J', 'F', 'I', 'F' }
+#define JPEG_EXIF_HEADER (uint8_t[4]){ 'E', 'x', 'i', 'f' }
+#define PNG_HEADER (uint8_t[8]){ 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }
+#define GIF_HEADER (uint8_t[3]){ 'G', 'I', 'F' }
+#define BMP_HEADER (uint8_t[2]){ 0x42, 0x4D }
+
+#define EXIF_TAG_ORIENTATION 0x0112
+#define EXIF_TAG_PIX_XDIM 0xA002
+#define EXIF_TAG_PIX_YDIM 0xA003
+#define EXIF_TAG_IFD 0x8769
+
+#define READ_UINT16 (fread(buffer, 1, 2, file) == 2)
+#define LAST_UINT16 (uint16_t)(littleEndian ? (buffer[0] | buffer[1] << 8) : (buffer[1] | buffer[0] << 8))
+#define READ_UINT32 (fread(buffer, 1, 4, file) == 4)
+#define LAST_UINT32 (uint32_t)(littleEndian ? (buffer[0] | buffer[1] << 8 | buffer[2] << 16 | buffer[3] << 24) : (buffer[3] | buffer[2] << 8 | buffer[1] << 16 | buffer[0] << 24))
+
 - (CGSize)sizeOfImageAtFilePath:(NSString *)filePath
 {
     BOOL success = NO;
@@ -499,64 +516,20 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     if (file)
     {
         uint8_t buffer[4];
-        if (fread(buffer, 1, 4, file) == 4 &&
-            memcmp(buffer, (uint8_t[4]){0xff, 0xd8, 0xff, 0xe0}, 4) == 0)
-        {
-            // JPEG?
-            if (fread(buffer, 1, 2, file) == 2)
-            {
-                int blockLength = ((buffer[0] << 8) + buffer[1]);
-                
-                if (fread(buffer, 1, 4, file) == 4 &&
-                    strncmp((char *)buffer, "JFIF", 4) == 0 &&
-                    fread(buffer, 1, 1, file) == 1 &&
-                    buffer[0] == 0)
-                {
-                    // JPEG!
-                    
-                    int reverseBytes = 7;
-                    while (!success && !feof(file))
-                    {
-                        if (fseek(file, blockLength - reverseBytes, SEEK_CUR))
-                        {
-                            break;
-                        }
-                        
-                        if (fread(buffer, 1, 4, file) == 4)
-                        {
-                            reverseBytes = 4;
-                            blockLength = ((buffer[2] << 8) + buffer[3]);
-                            
-                            if (blockLength >= 7 && buffer[0] == 0xff && buffer[1] == 0xc0)
-                            {
-                                if (fseek(file, 1, SEEK_CUR))
-                                {
-                                    break;
-                                }
-                                reverseBytes++;
-                                
-                                if (fread(buffer, 1, 4, file) == 4)
-                                {
-                                    size = (CGSize){((buffer[2] << 8) + buffer[3]), ((buffer[0] << 8) + buffer[1])};
-                                    success = YES;
-                                    break;
-                                }
-                            }
-                            reverseBytes -= 2;
-                        }
-                    }
-                }
-            }
+        if (fread(buffer, 1, 2, file) == 2 &&
+            memcmp(buffer, JPEG_HEADER, 2) == 0)
+        {// JPEG
+            size = [self sizeOfImageForFilePath_JPEG:file];
+            success = size.width > 0.f && size.height > 0.f;
         }
         
         if (!success)
         {
             fseek(file, 0, SEEK_SET);
             
-            if (fread(buffer, 1, 4, file) == 4 &&
-                memcmp(buffer, (uint8_t[4]){0x89, 0x50, 0x4E, 0x47}, 4) == 0 &&
-                fread(buffer, 1, 4, file) == 4 &&
-                memcmp(buffer, (uint8_t[4]){0x0D, 0x0A, 0x1A, 0x0A}, 4) == 0)
+            uint8_t buffer8[8];
+            if (fread(buffer8, 1, 8, file) == 8 &&
+                memcmp(buffer8, PNG_HEADER, 8) == 0)
             {
                 // PNG
                 
@@ -564,11 +537,11 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
                 {
                     if (fread(buffer, 1, 4, file) == 4)
                     {
-                        size.width = (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3];
+                        size.width = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
                     }
                     if (fread(buffer, 1, 4, file) == 4)
                     {
-                        size.height = (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3];
+                        size.height = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
                         success = YES;
                     }
                 }
@@ -580,7 +553,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
             fseek(file, 0, SEEK_SET);
             
             if (fread(buffer, 1, 3, file) == 3 &&
-                strncmp((char *)buffer, "GIF", 3) == 0)
+                memcmp(buffer, GIF_HEADER, 3) == 0)
             {
                 // GIF
                 
@@ -600,7 +573,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
             fseek(file, 0, SEEK_SET);
             
             if (fread(buffer, 1, 2, file) == 2 &&
-                memcmp(buffer, (uint8_t[2]){0x42, 0x4D}, 2) == 0)
+                memcmp(buffer, BMP_HEADER, 2) == 0)
             {
                 // BMP
                 
@@ -623,6 +596,203 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     }
     
     return size;
+}
+
+- (CGSize)sizeOfImageForFilePath_JPEG:(FILE *)file
+{
+    uint8_t buffer[2];
+    
+    if (fread(buffer, 1, 2, file) == 2)
+    {
+        if (buffer[0] == 0xFF && buffer[1] == 0xE0)
+        { // APP0
+            return [self sizeOfImageForFilePath_JPEG_APP0:file];
+        }
+        else if (buffer[0] == 0xFF && buffer[1] == 0xE1)
+        { // APP1
+            return [self sizeOfImageForFilePath_JPEG_APP1:file];
+        }
+    }
+    
+    return CGSizeZero;
+}
+
+- (CGSize)sizeOfImageForFilePath_JPEG_APP0:(FILE *)file
+{
+    uint8_t buffer[4];
+    
+    if (fread(buffer, 1, 2, file) == 2)
+    { // Marker segment length
+        int blockLength = ((buffer[0] << 8) | buffer[1]);
+        
+        if (fread(buffer, 1, 4, file) == 4 &&
+            memcmp(buffer, JPEG_JFIF_HEADER, 4) == 0 &&
+            fread(buffer, 1, 1, file) == 1 &&
+            buffer[0] == 0)
+        {
+            // JPEG!
+            
+            int reverseBytes = 7;
+            while (!feof(file))
+            {
+                if (fseek(file, blockLength - reverseBytes, SEEK_CUR))
+                {
+                    break;
+                }
+                
+                if (fread(buffer, 1, 4, file) == 4)
+                {
+                    reverseBytes = 4;
+                    blockLength = ((buffer[2] << 8) | buffer[3]);
+                    
+                    if (blockLength >= 7 && buffer[0] == 0xff && buffer[1] == 0xc0)
+                    {
+                        if (fseek(file, 1, SEEK_CUR))
+                        {
+                            break;
+                        }
+                        reverseBytes++;
+                        
+                        if (fread(buffer, 1, 4, file) == 4)
+                        {
+                            return (CGSize){((buffer[2] << 8) | buffer[3]), ((buffer[0] << 8) | buffer[1])};
+                        }
+                    }
+                    reverseBytes -= 2;
+                }
+            }
+        }
+    }
+    
+    return CGSizeZero;
+}
+
+- (CGSize)sizeOfImageForFilePath_JPEG_APP1:(FILE *)file
+{
+    uint8_t buffer[4];
+    
+    long offset = 4;
+    
+    // Marker segment length
+    
+    if (fread(buffer, 1, 2, file) != 2) return CGSizeZero;
+    // int blockLength = ((buffer[0] << 8) | buffer[1]) - 2;
+    
+    // Exif
+    if (fread(buffer, 1, 4, file) != 4 ||
+        memcmp(buffer, JPEG_EXIF_HEADER, 4) != 0) return CGSizeZero;
+    
+    // Read Byte alignment offset
+    if (fread(buffer, 1, 2, file) != 2 ||
+        buffer[0] != 0x00 || buffer[1] != 0x00) return CGSizeZero;
+    
+    // Read Byte alignment
+    if (fread(buffer, 1, 2, file) != 2) return CGSizeZero;
+    
+    bool littleEndian = false;
+    if (buffer[0] == 0x49 && buffer[1] == 0x49)
+    {
+        littleEndian = true;
+    }
+    else if (buffer[0] != 0x4D && buffer[1] != 0x4D) return CGSizeZero;
+    
+    // TIFF tag marker
+    if (!READ_UINT16 || LAST_UINT16 != 0x002A) return CGSizeZero;
+    
+    // Directory offset bytes
+    uint32_t dirOffset = READ_UINT32 && LAST_UINT32;
+    
+    int tag;
+    uint16_t numberOfTags, tagType;
+    uint32_t tagLength, tagValue;
+    int orientation = 1, width = 0, height = 0;
+    uint32_t exifIFDOffset = 0;
+    
+    while (dirOffset != 0)
+    {
+        fseek(file, offset + 8, SEEK_SET);
+        
+        numberOfTags = READ_UINT16 && LAST_UINT16;
+        
+        for (uint16_t i = 0; i < numberOfTags; i++)
+        {
+            tag = READ_UINT16 && LAST_UINT16;
+            tagType = READ_UINT16 && LAST_UINT16;
+            tagLength = READ_UINT32 && LAST_UINT32;
+            
+            if (tag == EXIF_TAG_ORIENTATION ||
+                tag == EXIF_TAG_PIX_XDIM ||
+                tag == EXIF_TAG_PIX_YDIM ||
+                tag == EXIF_TAG_IFD)
+            {
+                switch (tagType)
+                {
+                    default:
+                    case 1:
+                        tagValue = fread(buffer, 1, 1, file) == 1 && buffer[0];
+                        fseek(file, 3, SEEK_CUR);
+                        break;
+                    case 3:
+                        tagValue = READ_UINT16 && LAST_UINT16;
+                        fseek(file, 2, SEEK_CUR);
+                        break;
+                    case 4:
+                        tagValue = READ_UINT32 && LAST_UINT32;
+                        break;
+                    case 9:
+                        tagValue = READ_UINT32 && LAST_UINT32;
+                        break;
+                }
+                
+                if (tag == EXIF_TAG_ORIENTATION)
+                { // Orientation tag
+                    orientation = (int)tagValue;
+                }
+                else if (tag == EXIF_TAG_PIX_XDIM)
+                { // Width tag
+                    width = (int)tagValue;
+                }
+                else if (tag == EXIF_TAG_PIX_YDIM)
+                { // Height tag
+                    height = (int)tagValue;
+                }
+                else if (tag == EXIF_TAG_IFD)
+                { // EXIF IFD offset tag
+                    exifIFDOffset = tagValue;
+                }
+            }
+            else
+            {
+                fseek(file, 4, SEEK_CUR);
+            }
+        }
+        
+        if (dirOffset == exifIFDOffset)
+        {
+            break;
+        }
+        
+        dirOffset = READ_UINT32 && LAST_UINT32;
+        
+        if (dirOffset == 0)
+        {
+            dirOffset = exifIFDOffset;
+        }
+    }
+    
+    if (width > 0 && height > 0)
+    {
+        if (orientation >= 5 && orientation <= 8)
+        {
+            return (CGSize){height, width};
+        }
+        else
+        {
+            return (CGSize){width, height};
+        }
+    }
+    
+    return CGSizeZero;
 }
 
 #pragma mark - Caching stuff
