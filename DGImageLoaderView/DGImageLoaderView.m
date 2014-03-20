@@ -639,7 +639,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
             
             int tag;
             uint16_t numberOfTags, tagType;
-            uint32_t tagLength, tagValue;
+            uint32_t /*tagLength, */tagValue;
             int orientation = 1, width = 0, height = 0;
             uint32_t exifIFDOffset = 0;
             
@@ -653,7 +653,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
                 {
                     tag = READ_UINT16 && LAST_UINT16;
                     tagType = READ_UINT16 && LAST_UINT16;
-                    tagLength = READ_UINT32 && LAST_UINT32;
+                    /*tagLength = */READ_UINT32/* && LAST_UINT32*/;
                     
                     if (tag == EXIF_TAG_ORIENTATION ||
                         tag == EXIF_TAG_PIX_XDIM ||
