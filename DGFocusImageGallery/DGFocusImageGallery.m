@@ -468,7 +468,7 @@ static DGFocusImageGallery *s_DGFocusImageGallery_activeGallery;
     [_imageViewContainers removeAllObjects];
     [_startedDownload removeAllObjects];
     
-    for (int i = 0, count = _galleryUrls.count; i < count; i++)
+    for (NSUInteger i = 0, count = _galleryUrls.count; i < count; i++)
     {
         [_imageViews addObject:[NSNull null]];
         [_imageViewContainers addObject:[NSNull null]];

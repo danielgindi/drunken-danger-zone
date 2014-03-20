@@ -410,7 +410,7 @@
     {
         if (selectedCellIp)
         {
-            int section = [groupsArray indexOfObject:groupsMap[identifier]];
+            NSUInteger section = [groupsArray indexOfObject:groupsMap[identifier]];
             if (selectedCellIp.section == section || selectedCellIp.section == 0)
             {
                 selectedCellIp = nil;
@@ -441,7 +441,7 @@
         {
             if (selectedCellIp && selectedCellIp.section == [groupsArray indexOfObject:group])
             {
-                int row = [itemsArray indexOfObject:itemsMap[item]];
+                NSUInteger row = [itemsArray indexOfObject:itemsMap[item]];
                 if (selectedCellIp.row == row || selectedCellIp.row == 0)
                 {
                     selectedCellIp = nil;
@@ -543,7 +543,7 @@
     if (group)
     {
         NSObject *item = group[kKeyMap][identifier];
-        int idx = [group[kKeyArray] indexOfObject:item];
+        NSUInteger idx = [group[kKeyArray] indexOfObject:item];
         if (idx == NSNotFound) return -1;
         else return idx;
     }
@@ -574,8 +574,8 @@
     NSMutableDictionary *group = groupsMap[groupIdentifier];
     if (group)
     {
-        int groupIdx = [groupsArray indexOfObject:group];
-        int itemIdx = [group[kKeyArray] indexOfObject:group[kKeyMap][identifier]];
+        NSUInteger groupIdx = [groupsArray indexOfObject:group];
+        NSUInteger itemIdx = [group[kKeyArray] indexOfObject:group[kKeyMap][identifier]];
         [tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:itemIdx inSection:groupIdx]] withRowAnimation:UITableViewRowAnimationNone];
     }
 }
