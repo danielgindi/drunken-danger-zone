@@ -845,7 +845,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     else if (path)
     {
         imageSize = [self sizeOfImageAtFilePath:path];
-        if (imageSize.width == -1.f)
+        if (imageSize.width == 0.f)
         {
             image = [UIImage imageWithContentsOfFile:path];
             imageSize = image.size;
