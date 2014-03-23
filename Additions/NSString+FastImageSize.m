@@ -145,12 +145,16 @@
 {
     uint8_t buffer[4];
     
-    while (fread(buffer, 1, 2, file) == 2 && buffer[0] == 0xFF && (buffer[1] >= 0xE0 && buffer[1] <= 0xEF))
+    while (fread(buffer, 1, 2, file) == 2 && buffer[0] == 0xFF &&
+           ((buffer[1] >= 0xE0 && buffer[1] <= 0xEF) ||
+            buffer[1] == 0xDB ||
+            buffer[1] == 0xC0))
     {
         if (buffer[1] == 0xE1)
         { // Parse APP1 EXIF
             
-            long offset = 4;
+            fpos_t offset;
+            if (fgetpos(file, &offset)) return CGSizeZero;
             
             // Marker segment length
             
@@ -179,7 +183,8 @@
             if (!READ_UINT16 || LAST_UINT16 != 0x002A) return CGSizeZero;
             
             // Directory offset bytes
-            uint32_t dirOffset = READ_UINT32 && LAST_UINT32;
+            if (!READ_UINT32) return CGSizeZero;
+            uint32_t dirOffset = LAST_UINT32;
             
             int tag;
             uint16_t numberOfTags, tagType;
@@ -189,15 +194,21 @@
             
             while (dirOffset != 0)
             {
-                fseek(file, offset + 8, SEEK_SET);
+                fseek(file, (long)offset + 8 + dirOffset, SEEK_SET);
                 
-                numberOfTags = READ_UINT16 && LAST_UINT16;
+                if (!READ_UINT16) return CGSizeZero;
+                numberOfTags = LAST_UINT16;
                 
                 for (uint16_t i = 0; i < numberOfTags; i++)
                 {
-                    tag = READ_UINT16 && LAST_UINT16;
-                    tagType = READ_UINT16 && LAST_UINT16;
-                    /*tagLength = */READ_UINT32/* && LAST_UINT32*/;
+                    if (!READ_UINT16) return CGSizeZero;
+                    tag = LAST_UINT16;
+                    
+                    if (!READ_UINT16) return CGSizeZero;
+                    tagType = LAST_UINT16;
+                    
+                    if (!READ_UINT32) return CGSizeZero;
+                    /*tagLength = LAST_UINT32*/;
                     
                     if (tag == EXIF_TAG_ORIENTATION ||
                         tag == EXIF_TAG_PIX_XDIM ||
@@ -212,14 +223,14 @@
                                 fseek(file, 3, SEEK_CUR);
                                 break;
                             case 3:
-                                tagValue = READ_UINT16 && LAST_UINT16;
+                                if (!READ_UINT16) return CGSizeZero;
+                                tagValue = LAST_UINT16;
                                 fseek(file, 2, SEEK_CUR);
                                 break;
                             case 4:
-                                tagValue = READ_UINT32 && LAST_UINT32;
-                                break;
                             case 9:
-                                tagValue = READ_UINT32 && LAST_UINT32;
+                                if (!READ_UINT32) return CGSizeZero;
+                                tagValue = LAST_UINT32;
                                 break;
                         }
                         
@@ -251,7 +262,8 @@
                     break;
                 }
                 
-                dirOffset = READ_UINT32 && LAST_UINT32;
+                if (!READ_UINT32) return CGSizeZero;
+                dirOffset = LAST_UINT32;
                 
                 if (dirOffset == 0)
                 {
@@ -272,6 +284,17 @@
             }
             
             return CGSizeZero;
+        }
+        else if (buffer[1] == 0xC0)
+        { // Parse SOF0 (Start of Frame baseline)
+            
+            // Skip LF, P
+            if (fseek(file, 3, SEEK_CUR)) return CGSizeZero;
+            
+            // Read Y,X
+            if (fread(buffer, 1, 4, file) != 4) return CGSizeZero;
+            
+            return (CGSize){buffer[2] << 8 | buffer[3], buffer[0] << 8 | buffer[1]};
         }
         else
         { // Skip APPn segment
