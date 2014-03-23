@@ -161,7 +161,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
         {
             if (tempFilePath)
             {
-                [[NSFileManager defaultManager] moveItemAtPath:tempFilePath toPath:[self getLocalCachePathForUrl:originalURL] error:nil];
+                [[NSFileManager defaultManager] moveItemAtPath:tempFilePath toPath:[self localCachePathForUrl:originalURL] error:nil];
                 if (_tempFilePath == tempFilePath)
                 {
                     _tempFilePath = nil;
@@ -761,7 +761,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
              ];
 }
 
-- (NSString *)getLocalCachePathForUrl:(NSURL *)url
+- (NSString *)localCachePathForUrl:(NSURL *)url
 {
     if (!url) return nil; // Silence Xcode's Analyzer
     
@@ -800,7 +800,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     return path;
 }
 
-- (NSString *)getLocalCachePathForUrl:(NSURL *)url withThumbnailSize:(CGSize)thumbnailSize
+- (NSString *)localCachePathForUrl:(NSURL *)url withThumbnailSize:(CGSize)thumbnailSize
 {
     // an alternative to the NSTemporaryDirectory
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
@@ -871,7 +871,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
         neededSize.width = roundf(neededSize.width);
         neededSize.height = roundf(neededSize.height);
         
-        NSString *thumbCachePath = url ? [self getLocalCachePathForUrl:url withThumbnailSize:neededSize] : nil;
+        NSString *thumbCachePath = url ? [self localCachePathForUrl:url withThumbnailSize:neededSize] : nil;
         
         if (thumbCachePath)
         {
@@ -1067,7 +1067,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
     
     BOOL isFileURL = url.isFileURL;
     
-    NSString *cachePath = isFileURL ? nil : (url ? [self getLocalCachePathForUrl:url] : nil);
+    NSString *cachePath = isFileURL ? nil : (url ? [self localCachePathForUrl:url] : nil);
     
     if (!url || isFileURL || (!_noCache && [[NSFileManager defaultManager] fileExistsAtPath:cachePath]))
     {
