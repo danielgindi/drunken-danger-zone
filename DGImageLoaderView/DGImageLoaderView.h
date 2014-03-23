@@ -193,6 +193,21 @@ typedef enum _DGImageLoaderViewLandscapeMode
 /*! Removes all images and thumbnails from cache */
 + (void)clearCache;
 
+/*! Get url for the full-size cached version of the supplied image url.
+ This function does not guarantee that the file exists locally; But it would exist if the loadedr has finished downloading.
+ The path is derived based on the settings of the class, mainly detectScaleFromFileName
+ @param url  Source image url
+ @return The URL of the cached image */
+- (NSString *)localCachePathForUrl:(NSURL *)url;
+
+/*! Get url for the thumbnail cached version of the supplied image url.
+ This function does not guarantee that the file exists locally; But it would exist if the loadedr has finished downloading.
+ The path is derived based on the settings of the class, mainly detectScaleFromFileName
+ @param url  Source image url
+ @param thumbnailSize  Thumbnail size
+ @return The URL of the cached image */
+- (NSString *)localCachePathForUrl:(NSURL *)url withThumbnailSize:(CGSize)thumbnailSize;
+
 /*! Maximum asynchronous connections that can be used to load images.
     This affects this class overall in the app.
     The default is 8.
