@@ -897,58 +897,43 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
         
         NSString *thumbCachePath = url ? [self localCachePathForUrl:url withThumbnailSize:neededSize] : nil;
         
-        if (thumbCachePath)
+        if (thumbCachePath && !_noCache && [[NSFileManager defaultManager] fileExistsAtPath:thumbCachePath])
         {
-            if (!_noCache && [[NSFileManager defaultManager] fileExistsAtPath:thumbCachePath])
-            {
-                image = [UIImage imageWithContentsOfFile:thumbCachePath];
-                completion(image, YES);
-            }
-            else
-            {
-                if (_asyncLoadImages)
-                {
-                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                        UIImage *originalImage = image ?: [UIImage imageWithContentsOfFile:path];
-                        UIImage *thumbnailImage = [self imageByScalingImage:originalImage toSize:neededSize];
-                        originalImage = nil;
-                        [UIImageJPEGRepresentation(thumbnailImage, 1.f) writeToFile:thumbCachePath options:NSDataWritingAtomic error:nil];
-                        dispatch_async(dispatch_get_main_queue(), ^{
-                            completion(thumbnailImage, NO);
-                        });
-                    });
-                }
-                else
-                {
-                    UIImage *originalImage = image ?: [UIImage imageWithContentsOfFile:path];
-                    UIImage *thumbnailImage = [self imageByScalingImage:originalImage toSize:neededSize];
-                    originalImage = nil;
-                    [UIImageJPEGRepresentation(thumbnailImage, 1.f) writeToFile:thumbCachePath options:NSDataWritingAtomic error:nil];
-                    completion(thumbnailImage, NO);
-                }
-            }
+            image = [UIImage imageWithContentsOfFile:thumbCachePath];
+            completion(image, YES);
+            return;
         }
-        else
+        
+        if (_asyncLoadImages)
         {
-            if (_asyncLoadImages)
-            {
-                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                    UIImage *originalImage = image ?: [UIImage imageWithContentsOfFile:path];
-                    UIImage *thumbnailImage = [self imageByScalingImage:originalImage toSize:neededSize];
-                    originalImage = nil;
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        completion(thumbnailImage, NO);
-                    });
-                });
-            }
-            else
-            {
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
                 UIImage *originalImage = image ?: [UIImage imageWithContentsOfFile:path];
                 UIImage *thumbnailImage = [self imageByScalingImage:originalImage toSize:neededSize];
                 originalImage = nil;
-                completion(thumbnailImage, NO);
-            }
+                if (thumbCachePath)
+                {
+                    [UIImageJPEGRepresentation(thumbnailImage, 1.f) writeToFile:thumbCachePath options:NSDataWritingAtomic error:nil];
+                }
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    completion(thumbnailImage, NO);
+                });
+            });
         }
+        else
+        {
+            UIImage *originalImage = image ?: [UIImage imageWithContentsOfFile:path];
+            UIImage *thumbnailImage = [self imageByScalingImage:originalImage toSize:neededSize];
+            originalImage = nil;
+            if (thumbCachePath)
+            {
+                [UIImageJPEGRepresentation(thumbnailImage, 1.f) writeToFile:thumbCachePath options:NSDataWritingAtomic error:nil];
+            }
+            completion(thumbnailImage, NO);
+        }
+    }
+    else
+    {
+        completion(image, YES);
     }
 }
 
