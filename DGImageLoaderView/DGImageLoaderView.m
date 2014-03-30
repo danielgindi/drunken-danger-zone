@@ -153,21 +153,10 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 {
     int asyncIndex = ++_asyncOperationCounter;
     
-    NSString *tempFilePath = _tempFilePath;
-    
     if ([[NSFileManager defaultManager] fileExistsAtPath:path])
     {
         void (^loadBlock)(UIImage *, BOOL) = ^(UIImage *image, BOOL fromCache)
         {
-            if (tempFilePath)
-            {
-                [[NSFileManager defaultManager] moveItemAtPath:tempFilePath toPath:[self localCachePathForUrl:originalURL] error:nil];
-                if (_tempFilePath == tempFilePath)
-                {
-                    _tempFilePath = nil;
-                }
-            }
-            
             self.nextImage = image;
             
             BOOL animate = notFromCache || !_doNotAnimateFromCache || !fromCache;
@@ -1043,7 +1032,11 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
         [self.indicator stopAnimating];
         self.indicator.hidden = YES;
         
-        [self loadImageFromPath:_tempFilePath originalUrl:_urlRequest.URL notFromCache:YES immediate:NO];
+        NSString *localPath = [self localCachePathForUrl:_urlRequest.URL];
+        [[NSFileManager defaultManager] moveItemAtPath:_tempFilePath toPath:localPath error:nil];
+        _tempFilePath = nil;
+        
+        [self loadImageFromPath:localPath originalUrl:_urlRequest.URL notFromCache:YES immediate:NO];
 	}
     else
     {
