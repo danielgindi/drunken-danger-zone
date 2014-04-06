@@ -996,7 +996,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 	if ([response respondsToSelector:@selector(statusCode)])
 	{
 		NSInteger statusCode = [((NSHTTPURLResponse *)response) statusCode];
-		if (statusCode != 200)
+        if (statusCode >= 400)
 		{
 			[self connection:connection didFailWithError:nil];
 		}
