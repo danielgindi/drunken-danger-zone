@@ -1101,7 +1101,7 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
         }
         [self closeAndRemoveTempFile];
         
-        self.urlRequest = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:60.0];
+        self.urlRequest = [NSURLRequest requestWithURL:url cachePolicy:(_noCache ? NSURLRequestReloadIgnoringLocalCacheData : NSURLRequestUseProtocolCachePolicy) timeoutInterval:60.0];
         self.urlConnection = [[NSURLConnection alloc] initWithRequest:_urlRequest delegate:self startImmediately:NO];
         
         @synchronized(s_DGImageLoaderView_queuedConnectionsArray)
