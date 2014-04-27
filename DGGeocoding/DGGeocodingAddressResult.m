@@ -56,7 +56,7 @@
 	
     BOOL isMatch;
     NSString *type;
-	for(int i = 0, count = _addressComponents.count, typesCount, j; i < count; i++)
+	for(NSUInteger i = 0, count = _addressComponents.count, typesCount, j; i < count; i++)
 	{
 		DGGeocodingAddressComponent *component = _addressComponents[i];
 		if(component.types != nil)
