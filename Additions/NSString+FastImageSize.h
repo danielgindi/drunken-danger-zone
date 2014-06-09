@@ -7,6 +7,10 @@
 //
 //  https://github.com/danielgindi/drunken-danger-zone
 //
+//  TIFF and ICNS capability added by David W. Stockton
+//  See: http://stackoverflow.com/questions/4179802/dimensions-of-image-objective-c
+//  http://stackoverflow.com/questions/9264051/nsimage-size-not-real-size-with-some-pictures
+//
 //  The MIT License (MIT)
 //  
 //  Copyright (c) 2014 Daniel Cohen Gindi (danielgindi@gmail.com)
