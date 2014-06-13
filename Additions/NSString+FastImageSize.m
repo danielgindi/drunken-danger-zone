@@ -4,31 +4,33 @@
 //
 //  Created by Daniel Cohen Gindi on 3/29/13.
 //  Copyright (c) 2013 danielgindi@gmail.com. All rights reserved.
+//  Extended to handle TIFF and ICNS files by David W. Stockton 4/23/14.
+//  Copyright (c) 2014 Syntonicity, LLC. All rights reserved.
 //
 //  https://github.com/danielgindi/drunken-danger-zone
 //
 //  The MIT License (MIT)
-//  
+//
 //  Copyright (c) 2014 Daniel Cohen Gindi (danielgindi@gmail.com)
-//  
+//
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
 //  in the Software without restriction, including without limitation the rights
 //  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 //  copies of the Software, and to permit persons to whom the Software is
 //  furnished to do so, subject to the following conditions:
-//  
+//
 //  The above copyright notice and this permission notice shall be included in all
 //  copies or substantial portions of the Software.
-//  
+//
 //  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 //  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 //  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 //  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-//  SOFTWARE. 
-//  
+//  SOFTWARE.
+//
 
 #import "NSString+FastImageSize.h"
 
@@ -75,123 +77,152 @@
 #define READ_UINT32 (fread(buffer, 1, 4, file) == 4)
 #define LAST_UINT32 (uint32_t)(littleEndian ? (buffer[0] | buffer[1] << 8 | buffer[2] << 16 | buffer[3] << 24) : (buffer[3] | buffer[2] << 8 | buffer[1] << 16 | buffer[0] << 24))
 
-- (CGSize) sizeOfImageForFilePath {
+- (CGSize)sizeOfImageForFilePath
+{
 	BOOL success = NO;
 	CGSize size = CGSizeZero;
 	
 	FILE *file = fopen([[NSFileManager defaultManager] fileSystemRepresentationWithPath:self], "r");
-	if( file ) {
+	if (file)
+	{
 		uint8_t buffer[4];
-		if( fread( buffer, 1, 2, file ) == 2 &&
-		    memcmp( buffer, JPEG_HEADER, 2 ) == 0 ) {
-			// JPEG
-			size = [self sizeOfImageForFilePath_JPEG: file];
+		if (fread(buffer, 1, 2, file) == 2 &&
+		    memcmp(buffer, JPEG_HEADER, 2) == 0)
+		{// JPEG
+			size = [self sizeOfImageForFilePath_JPEG:file];
 			success = size.width > 0.f && size.height > 0.f;
 		}
-		if( !success ) {
-			// TIFF
+		if( !success )
+		{ // TIFF
 			fseek( file, 0, SEEK_SET );
 			size = [self sizeOfImageForFilePath_TIFF: file];
 			success = size.width > 0.f && size.height > 0.f;
 		}
-		if( !success ) {
-			// Apple icon file
+		if( !success )
+		{ // Apple icon file
 			fseek( file, 0, SEEK_SET );
 			size = [self sizeOfImageForFilePath_ICNS: file];
 			success = size.width > 0.f && size.height > 0.f;
 		}
-		if( !success ) {
-			fseek( file, 0, SEEK_SET );
-
+		
+		if (!success)
+		{
+			fseek(file, 0, SEEK_SET);
+			
 			uint8_t buffer8[8];
-			if( fread( buffer8, 1, 8, file ) == 8 &&
-			    memcmp( buffer8, PNG_HEADER, 8)  == 0 ) {
+			if (fread(buffer8, 1, 8, file) == 8 &&
+			    memcmp(buffer8, PNG_HEADER, 8) == 0)
+			{
 				// PNG
-				if( !fseek( file, 8, SEEK_CUR ) ) {
-					if ( fread( buffer, 1, 4, file ) == 4 ) {
+				
+				if (!fseek(file, 8, SEEK_CUR))
+				{
+					if (fread(buffer, 1, 4, file) == 4)
+					{
 						size.width = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
 					}
-					if( fread(buffer, 1, 4, file) == 4 ) {
+					if (fread(buffer, 1, 4, file) == 4)
+					{
 						size.height = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
 						success = YES;
 					}
 				}
 			}
 		}
-		if( !success ) {
-			fseek( file, 0, SEEK_SET );
+		
+		if (!success)
+		{
+			fseek(file, 0, SEEK_SET);
 			
-			if( fread( buffer, 1, 3, file ) == 3 &&
-			    memcmp( buffer, GIF_HEADER, 3) == 0 ) {
+			if (fread(buffer, 1, 3, file) == 3 &&
+			    memcmp(buffer, GIF_HEADER, 3) == 0)
+			{
 				// GIF
-				if( !fseek( file, 3, SEEK_CUR ) ) { // 87a / 89a
-					if( fread( buffer, 1, 4, file ) == 4 ) {
-						size = (CGSize){ *((int16_t*)buffer), *((int16_t*)(buffer + 2)) };
+				
+				if (!fseek(file, 3, SEEK_CUR)) // 87a / 89a
+				{
+					if (fread(buffer, 1, 4, file) == 4)
+					{
+						size = (CGSize){*((int16_t*)buffer), *((int16_t*)(buffer + 2))};
 						success = YES;
 					}
 				}
 			}
 		}
-		if( !success ) {
-			fseek( file, 0, SEEK_SET );
+		
+		if (!success)
+		{
+			fseek(file, 0, SEEK_SET);
 			
-			if( fread( buffer, 1, 2, file ) == 2 &&
-			    memcmp( buffer, BMP_HEADER, 2 ) == 0 ) {
+			if (fread(buffer, 1, 2, file) == 2 &&
+			    memcmp(buffer, BMP_HEADER, 2) == 0)
+			{
 				// BMP
-				if( !fseek( file, 16, SEEK_CUR ) ) {
-					if( fread(buffer, 1, 4, file ) == 4 ) {
+				
+				if (!fseek(file, 16, SEEK_CUR))
+				{
+					if (fread(buffer, 1, 4, file) == 4)
+					{
 						size.width = *((int32_t*)buffer);
 					}
-					if( fread( buffer, 1, 4, file ) == 4 ) {
+					if (fread(buffer, 1, 4, file) == 4)
+					{
 						size.height = *((int32_t*)buffer);
 						// success = YES; // Not needed, analyzer...
 					}
 				}
 			}
 		}
+		
 		fclose(file);
 	}
+	
 	return size;
 }
 
-- (CGSize) sizeOfImageForFilePath_JPEG: (FILE *) file {
+- (CGSize)sizeOfImageForFilePath_JPEG:(FILE *)file
+{
 	uint8_t buffer[4];
 	
-	while( fread( buffer, 1, 2, file ) == 2 && buffer[0] == 0xFF &&
+	while (fread(buffer, 1, 2, file) == 2 && buffer[0] == 0xFF &&
 	       ((buffer[1] >= 0xE0 && buffer[1] <= 0xEF) ||
 		buffer[1] == 0xDB ||
-		buffer[1] == 0xC0)) {
-		if( buffer[1] == 0xE1 ) {
-			// Parse APP1 EXIF
+		buffer[1] == 0xC0))
+	{
+		if (buffer[1] == 0xE1)
+		{ // Parse APP1 EXIF
 			
 			fpos_t offset;
-			if( fgetpos( file, &offset ) ) return CGSizeZero;
-
+			if (fgetpos(file, &offset)) return CGSizeZero;
+			
 			// Marker segment length
-			if( fread( buffer, 1, 2, file ) != 2 ) return CGSizeZero;
+			
+			if (fread(buffer, 1, 2, file) != 2) return CGSizeZero;
 			// int blockLength = ((buffer[0] << 8) | buffer[1]) - 2;
 			
 			// Exif
-			if( fread( buffer, 1, 4, file ) != 4 ||
-			    memcmp( buffer, JPEG_EXIF_HEADER, 4 ) != 0 ) return CGSizeZero;
+			if (fread(buffer, 1, 4, file) != 4 ||
+			    memcmp(buffer, JPEG_EXIF_HEADER, 4) != 0) return CGSizeZero;
 			
 			// Read Byte alignment offset
-			if( fread( buffer, 1, 2, file ) != 2 ||
-			    buffer[0] != 0x00 || buffer[1] != 0x00 ) return CGSizeZero;
+			if (fread(buffer, 1, 2, file) != 2 ||
+			    buffer[0] != 0x00 || buffer[1] != 0x00) return CGSizeZero;
 			
 			// Read Byte alignment
-			if( fread( buffer, 1, 2, file ) != 2 ) return CGSizeZero;
+			if (fread(buffer, 1, 2, file) != 2) return CGSizeZero;
 			
 			bool littleEndian = false;
-			if( buffer[0] == 0x49 && buffer[1] == 0x49 ) {
+			if (buffer[0] == 0x49 && buffer[1] == 0x49)
+			{
 				littleEndian = true;
-			} else if( buffer[0] != 0x4D && buffer[1] != 0x4D ) return CGSizeZero;
+			}
+			else if (buffer[0] != 0x4D && buffer[1] != 0x4D) return CGSizeZero;
 			
 			// TIFF tag marker
-			if( !READ_UINT16 || LAST_UINT16 != 0x002A ) return CGSizeZero;
+			if (!READ_UINT16 || LAST_UINT16 != 0x002A) return CGSizeZero;
 			
 			// Directory offset bytes
-			if( !READ_UINT32) return CGSizeZero;
+			if (!READ_UINT32) return CGSizeZero;
 			uint32_t dirOffset = LAST_UINT32;
 			
 			int tag;
@@ -200,122 +231,154 @@
 			int orientation = 1, width = 0, height = 0;
 			uint32_t exifIFDOffset = 0;
 			
-			while( dirOffset != 0 ) {
-				fseek( file, (long) offset + 8 + dirOffset, SEEK_SET );
+			while (dirOffset != 0)
+			{
+				fseek(file, (long)offset + 8 + dirOffset, SEEK_SET);
 				
-				if( !READ_UINT16 ) return CGSizeZero;
+				if (!READ_UINT16) return CGSizeZero;
 				numberOfTags = LAST_UINT16;
 				
-				for( uint16_t i = 0; i < numberOfTags; i++ ) {
-					if( !READ_UINT16 ) return CGSizeZero;
+				for (uint16_t i = 0; i < numberOfTags; i++)
+				{
+					if (!READ_UINT16) return CGSizeZero;
 					tag = LAST_UINT16;
 					
-					if( !READ_UINT16 ) return CGSizeZero;
+					if (!READ_UINT16) return CGSizeZero;
 					tagType = LAST_UINT16;
 					
-					if( !READ_UINT32 ) return CGSizeZero;
+					if (!READ_UINT32) return CGSizeZero;
 					/*tagLength = LAST_UINT32*/;
 					
 					if (tag == EXIF_TAG_ORIENTATION ||
 					    tag == EXIF_TAG_PIX_XDIM ||
 					    tag == EXIF_TAG_PIX_YDIM ||
-					    tag == EXIF_TAG_IFD) {
-						switch( tagType ) {
+					    tag == EXIF_TAG_IFD)
+					{
+						switch (tagType)
+						{
 							default:
 							case 1:
-								tagValue = fread( buffer, 1, 1, file ) == 1 && buffer[0];
-								fseek( file, 3, SEEK_CUR );
+								tagValue = fread(buffer, 1, 1, file) == 1 && buffer[0];
+								fseek(file, 3, SEEK_CUR);
 								break;
 							case 3:
-								if( !READ_UINT16 ) return CGSizeZero;
+								if (!READ_UINT16) return CGSizeZero;
 								tagValue = LAST_UINT16;
-								fseek( file, 2, SEEK_CUR );
+								fseek(file, 2, SEEK_CUR);
 								break;
 							case 4:
 							case 9:
-								if( !READ_UINT32 ) return CGSizeZero;
+								if (!READ_UINT32) return CGSizeZero;
 								tagValue = LAST_UINT32;
 								break;
 						}
 						
-						if( tag == EXIF_TAG_ORIENTATION ) { // Orientation tag
-							orientation = (int) tagValue;
-						} else if( tag == EXIF_TAG_PIX_XDIM ) { // Width tag
-							width = (int) tagValue;
-						} else if (tag == EXIF_TAG_PIX_YDIM) { // Height tag
-							height = (int) tagValue;
-						} else if (tag == EXIF_TAG_IFD) { // EXIF IFD offset tag
+						if (tag == EXIF_TAG_ORIENTATION)
+						{ // Orientation tag
+							orientation = (int)tagValue;
+						}
+						else if (tag == EXIF_TAG_PIX_XDIM)
+						{ // Width tag
+							width = (int)tagValue;
+						}
+						else if (tag == EXIF_TAG_PIX_YDIM)
+						{ // Height tag
+							height = (int)tagValue;
+						}
+						else if (tag == EXIF_TAG_IFD)
+						{ // EXIF IFD offset tag
 							exifIFDOffset = tagValue;
 						}
-					} else {
-						fseek( file, 4, SEEK_CUR );
+					}
+					else
+					{
+						fseek(file, 4, SEEK_CUR);
 					}
 				}
 				
-				if( dirOffset == exifIFDOffset ) {
+				if (dirOffset == exifIFDOffset)
+				{
 					break;
 				}
 				
-				if( !READ_UINT32 ) return CGSizeZero;
+				if (!READ_UINT32) return CGSizeZero;
 				dirOffset = LAST_UINT32;
 				
-				if( dirOffset == 0 ) {
+				if (dirOffset == 0)
+				{
 					dirOffset = exifIFDOffset;
 				}
 			}
-
-			if( width > 0 && height > 0 ) {
-				if( orientation >= 5 && orientation <= 8 ) {
-					return (CGSize){ height, width };
-				} else {
-					return (CGSize){ width, height };
+			
+			if (width > 0 && height > 0)
+			{
+				if (orientation >= 5 && orientation <= 8)
+				{
+					return (CGSize){height, width};
+				}
+				else
+				{
+					return (CGSize){width, height};
 				}
 			}
+			
 			return CGSizeZero;
-		} else if( buffer[1] == 0xC0 ) {
-			// Parse SOF0 (Start of Frame baseline)
+		}
+		else if (buffer[1] == 0xC0)
+		{ // Parse SOF0 (Start of Frame baseline)
 			
 			// Skip LF, P
-			if( fseek(file, 3, SEEK_CUR) ) return CGSizeZero;
+			if (fseek(file, 3, SEEK_CUR)) return CGSizeZero;
 			
 			// Read Y,X
-			if( fread(buffer, 1, 4, file) != 4 ) return CGSizeZero;
+			if (fread(buffer, 1, 4, file) != 4) return CGSizeZero;
 			
-			return (CGSize) { buffer[2] << 8 | buffer[3], buffer[0] << 8 | buffer[1] };
-		} else {
-			// Skip APPn segment
-			if ( fread( buffer, 1, 2, file ) == 2 ) {
-				// Marker segment length
-				fseek( file, (int)((buffer[0] << 8) | buffer[1]) - 2, SEEK_CUR );
-			} else {
+			return (CGSize){buffer[2] << 8 | buffer[3], buffer[0] << 8 | buffer[1]};
+		}
+		else
+		{ // Skip APPn segment
+			if (fread(buffer, 1, 2, file) == 2)
+			{ // Marker segment length
+				fseek(file, (int)((buffer[0] << 8) | buffer[1]) - 2, SEEK_CUR);
+			}
+			else
+			{
 				return CGSizeZero;
 			}
 		}
 	}
+	
 	return CGSizeZero;
 }
 
 //------------------------------------------------------------------------------
 // Code below based on the description at:
 // http://www.fileformat.info/format/tiff/egff.htm
-- (CGSize) sizeOfImageForFilePath_TIFF: (FILE *) file {
-//	NSLog( @"Checking if TIFF file" );
+- (CGSize) sizeOfImageForFilePath_TIFF: (FILE *) file
+{
+	//	NSLog( @"Checking if TIFF file" );
 	CGSize size = CGSizeZero;
 	bool littleEndian = false;
 	uint8_t buffer[4];
 	
 	// Attempt to read TIFF header
 	// Read TIFF byte alignment and version number (always 2A)
-	if( fread( buffer, 1, 4, file ) != 4 ) {
+	if( fread( buffer, 1, 4, file ) != 4 )
+	{
 		return CGSizeZero;
 	}
-	if( memcmp( buffer, TIFF_HEADER_BIG, 4 ) == 0 ) {
-//		NSLog( @"- Found TIFF little endian header" );
+	if( memcmp( buffer, TIFF_HEADER_BIG, 4 ) == 0 )
+	{
+		//		NSLog( @"- Found TIFF little endian header" );
 		littleEndian = false;
-	} else if ( memcmp( buffer, TIFF_HEADER_LITTLE, 4 ) == 0 ) {
-//		NSLog( @"- Found TIFF little endian header" );
+	}
+	else if ( memcmp( buffer, TIFF_HEADER_LITTLE, 4 ) == 0 )
+	{
+		//		NSLog( @"- Found TIFF little endian header" );
 		littleEndian = true;
-	} else {
+	}
+	else
+	{
 		//NSLog( @"- Failed TIFF version check: %02x %02x", buffer[0], buffer[1] );
 		return CGSizeZero;
 	}
@@ -324,45 +387,50 @@
 	uint32_t dirOffset = LAST_UINT32;
 	
 	// If we are not at the first IFD seek to it
-	if( dirOffset != 0x08 ) {
+	if( dirOffset != 0x08 )
+	{
 		fseek( file, dirOffset, SEEK_SET );
 	}
-	do {
+	do
+	{
 		int orientation = 1, width = 0, height = 0;
-//		NSLog( @"- Loading an IFD" );
+		//		NSLog( @"- Loading an IFD" );
 		uint16_t numDirEntries, tagID, tagDataType;
 		uint32_t tagValue = 0;
 		//uint32_t dataCount;
-
+		
 		// Figure out how many Tags in the IFD
 		if( !READ_UINT16 ) return CGSizeZero;
 		numDirEntries = LAST_UINT16;
 		// Read the tags
-		for( uint16_t i = 0; i < numDirEntries; ++i ) {
-//			NSLog( @"- Reading an IFD tag %d of %d", i, numDirEntries );
+		for( uint16_t i = 0; i < numDirEntries; ++i )
+		{
+			//			NSLog( @"- Reading an IFD tag %d of %d", i, numDirEntries );
 			if( !READ_UINT16 ) return CGSizeZero;
 			tagID = LAST_UINT16;
-
+			
 			if( !READ_UINT16 ) return CGSizeZero;
 			tagDataType = LAST_UINT16;
-//			if( tagID == TIFF_TAG_ORIENTATION ) {
-//				NSLog( @"--- tagID of %d, orientation, datatype %d", tagID, tagDataType );
-//			} else if( tagID == TIFF_TAG_IMAGEWIDTH ) {
-//				NSLog( @"--- tagID of %d, width, datatype %d", tagID, tagDataType );
-//			} else if( tagID == TIFF_TAG_IMAGEHEIGHT ) {
-//				NSLog( @"--- tagID of %d, height, datatype %d", tagID, tagDataType );
-//			} else {
-//				NSLog( @"- tagID of %d, datatype %d", tagID, tagDataType );
-//			}
-
+			//			if( tagID == TIFF_TAG_ORIENTATION ) {
+			//				NSLog( @"--- tagID of %d, orientation, datatype %d", tagID, tagDataType );
+			//			} else if( tagID == TIFF_TAG_IMAGEWIDTH ) {
+			//				NSLog( @"--- tagID of %d, width, datatype %d", tagID, tagDataType );
+			//			} else if( tagID == TIFF_TAG_IMAGEHEIGHT ) {
+			//				NSLog( @"--- tagID of %d, height, datatype %d", tagID, tagDataType );
+			//			} else {
+			//				NSLog( @"- tagID of %d, datatype %d", tagID, tagDataType );
+			//			}
+			
 			// Read the number of data items
 			if( !READ_UINT32 ) return CGSizeZero;
 			//dataCount = LAST_UINT32;
 			
 			if( tagID == TIFF_TAG_ORIENTATION ||
-			    tagID == TIFF_TAG_IMAGEHEIGHT ||
-			    tagID == TIFF_TAG_IMAGEWIDTH ) {
-				switch( tagDataType ) {
+			   tagID == TIFF_TAG_IMAGEHEIGHT ||
+			   tagID == TIFF_TAG_IMAGEWIDTH )
+			{
+				switch( tagDataType )
+				{
 					case TIFF_DATATYPE_BYTE:
 					case TIFF_DATATYPE_SBYTE:
 						tagValue = fread( buffer, 1, 1, file ) == 1 && buffer[0];
@@ -390,47 +458,55 @@
 						tagValue = LAST_UINT32;
 						break;
 				}
-				switch( tagID ) {
+				switch( tagID )
+				{
 					case TIFF_TAG_ORIENTATION:
 						orientation = (int) tagValue;
-//						NSLog( @"- Found orientation of %d", orientation );
+						//						NSLog( @"- Found orientation of %d", orientation );
 						break;
 					case TIFF_TAG_IMAGEHEIGHT:
 						height = (int) tagValue;
-//						NSLog( @"- Found height of %d", height );
+						//						NSLog( @"- Found height of %d", height );
 						break;
 					case TIFF_TAG_IMAGEWIDTH:
 						width = (int) tagValue;
-//						NSLog( @"- Found width of %d", width );
+						//						NSLog( @"- Found width of %d", width );
 						break;
 					default:
 						break;
 				}
-			} else {
+			}
+			else
+			{
 				// Don't care about the tag -- skip past its offset
 				fseek( file, 4, SEEK_CUR );
 			}
 		}
-		if( width > 0 && height > 0 ) {
+		if( width > 0 && height > 0 )
+		{
 			// Maybe I should just keep the largest...
-			if( orientation >= 5 && orientation <= 8 ) {
+			if( orientation >= 5 && orientation <= 8 )
+			{
 				if( height > size.width && width > size.height )
 					size = CGSizeMake( height, width );
-			} else {
+			}
+			else
+			{
 				if( height > size.height && width > size.width )
 					size = CGSizeMake( width, height );
 			}
 		}
-
+		
 		// Read the offset to tbe next IFD
 		if( !READ_UINT32 ) return CGSizeZero;
 		dirOffset = LAST_UINT32;
 		// Advance the file to the next IFD
-		if( dirOffset > 0 ) {
+		if( dirOffset > 0 )
+		{
 			fseek( file, dirOffset, SEEK_SET );
 		}
 	} while( dirOffset != 0x00 );
-
+	
 	return size;
 }
 
@@ -442,8 +518,8 @@ typedef struct {
 	int	height;
 } appleIconInfo;
 static appleIconInfo appleIconInfoTable[] = {
-//	OSType	Width, Height		// Length	Size	Supported OS Version	Description
-//					  (bytes)	(pixels)
+	//	OSType	Width, Height		// Length	Size	Supported OS Version	Description
+	//					  (bytes)	(pixels)
 	{ "ICON", 32, 32 },		// 128		32	1.0	32×32 1-bit mono icon
 	{ "ICN#", 32, 32 },		// 256		32	6.0	32×32 1-bit mono icon with 1-bit mask
 	{ "icm#", 16, 12 },		// 48		16	6.0	16×12 1 bit mono icon with 1-bit mask
@@ -479,7 +555,8 @@ static appleIconInfo appleIconInfoTable[] = {
 	{ "----", 0, 0 },		// end marker for search failure
 };
 
-- (CGSize) sizeOfImageForFilePath_ICNS: (FILE *) file {
+- (CGSize) sizeOfImageForFilePath_ICNS: (FILE *) file
+{
 	//NSLog( @"Trying to load an Apple icon file" );
 	CGSize size = CGSizeZero;
 	bool littleEndian = false;
@@ -488,31 +565,35 @@ static appleIconInfo appleIconInfoTable[] = {
 	// Attempt to read ICNS header
 	// Read ICNS magic number (always "icns")
 	if( fread( buffer, 1, 4, file ) != 4 ||
-	    memcmp( buffer, ICNS_HEADER, 4 ) != 0 ) {
+	   memcmp( buffer, ICNS_HEADER, 4 ) != 0 )
+	{
+		//NSLog( @"- Nope, it does not seem to be one" );
 		return CGSizeZero;
 	}
 	
 	// Read the length of the file in bytes
 	if( !READ_UINT32 ) return CGSizeZero;
 	uint32_t fileSize = LAST_UINT32;
-
+	
 	uint32_t dataLength = 0;
 	uint32_t filepos = 8;	// We have read the magic word and file length
 	int width = 0;
 	int height = 0;
 	int i;
-	do {
+	do
+	{
 		// Read the icon type
 		if( !READ_UINT32 ) return CGSizeZero;	// Just break in case I have a size?
 		char iconType[5];
 		memcpy( iconType, buffer, 4 );
 		iconType[4] = '\0';
-
+		
 		// Read the Length of data, in bytes (including type and length), msb first
 		if( !READ_UINT32 ) return CGSizeZero;	// Just break in case I have a size?
 		dataLength = LAST_UINT32;
-
-		for( i = 0; appleIconInfoTable[i].width > 0; ++i ) {
+		
+		for( i = 0; appleIconInfoTable[i].width > 0; ++i )
+		{
 			if( strcmp( iconType, appleIconInfoTable[i].osType) == 0 ) {
 				//NSLog( @"- Found '%s', icon is %d x %d", iconType, appleIconInfoTable[i].width, appleIconInfoTable[i].height );
 				if( appleIconInfoTable[i].width > width ) width = appleIconInfoTable[i].width;
@@ -521,19 +602,23 @@ static appleIconInfo appleIconInfoTable[] = {
 			}
 		}
 		if( appleIconInfoTable[i].width <= 0 &&
-		    strcmp( iconType, "icnV" ) != 0 &&
-		    strcmp( iconType, "TOC " ) != 0 ) {
+		   strcmp( iconType, "icnV" ) != 0 &&
+		   strcmp( iconType, "TOC " ) != 0 )
+		{
 			NSLog( @"**** error: OSType '%s' not found in the table", iconType );
 		}
 		
 		filepos += dataLength;
 	} while( filepos < fileSize && fseek( file, dataLength - 8, SEEK_CUR ) == 0 );
-
-	if( width > 0 && height > 0 ) {
-	//	NSLog( @"- Icon size is %d x %d", width, height );
+	
+	if( width > 0 && height > 0 )
+	{
+		//	NSLog( @"- Icon size is %d x %d", width, height );
 		size = CGSizeMake( (CGFloat) width, (CGFloat) height );
-	//} else {
-	//	NSLog( @"- Icon size not set" );
+		//}
+		//else
+		//{
+		//	NSLog( @"- Icon size not set" );
 	}
 	return size;
 }
