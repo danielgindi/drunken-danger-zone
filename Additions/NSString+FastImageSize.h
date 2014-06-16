@@ -5,11 +5,10 @@
 //  Created by Daniel Cohen Gindi on 3/29/13.
 //  Copyright (c) 2013 danielgindi@gmail.com. All rights reserved.
 //
-//  https://github.com/danielgindi/drunken-danger-zone
+//  Extended to handle TIFF and ICNS files by David W. Stockton 4/23/14.
+//  Copyright (c) 2014 Syntonicity, LLC. All rights reserved.
 //
-//  TIFF and ICNS capability added by David W. Stockton
-//  See: http://stackoverflow.com/questions/4179802/dimensions-of-image-objective-c
-//  http://stackoverflow.com/questions/9264051/nsimage-size-not-real-size-with-some-pictures
+//  https://github.com/danielgindi/drunken-danger-zone
 //
 //  The MIT License (MIT)
 //  
