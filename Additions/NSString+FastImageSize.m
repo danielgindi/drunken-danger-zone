@@ -191,6 +191,7 @@
     while (fread(buffer, 1, 2, file) == 2 && buffer[0] == 0xFF &&
            ((buffer[1] >= 0xE0 && buffer[1] <= 0xEF) ||
             buffer[1] == 0xDB ||
+            buffer[1] == 0xC4 || buffer[1] == 0xC2 ||
             buffer[1] == 0xC0))
     {
         if (buffer[1] == 0xE1)
@@ -326,10 +327,11 @@
                 }
             }
             
-            return CGSizeZero;
+            // Just because the height and width were not in this EXIF is no reason to give up!
+            //return CGSizeZero;
         }
-        else if (buffer[1] == 0xC0)
-        { // Parse SOF0 (Start of Frame baseline)
+        else if (buffer[1] == 0xC0 || buffer[1] == 0xC2)
+        { // Parse SOF0 (Start of Frame, Baseline DCT or Progressive DCT)
             
             // Skip LF, P
             if (fseek(file, 3, SEEK_CUR)) return CGSizeZero;
