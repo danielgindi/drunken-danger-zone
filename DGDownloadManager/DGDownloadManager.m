@@ -252,9 +252,9 @@
         [queuedResumes removeAllObjects];
         currentDownloadsCount = 0;
         
-        while (currentDownloads.count)
+        for (int i = 0; i < currentDownloads.count; i++)
         {
-            [currentDownloads.firstObject cancelDownloading];
+            [currentDownloads[i] cancelDownloading];
         }
         
         [self endBackgroundTaskIfNotNeeded];
