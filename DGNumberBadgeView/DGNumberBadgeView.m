@@ -302,7 +302,13 @@
     
 	NSString *numberString = [@(self.value) stringValue];
     
-	CGSize numberSize = [numberString sizeWithFont:self.font];
+	CGSize numberSize;
+    
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 70000    
+    numberSize = [numberString sizeWithAttributes:@{NSFontAttributeName: self.font}];
+#else
+    numberSize = [numberString sizeWithFont:self.font];
+#endif
     
     [self generateBadgePathForSize:numberSize];
     
@@ -469,7 +475,13 @@
 {
 	NSString *numberString = [@(self.value) stringValue];
     
-	CGSize numberSize = [numberString sizeWithFont:self.font];
+	CGSize numberSize;
+    
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 70000
+    numberSize = [numberString sizeWithAttributes:@{NSFontAttributeName: self.font}];
+#else
+    numberSize = [numberString sizeWithFont:self.font];
+#endif
     
     [self generateBadgePathForSize:numberSize];
     

@@ -98,15 +98,29 @@
 
 - (CGSize)sizeThatFits:(CGSize)size
 {
-    CGSize sz = [self.text sizeWithFont:self.font constrainedToSize:size lineBreakMode:self.lineBreakMode];
+    CGSize fitSize;
+    
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 70000
+    NSMutableParagraphStyle * paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+    paragraphStyle.lineBreakMode = self.lineBreakMode;
+    
+    NSDictionary *boundingRectAttributes = @{NSFontAttributeName: self.font,
+                                             NSParagraphStyleAttributeName: paragraphStyle};
+    
+    fitSize = [self.text boundingRectWithSize:size options:NSStringDrawingUsesLineFragmentOrigin attributes:boundingRectAttributes context:nil].size;
+#else
+    fitSize = [self.text sizeWithFont:self.font constrainedToSize:size lineBreakMode:self.lineBreakMode];
+#endif
+    
     if (self.text.length)
     {
-        sz.width += self.textOutlineWidth * 2.f;
-        sz.height += self.textOutlineWidth * 2.f;
-        if (sz.width > size.width && size.width > 0.f) sz.width = size.width;
-        if (sz.height > size.height && size.height > 0.f) sz.height = size.height;
+        fitSize.width += self.textOutlineWidth * 2.f;
+        fitSize.height += self.textOutlineWidth * 2.f;
+        if (fitSize.width > size.width && size.width > 0.f) fitSize.width = size.width;
+        if (fitSize.height > size.height && size.height > 0.f) fitSize.height = size.height;
     }
-    return sz;
+    
+    return fitSize;
 }
 
 + (id)defaultValueForKey:(NSString *)key
