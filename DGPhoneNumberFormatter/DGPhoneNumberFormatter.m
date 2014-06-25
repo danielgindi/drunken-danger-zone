@@ -188,7 +188,7 @@ typedef enum _DGPhoneNumberFormatterCountryType
         else
         { // Everything else
             [output appendString:number];
-            for (int j=3-number.length; j>0; j--)
+            for (NSInteger j = 3 - number.length; j > 0; j--)
             {
                 [output appendString:@" "];
             }
@@ -339,7 +339,7 @@ typedef enum _DGPhoneNumberFormatterCountryType
                 else
                 { // Everything else
                     [output appendString:inputBody];
-                    for (int j=3-inputBody.length; j>0; j--)
+                    for (NSInteger j = 3 - inputBody.length; j > 0; j--)
                     {
                         [output appendString:@" "];
                     }

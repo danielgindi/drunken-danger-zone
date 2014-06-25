@@ -85,7 +85,7 @@
 - (void)setPickerOptions:(NSArray *)pickerOptions sortArray:(BOOL)sort
 {
     NSMutableDictionary *options = [[NSMutableDictionary alloc] init];
-    for (int j=0, len=pickerOptions.count; j<len; j++)
+    for (NSInteger j = 0, len = pickerOptions.count; j < len; j++)
     {
         options[@(j)] = pickerOptions[j];
     }
@@ -93,7 +93,7 @@
     if (!sort)
     {
         keys = [[NSMutableArray alloc] init];
-        for (int j=0, len=pickerOptions.count; j<len; j++)
+        for (NSInteger j = 0, len = pickerOptions.count; j < len; j++)
         {
             [keys addObject:@(j)];
         }

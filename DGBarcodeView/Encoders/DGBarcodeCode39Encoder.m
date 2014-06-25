@@ -63,7 +63,7 @@
     }
     [result appendString:@"0"];
     
-    for (int j = 0, len = value.length; j < len; j++)
+    for (NSInteger j = 0, len = value.length; j < len; j++)
     {
         if (![self codeCharacter:[value characterAtIndex:j] intoString:result allowExtended:allowExtended])
         {
@@ -112,7 +112,7 @@
         NSString *escapedCode = codeExtendedMap[@(character)];
         if (escapedCode)
         {
-            for (int j=0, len = escapedCode.length; j<len; j++)
+            for (NSInteger j = 0, len = escapedCode.length; j < len; j++)
             {
                 if (![self codeCharacter:[escapedCode characterAtIndex:j] intoString:output allowExtended:allowExtended])
                 {

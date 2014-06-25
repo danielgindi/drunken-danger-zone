@@ -39,7 +39,7 @@
 
     [result appendString:@"01010"];
     
-    for (int i = value.length / 2; i < value.length; i++)
+    for (NSInteger i = value.length / 2; i < value.length; i++)
     {
         [result appendString:EAN_CodeC[((int)(buffer[i] - L'0'))]];
     }

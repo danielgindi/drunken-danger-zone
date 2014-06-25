@@ -36,7 +36,7 @@
     unichar c;
     bool bars;
     
-    for (int i = 0, len, j; i < value.length; i += 2)
+    for (NSInteger i = 0, len, j; i < value.length; i += 2)
     {
         bars = true;
         patternbars = ITF14_Code[buffer[i] - L'0'];

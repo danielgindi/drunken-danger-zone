@@ -229,7 +229,7 @@
 	CGFloat r,g,b/*,a*/;
     // Should we also account for Alpha colors here? We need to test if apps like Excel supports it.
     
-	int numComponents = CGColorGetNumberOfComponents(color.CGColor);
+	NSInteger numComponents = CGColorGetNumberOfComponents(color.CGColor);
     
 	switch (numComponents)
 	{
@@ -315,7 +315,7 @@
         
         if (style.alignment.indent > 0) // 0 is default
         {
-            [self write:[NSString stringWithFormat:@" ss:Indent=\"%d\"", style.alignment.indent]];
+            [self write:[NSString stringWithFormat:@" ss:Indent=\"%lu\"", (unsigned long)style.alignment.indent]];
         }
         
         NSString *readingOrder = nil;
@@ -644,7 +644,7 @@
         
         if (style.font.charSet > 0) // 0 is default
         {
-            [self write:[NSString stringWithFormat:@" ss:CharSet=\"%d\"", style.font.charSet]];
+            [self write:[NSString stringWithFormat:@" ss:CharSet=\"%lu\"", (unsigned long)style.font.charSet]];
         }
         
         NSString *family = nil;
@@ -740,7 +740,7 @@
 {
     if (_isXml && _startWorksheet)
     {
-        [self write:[NSString stringWithFormat:@"  <Table ss:ExpandedColumnCount=\"%d\">\n", _columnsArray.count]];
+        [self write:[NSString stringWithFormat:@"  <Table ss:ExpandedColumnCount=\"%lu\">\n", (unsigned long)_columnsArray.count]];
         for (NSString *Column in _columnsArray)
         {
             if (Column.length == 0)
@@ -809,7 +809,7 @@
 {
     if (_isXml)
     {
-        NSString *merge = (mergeAcross == 0 && mergeDown == 0) ? @"" : ((mergeAcross != 0 && mergeDown != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%d\" ss:MergeDown=\"%d\"", mergeAcross, mergeDown] : ((mergeAcross != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%d\"", mergeAcross] : [NSString stringWithFormat:@" ss:MergeDown=\"%d\"", mergeDown]));
+        NSString *merge = (mergeAcross == 0 && mergeDown == 0) ? @"" : ((mergeAcross != 0 && mergeDown != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%lu\" ss:MergeDown=\"%lu\"", (unsigned long)mergeAcross, (unsigned long)mergeDown] : ((mergeAcross != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%lu\"", (unsigned long)mergeAcross] : [NSString stringWithFormat:@" ss:MergeDown=\"%lu\"", (unsigned long)mergeDown]));
         if (idxStyle != -1)
         {
             if (formatFromStyle)
@@ -899,7 +899,7 @@
 - (int)addStyle:(DGSpreadSheetExportStyle *)style
 {
     [_stylesArray addObject:style];
-    return _stylesArray.count - 1;
+    return (int)_stylesArray.count - 1;
 }
 
 - (void)newWorksheetNamed:(NSString *)name
@@ -956,7 +956,7 @@
 {
     if (_isXml)
     {
-        NSString *merge = (mergeAcross == 0 && mergeDown == 0) ? @"" : ((mergeAcross != 0 && mergeDown != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%d\" ss:MergeDown=\"%d\"", mergeAcross, mergeDown] : ((mergeAcross != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%d\"", mergeAcross] : [NSString stringWithFormat:@" ss:MergeDown=\"%d\"", mergeDown]));
+        NSString *merge = (mergeAcross == 0 && mergeDown == 0) ? @"" : ((mergeAcross != 0 && mergeDown != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%lu\" ss:MergeDown=\"%lu\"", (unsigned long)mergeAcross, (unsigned long)mergeDown] : ((mergeAcross != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%lu\"", (unsigned long)mergeAcross] : [NSString stringWithFormat:@" ss:MergeDown=\"%lu\"", (unsigned long)mergeDown]));
         if (idxStyle != -1)
             [self write:[NSString stringWithFormat:@"    <Cell ss:StyleID=\"s%d\"%@><Data ss:Type=\"Number\">%i</Data></Cell>\n", idxStyle + 21, merge, data]];
         else
@@ -984,7 +984,7 @@
 {
     if (_isXml)
     {
-        NSString *merge = (mergeAcross == 0 && mergeDown == 0) ? @"" : ((mergeAcross != 0 && mergeDown != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%d\" ss:MergeDown=\"%d\"", mergeAcross, mergeDown] : ((mergeAcross != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%d\"", mergeAcross] : [NSString stringWithFormat:@" ss:MergeDown=\"%d\"", mergeDown]));
+        NSString *merge = (mergeAcross == 0 && mergeDown == 0) ? @"" : ((mergeAcross != 0 && mergeDown != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%lu\" ss:MergeDown=\"%lu\"", (unsigned long)mergeAcross, (unsigned long)mergeDown] : ((mergeAcross != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%lu\"", (unsigned long)mergeAcross] : [NSString stringWithFormat:@" ss:MergeDown=\"%lu\"", (unsigned long)mergeDown]));
         if (idxStyle != -1)
             [self write:[NSString stringWithFormat:@"    <Cell ss:StyleID=\"s%d\"%@><Data ss:Type=\"Number\">%qi</Data></Cell>\n", idxStyle + 21, merge, data]];
         else
@@ -1014,7 +1014,7 @@
 {
     if (_isXml)
     {
-        NSString *merge = (mergeAcross == 0 && mergeDown == 0) ? @"" : ((mergeAcross != 0 && mergeDown != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%d\" ss:MergeDown=\"%d\"", mergeAcross, mergeDown] : ((mergeAcross != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%d\"", mergeAcross] : [NSString stringWithFormat:@" ss:MergeDown=\"%d\"", mergeDown]));
+        NSString *merge = (mergeAcross == 0 && mergeDown == 0) ? @"" : ((mergeAcross != 0 && mergeDown != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%lu\" ss:MergeDown=\"%lu\"", (unsigned long)mergeAcross, (unsigned long)mergeDown] : ((mergeAcross != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%lu\"", (unsigned long)mergeAcross] : [NSString stringWithFormat:@" ss:MergeDown=\"%lu\"", (unsigned long)mergeDown]));
         if (idxStyle != -1)
             [self write:[NSString stringWithFormat:@"    <Cell ss:StyleID=\"s%d\"%@><Data ss:Type=\"Number\">%f</Data></Cell>\n", idxStyle + 21, merge, data]];
         else
@@ -1042,7 +1042,7 @@
 {
     if (_isXml)
     {
-        NSString *merge = (mergeAcross == 0 && mergeDown == 0) ? @"" : ((mergeAcross != 0 && mergeDown != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%d\" ss:MergeDown=\"%d\"", mergeAcross, mergeDown] : ((mergeAcross != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%d\"", mergeAcross] : [NSString stringWithFormat:@" ss:MergeDown=\"%d\"", mergeDown]));
+        NSString *merge = (mergeAcross == 0 && mergeDown == 0) ? @"" : ((mergeAcross != 0 && mergeDown != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%lu\" ss:MergeDown=\"%lu\"", (unsigned long)mergeAcross, (unsigned long)mergeDown] : ((mergeAcross != 0) ? [NSString stringWithFormat:@" ss:MergeAcross=\"%lu\"", (unsigned long)mergeAcross] : [NSString stringWithFormat:@" ss:MergeDown=\"%lu\"", (unsigned long)mergeDown]));
         if (idxStyle != -1)
             [self write:[NSString stringWithFormat:@"    <Cell ss:StyleID=\"s%d\"%@><Data ss:Type=\"Number\">%f</Data></Cell>\n", idxStyle + 21, merge, data]];
         else

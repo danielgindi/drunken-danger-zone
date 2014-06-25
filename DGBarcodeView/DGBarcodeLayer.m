@@ -118,7 +118,7 @@
 
 - (CGSize)sizeThatFits:(CGSize)size
 {
-    int length = encodedValue.length;
+    NSInteger length = encodedValue.length;
     
     if (!length) return size;
     
@@ -172,7 +172,7 @@
 
 - (void)drawInContext:(CGContextRef)ctx
 {
-    int length = encodedValue.length;
+    NSInteger length = encodedValue.length;
     
     if (!length) return;
     

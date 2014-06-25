@@ -41,7 +41,7 @@
     
     int lastWritePosition = 0;
     int skipped = 0;
-    int length = self.length;
+    NSInteger length = self.length;
     unichar *chars = malloc(sizeof(unichar) * length);
     unichar c;
     [self getCharacters:chars range:NSMakeRange(0, length)];

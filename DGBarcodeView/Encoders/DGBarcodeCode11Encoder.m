@@ -31,7 +31,7 @@
     int CTotal = 0;
     NSMutableString *Data_To_Encode_with_Checksums = [[NSMutableString alloc] initWithString:value];
     
-    for (int i = value.length - 1; i >= 0; i--)
+    for (NSInteger i = value.length - 1; i >= 0; i--)
     {
         if (weight == 10)
         {
@@ -58,7 +58,7 @@
         int KTotal = 0;
         unichar c;
         
-        for (int i = Data_To_Encode_with_Checksums.length - 1; i >= 0; i--)
+        for (NSInteger i = Data_To_Encode_with_Checksums.length - 1; i >= 0; i--)
         {
             if (weight == 9)
             {
@@ -87,7 +87,7 @@
     [Data_To_Encode_with_Checksums getCharacters:buffer];
     
     unichar c;
-    for (int j=0, len = Data_To_Encode_with_Checksums.length; j<len; j++)
+    for (NSInteger j = 0, len = Data_To_Encode_with_Checksums.length; j < len; j++)
     {
         c = buffer[j];
         [result appendString:C11_Code[(c == '-' ? 10 : ((int)(c - L'0')))]];
