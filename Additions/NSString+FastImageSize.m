@@ -45,31 +45,20 @@
 #define BMP_HEADER			(uint8_t[2]){ 0x42, 0x4D }
 #define ICNS_HEADER			(uint8_t[4]){ 'i', 'c', 'n', 's' }
 
-// Tiff codes
-#define TIFF_HEADER_LITTLE	(uint8_t[4]){ 0x49, 0x49, 0x2a, 0x00 }
-#define TIFF_HEADER_BIG		(uint8_t[4]){ 0x4d, 0x4d, 0x00, 0x2a }
-
-#define TIFF_DATATYPE_BYTE			1		// BYTE	    8-bit unsigned integer
-#define TIFF_DATATYPE_ASCII			2		// ASCII    8-bit, NULL-terminated string
-#define TIFF_DATATYPE_SHORT			3		// SHORT    16-bit unsigned integer
-#define TIFF_DATATYPE_LONG			4		// LONG        32-bit unsigned integer
-#define TIFF_DATATYPE_RATIONAL		5		// RATIONAL Two 32-bit unsigned integers
-#define TIFF_DATATYPE_SBYTE			6		// SBYTE    8-bit signed integer
-#define TIFF_DATATYPE_UNDEFINE		7		// UNDEFINE    8-bit byte
-#define TIFF_DATATYPE_SSHORT		8		// SSHORT    16-bit signed integer
-#define TIFF_DATATYPE_SLONG			9		// SLONG    32-bit signed integer
-#define TIFF_DATATYPE_SRATIONAL		10		// SRATIONAL    Two 32-bit signed integers
-#define TIFF_DATATYPE_FLOAT			11		// FLOAT    4-byte single-precision IEEE floating-point value
-#define TIFF_DATATYPE_DOUBLE		12		// DOUBLE    8-byte double-precision IEEE floating-point value
-
-#define TIFF_TAG_ORIENTATION		274		// Short value
-#define TIFF_TAG_IMAGEHEIGHT		257		// SHORT or LONG
-#define TIFF_TAG_IMAGEWIDTH			256		// SHORT or LONG
+// Exit tag types
+#define EXIF_TAGTYPE_BYTE			1		// BYTE	    8-bit unsigned integer
+#define EXIF_TAGTYPE_SHORT			3		// SHORT    16-bit unsigned integer
+#define EXIF_TAGTYPE_LONG			4		// LONG     32-bit unsigned integer
+#define EXIF_TAGTYPE_SBYTE			6		// SBYTE    8-bit signed integer
+#define EXIF_TAGTYPE_SSHORT         8		// SSHORT   16-bit signed integer
+#define EXIF_TAGTYPE_SLONG			9		// SLONG    32-bit signed integer
 
 // Exif tags
 #define EXIF_TAG_ORIENTATION 0x0112
 #define EXIF_TAG_PIX_XDIM 0xA002
 #define EXIF_TAG_PIX_YDIM 0xA003
+#define EXIF_TAG_IMAGE_WIDTH 0x0100
+#define EXIF_TAG_IMAGE_HEIGHT 0x0101
 #define EXIF_TAG_IFD 0x8769
 
 // Bitwise macros
@@ -92,13 +81,6 @@
             memcmp(buffer, JPEG_HEADER, 2) == 0)
         { // JPEG
             size = [self sizeOfImageForFilePath_JPEG:file];
-            success = size.width > 0.f && size.height > 0.f;
-        }
-        
-        if(!success)
-        { // TIFF
-            fseek(file, 0, SEEK_SET);
-            size = [self sizeOfImageForFilePath_TIFF:file];
             success = size.width > 0.f && size.height > 0.f;
         }
         
@@ -172,16 +154,160 @@
                     if (fread(buffer, 1, 4, file) == 4)
                     {
                         size.height = *((int32_t*)buffer);
-                        // success = YES; // Not needed, analyzer...
+                        success = YES;
                     }
                 }
             }
+        }
+        
+        if(!success)
+        {
+            // TIFF starts with just plain EXIF
+            
+            fseek(file, 0, SEEK_SET);
+            size = [self sizeOfImageForFilePath_EXIF:file];
+            // success = size.width > 0.f && size.height > 0.f; // Not needed, analyzer...
         }
         
         fclose(file);
     }
     
     return size;
+}
+
+- (CGSize)sizeOfImageForFilePath_EXIF:(FILE *)file
+{
+    uint8_t buffer[4];
+    
+    fpos_t offset;
+    if (fgetpos(file, &offset)) return CGSizeZero;
+    
+    // Read Byte alignment
+    if (fread(buffer, 1, 2, file) != 2) return CGSizeZero;
+    
+    bool littleEndian = false;
+    if (buffer[0] == 0x49 && buffer[1] == 0x49)
+    {
+        littleEndian = true;
+    }
+    else if (buffer[0] != 0x4D && buffer[1] != 0x4D) return CGSizeZero;
+    
+    // TIFF tag marker
+    if (!READ_UINT16 || LAST_UINT16 != 0x002A) return CGSizeZero;
+    
+    // Directory offset bytes
+    if (!READ_UINT32) return CGSizeZero;
+    uint32_t dirOffset = LAST_UINT32;
+    
+    int tag;
+    uint16_t numberOfTags, tagType;
+    uint32_t /*tagLength, */tagValue;
+    int orientation = 1, width = 0, height = 0;
+    uint32_t exifIFDOffset = 0;
+    
+    while (dirOffset != 0)
+    {
+        fseek(file, (long)offset + dirOffset, SEEK_SET);
+        
+        if (!READ_UINT16) return CGSizeZero;
+        numberOfTags = LAST_UINT16;
+        
+        for (uint16_t i = 0; i < numberOfTags; i++)
+        {
+            if (!READ_UINT16) return CGSizeZero;
+            tag = LAST_UINT16;
+            
+            if (!READ_UINT16) return CGSizeZero;
+            tagType = LAST_UINT16;
+            
+            if (!READ_UINT32) return CGSizeZero;
+            /*tagLength = LAST_UINT32*/;
+            
+            if (tag == EXIF_TAG_ORIENTATION ||
+                tag == EXIF_TAG_PIX_XDIM ||
+                tag == EXIF_TAG_IMAGE_WIDTH ||
+                tag == EXIF_TAG_PIX_YDIM ||
+                tag == EXIF_TAG_IMAGE_HEIGHT ||
+                tag == EXIF_TAG_IFD)
+            {
+                switch (tagType)
+                {
+                    default:
+                    case EXIF_TAGTYPE_BYTE:
+                    case EXIF_TAGTYPE_SBYTE:
+                        tagValue = fread(buffer, 1, 1, file) == 1 && buffer[0];
+                        fseek(file, 3, SEEK_CUR);
+                        break;
+                    case EXIF_TAGTYPE_SHORT:
+                    case EXIF_TAGTYPE_SSHORT:
+                        if (!READ_UINT16) return CGSizeZero;
+                        tagValue = LAST_UINT16;
+                        fseek(file, 2, SEEK_CUR);
+                        break;
+                    case EXIF_TAGTYPE_LONG:
+                    case EXIF_TAGTYPE_SLONG:
+                        if (!READ_UINT32) return CGSizeZero;
+                        tagValue = LAST_UINT32;
+                        break;
+                }
+                
+                switch (tag)
+                {
+                    case EXIF_TAG_ORIENTATION:
+                        // Orientation tag
+                        orientation = (int)tagValue;
+                        break;
+                    case EXIF_TAG_PIX_XDIM:
+                    case EXIF_TAG_IMAGE_WIDTH:
+                        // Width tag
+                        width = (int)tagValue;
+                        break;
+                    case EXIF_TAG_PIX_YDIM:
+                    case EXIF_TAG_IMAGE_HEIGHT:
+                        // Height tag
+                        height = (int)tagValue;
+                        break;
+                    case EXIF_TAG_IFD:
+                        // EXIF IFD offset tag
+                        exifIFDOffset = tagValue;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                fseek(file, 4, SEEK_CUR);
+            }
+        }
+        
+        if (dirOffset == exifIFDOffset)
+        {
+            break;
+        }
+        
+        if (!READ_UINT32) return CGSizeZero;
+        dirOffset = LAST_UINT32;
+        
+        if (dirOffset == 0)
+        {
+            dirOffset = exifIFDOffset;
+        }
+    }
+    
+    if (width > 0 && height > 0)
+    {
+        if (orientation >= 5 && orientation <= 8)
+        {
+            return (CGSize){height, width};
+        }
+        else
+        {
+            return (CGSize){width, height};
+        }
+    }
+    
+    return CGSizeZero;
 }
 
 - (CGSize)sizeOfImageForFilePath_JPEG:(FILE *)file
@@ -197,9 +323,6 @@
         if (buffer[1] == 0xE1)
         { // Parse APP1 EXIF
             
-            fpos_t offset;
-            if (fgetpos(file, &offset)) return CGSizeZero;
-            
             // Marker segment length
             
             if (fread(buffer, 1, 2, file) != 2) return CGSizeZero;
@@ -213,122 +336,11 @@
             if (fread(buffer, 1, 2, file) != 2 ||
                 buffer[0] != 0x00 || buffer[1] != 0x00) return CGSizeZero;
             
-            // Read Byte alignment
-            if (fread(buffer, 1, 2, file) != 2) return CGSizeZero;
-            
-            bool littleEndian = false;
-            if (buffer[0] == 0x49 && buffer[1] == 0x49)
+            CGSize size = [self sizeOfImageForFilePath_EXIF:file];
+            if (size.width >= 0 && size.height >= 0)
             {
-                littleEndian = true;
+                return size;
             }
-            else if (buffer[0] != 0x4D && buffer[1] != 0x4D) return CGSizeZero;
-            
-            // TIFF tag marker
-            if (!READ_UINT16 || LAST_UINT16 != 0x002A) return CGSizeZero;
-            
-            // Directory offset bytes
-            if (!READ_UINT32) return CGSizeZero;
-            uint32_t dirOffset = LAST_UINT32;
-            
-            int tag;
-            uint16_t numberOfTags, tagType;
-            uint32_t /*tagLength, */tagValue;
-            int orientation = 1, width = 0, height = 0;
-            uint32_t exifIFDOffset = 0;
-            
-            while (dirOffset != 0)
-            {
-                fseek(file, (long)offset + 8 + dirOffset, SEEK_SET);
-                
-                if (!READ_UINT16) return CGSizeZero;
-                numberOfTags = LAST_UINT16;
-                
-                for (uint16_t i = 0; i < numberOfTags; i++)
-                {
-                    if (!READ_UINT16) return CGSizeZero;
-                    tag = LAST_UINT16;
-                    
-                    if (!READ_UINT16) return CGSizeZero;
-                    tagType = LAST_UINT16;
-                    
-                    if (!READ_UINT32) return CGSizeZero;
-                    /*tagLength = LAST_UINT32*/;
-                    
-                    if (tag == EXIF_TAG_ORIENTATION ||
-                        tag == EXIF_TAG_PIX_XDIM ||
-                        tag == EXIF_TAG_PIX_YDIM ||
-                        tag == EXIF_TAG_IFD)
-                    {
-                        switch (tagType)
-                        {
-                            default:
-                            case 1:
-                                tagValue = fread(buffer, 1, 1, file) == 1 && buffer[0];
-                                fseek(file, 3, SEEK_CUR);
-                                break;
-                            case 3:
-                                if (!READ_UINT16) return CGSizeZero;
-                                tagValue = LAST_UINT16;
-                                fseek(file, 2, SEEK_CUR);
-                                break;
-                            case 4:
-                            case 9:
-                                if (!READ_UINT32) return CGSizeZero;
-                                tagValue = LAST_UINT32;
-                                break;
-                        }
-                        
-                        if (tag == EXIF_TAG_ORIENTATION)
-                        { // Orientation tag
-                            orientation = (int)tagValue;
-                        }
-                        else if (tag == EXIF_TAG_PIX_XDIM)
-                        { // Width tag
-                            width = (int)tagValue;
-                        }
-                        else if (tag == EXIF_TAG_PIX_YDIM)
-                        { // Height tag
-                            height = (int)tagValue;
-                        }
-                        else if (tag == EXIF_TAG_IFD)
-                        { // EXIF IFD offset tag
-                            exifIFDOffset = tagValue;
-                        }
-                    }
-                    else
-                    {
-                        fseek(file, 4, SEEK_CUR);
-                    }
-                }
-                
-                if (dirOffset == exifIFDOffset)
-                {
-                    break;
-                }
-                
-                if (!READ_UINT32) return CGSizeZero;
-                dirOffset = LAST_UINT32;
-                
-                if (dirOffset == 0)
-                {
-                    dirOffset = exifIFDOffset;
-                }
-            }
-            
-            if (width > 0 && height > 0)
-            {
-                if (orientation >= 5 && orientation <= 8)
-                {
-                    return (CGSize){height, width};
-                }
-                else
-                {
-                    return (CGSize){width, height};
-                }
-            }
-            
-            // Just because the height and width were not in this EXIF is no reason to give up!
-            //return CGSizeZero;
         }
         else if (buffer[1] == 0xC0 || buffer[1] == 0xC2)
         { // Parse SOF0 (Start of Frame, Baseline DCT or Progressive DCT)
@@ -355,165 +367,6 @@
     }
     
     return CGSizeZero;
-}
-
-#pragma mark - TIFF
-
-/*!
- @author David W. Stockton
- @brief 
-     Code below based on the description at:
-     http://www.fileformat.info/format/tiff/egff.htm
- */
- 
-- (CGSize)sizeOfImageForFilePath_TIFF:(FILE *)file
-{
-    CGSize size = CGSizeZero;
-    bool littleEndian = false;
-    uint8_t buffer[4];
-    
-    // Attempt to read TIFF header
-    // Read TIFF byte alignment and version number (always 2A)
-    if (fread(buffer, 1, 4, file) != 4)
-    {
-        return CGSizeZero;
-    }
-    if (memcmp(buffer, TIFF_HEADER_BIG, 4) == 0)
-    {
-        // Found TIFF big endian header
-        littleEndian = false;
-    }
-    else if (memcmp(buffer, TIFF_HEADER_LITTLE, 4) == 0)
-    {
-        // Found TIFF little endian header
-        littleEndian = true;
-    }
-    else
-    {
-        return CGSizeZero;
-    }
-    
-    // Read the offset to the first Image File Directory (IFD)
-    if (!READ_UINT32) return CGSizeZero;
-    uint32_t dirOffset = LAST_UINT32;
-    
-    // If we are not at the first IFD seek to it
-    if (dirOffset != 0x08)
-    {
-        fseek( file, dirOffset, SEEK_SET );
-    }
-    
-    do
-    {
-        int orientation = 1, width = 0, height = 0;
-        
-        // Loading an IFD
-        uint16_t numDirEntries, tagID, tagDataType;
-        uint32_t tagValue = 0;
-        
-        // Figure out how many Tags in the IFD
-        if (!READ_UINT16) return CGSizeZero;        
-        numDirEntries = LAST_UINT16;
-        
-        // Read the tags
-        for (uint16_t i = 0; i < numDirEntries; ++i)
-        {
-            if (!READ_UINT16) return CGSizeZero;
-            tagID = LAST_UINT16;
-            
-            if (!READ_UINT16) return CGSizeZero;
-            tagDataType = LAST_UINT16;
-            
-            // Read the number of data items
-            if (!READ_UINT32) return CGSizeZero;
-                        
-            if (tagID == TIFF_TAG_ORIENTATION ||
-               tagID == TIFF_TAG_IMAGEHEIGHT ||
-               tagID == TIFF_TAG_IMAGEWIDTH)
-            {
-                switch (tagDataType)
-                {
-                    case TIFF_DATATYPE_BYTE:
-                    case TIFF_DATATYPE_SBYTE:
-                        tagValue = fread(buffer, 1, 1, file) == 1 && buffer[0];
-                        fseek(file, 3, SEEK_CUR);
-                        break;
-                    case TIFF_DATATYPE_SHORT:
-                    case TIFF_DATATYPE_SSHORT:
-                        if (!READ_UINT16) return CGSizeZero;
-                        tagValue = LAST_UINT16;
-                        fseek(file, 2, SEEK_CUR);
-                        break;
-                    case TIFF_DATATYPE_LONG:
-                    case TIFF_DATATYPE_SLONG:
-                        if (!READ_UINT32) return CGSizeZero;
-                        tagValue = LAST_UINT32;
-                        break;
-                    case TIFF_DATATYPE_ASCII:
-                    case TIFF_DATATYPE_RATIONAL:
-                    case TIFF_DATATYPE_UNDEFINE:
-                    case TIFF_DATATYPE_SRATIONAL:
-                    case TIFF_DATATYPE_FLOAT:
-                    case TIFF_DATATYPE_DOUBLE:
-                    default:
-                        if (!READ_UINT32) return CGSizeZero;
-                        tagValue = LAST_UINT32;
-                        break;
-                }
-                
-                switch (tagID)
-                {
-                    case TIFF_TAG_ORIENTATION:
-                        orientation = (int)tagValue;
-                        break;
-                    case TIFF_TAG_IMAGEHEIGHT:
-                        height = (int)tagValue;
-                        break;
-                    case TIFF_TAG_IMAGEWIDTH:
-                        width = (int)tagValue;
-                        break;
-                    default:
-                        break;
-                }
-            }
-            else
-            {
-                // Don't care about the tag -- skip past its offset
-                fseek(file, 4, SEEK_CUR);
-            }
-        }
-        
-        if (width > 0 && height > 0)
-        {
-            // Maybe I should just keep the largest...
-            if (orientation >= 5 && orientation <= 8)
-            {
-                if (height > size.width && width > size.height)
-                {
-                    size = CGSizeMake(height, width);
-                }
-            }
-            else
-            {
-                if (height > size.height && width > size.width)
-                {
-                    size = CGSizeMake(width, height);
-                }
-            }
-        }
-        
-        // Read the offset to tbe next IFD
-        if (!READ_UINT32) return CGSizeZero;        
-        dirOffset = LAST_UINT32;
-        
-        // Advance the file to the next IFD
-        if (dirOffset > 0)
-        {
-            fseek(file, dirOffset, SEEK_SET);
-        }
-    } while( dirOffset != 0x00 );
-    
-    return size;
 }
 
 #pragma mark - ICNS
