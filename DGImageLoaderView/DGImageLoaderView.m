@@ -462,10 +462,12 @@ static NSMutableArray *s_DGImageLoaderView_activeConnectionsArray = nil;
 {
     if (_autoFindScaledUrlForFileUrls && url.isFileURL)
     {
-        if (UIScreen.mainScreen.scale == 2.f && ![[[url lastPathComponent] stringByDeletingPathExtension] hasSuffix:@"@2x"])
+        CGFloat screenScale = UIScreen.mainScreen.scale;
+        NSString *scaleString = [NSString stringWithFormat:@"@%gx", screenScale];
+        if (screenScale != 1.f && ![[[url lastPathComponent] stringByDeletingPathExtension] hasSuffix:scaleString])
         {
             NSString *path = [[url path] stringByDeletingPathExtension];
-            path = [path stringByAppendingString:@"@2x"];
+            path = [path stringByAppendingString:scaleString];
             if (url.pathExtension.length || [[url lastPathComponent] hasSuffix:@"."])
             {
                 path = [path stringByAppendingPathExtension:url.pathExtension];
@@ -973,11 +975,21 @@ static appleIconInfo appleIconInfoTable[] = {
     
     NSString *fn = url.lastPathComponent.lowercaseString;
     
-    BOOL doubleScale = _detectScaleFromFileName ? [[fn stringByDeletingPathExtension] hasSuffix:@"@2x"] : (UIScreen.mainScreen.scale == 2.f);
-    
-    if (doubleScale)
+    NSString *fnWithoutExtension = [fn stringByDeletingPathExtension];
+    NSString *scaleString = nil;
+    if (_detectScaleFromFileName)
     {
-        path = [path stringByAppendingString:@"@2x"];
+        scaleString = [fnWithoutExtension hasSuffix:@"@2x"] ? @"@2x" : ([fnWithoutExtension hasSuffix:@"@3x"] ? @"@3x" : nil);
+    }
+    else
+    {
+        CGFloat screenScale = UIScreen.mainScreen.scale;
+        scaleString = screenScale == 1.f ? nil : [NSString stringWithFormat:@"@%gx", UIScreen.mainScreen.scale];
+    }
+
+    if (scaleString)
+    {
+        path = [path stringByAppendingString:scaleString];
     }
     
     if (fn.pathExtension.length)
@@ -1010,7 +1022,12 @@ static appleIconInfo appleIconInfoTable[] = {
     
     NSString *fn = url.lastPathComponent.lowercaseString;
     
-    path = [path stringByAppendingString:@"@2x"];
+    CGFloat screenScale = UIScreen.mainScreen.scale;
+    if (screenScale != 1.f)
+    {
+        NSString *scaleString = [NSString stringWithFormat:@"@%gx", screenScale];
+        path = [path stringByAppendingString:scaleString];
+    }
     
     if (fn.pathExtension.length)
     {
