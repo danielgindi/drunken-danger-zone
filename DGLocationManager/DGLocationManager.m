@@ -39,7 +39,7 @@
 
 #import "DGLocationManager.h"
 
-#define IS_OS_8_OR_LATER ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0)
+#define IS_OS_8_OR_LATER (UIDevice.currentDevice.systemVersion.floatValue >= 8.f)
 
 #pragma mark - Wrapper for delegate to keep it unretained
 
@@ -108,12 +108,6 @@
         instance->locationManager.activityType = instance->activityType;
     }
     
-    if (IS_OS_8_OR_LATER)
-    {
-        [instance->locationManager requestWhenInUseAuthorization];
-        [instance->locationManager requestAlwaysAuthorization];
-    }
-    
     [instance->locationManager startUpdatingLocation];
 }
 
@@ -125,12 +119,14 @@
 + (void)startUpdatingHeading
 {
     DGLocationManager *instance = self.instance;
+	
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
     if ([instance->locationManager respondsToSelector:@selector(setPurpose:)])
     {
         instance->locationManager.purpose = instance->purpose;
     }
 #endif
+
     if ([instance->locationManager respondsToSelector:@selector(setActivityType:)])
     {
         instance->locationManager.activityType = instance->activityType;
@@ -141,6 +137,22 @@
 + (void)stopUpdatingHeading
 {
     [[self instance]->locationManager stopUpdatingHeading];
+}
+
++ (void)requestWhenInUseAuthorization
+{
+    if (IS_OS_8_OR_LATER)
+    {
+        [[self instance]->locationManager requestWhenInUseAuthorization];
+    }
+}
+
++ (void)requestAlwaysAuthorization
+{
+    if (IS_OS_8_OR_LATER)
+    {
+        [[self instance]->locationManager requestAlwaysAuthorization];
+    }
 }
 
 + (void)addLocationDelegate:(__unsafe_unretained id<DGLocationManagerDelegate>)delegate
@@ -157,13 +169,7 @@
     DGLocationManagerUnretainedWrapper *wrapper = [DGLocationManagerUnretainedWrapper wrapperForReference:delegate];
     if ([instance->locationDelegates containsObject:wrapper]) return;
     [instance->locationDelegates addObject:wrapper];
-    
-    if (IS_OS_8_OR_LATER)
-    {
-        [instance->locationManager requestWhenInUseAuthorization];
-        [instance->locationManager requestAlwaysAuthorization];
-    }
-    
+        
     [self startUpdatingLocation];
 }
 

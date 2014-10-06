@@ -59,6 +59,9 @@
 + (void)startUpdatingHeading;
 + (void)stopUpdatingHeading;
 
++ (void)requestWhenInUseAuthorization;
++ (void)requestAlwaysAuthorization;
+
 + (void)addLocationDelegate:(__unsafe_unretained id<DGLocationManagerDelegate>)delegate;
 + (void)removeLocationDelegate:(__unsafe_unretained id<DGLocationManagerDelegate>)delegate;
 + (void)removeAllLocationDelegates;
