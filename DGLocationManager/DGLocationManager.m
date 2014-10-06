@@ -15,29 +15,31 @@
 //  Stops updating location automatically when last delegate is removed.
 //
 //  The MIT License (MIT)
-//  
+//
 //  Copyright (c) 2014 Daniel Cohen Gindi (danielgindi@gmail.com)
-//  
+//
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
 //  in the Software without restriction, including without limitation the rights
 //  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 //  copies of the Software, and to permit persons to whom the Software is
 //  furnished to do so, subject to the following conditions:
-//  
+//
 //  The above copyright notice and this permission notice shall be included in all
 //  copies or substantial portions of the Software.
-//  
+//
 //  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 //  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 //  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 //  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-//  SOFTWARE. 
-//  
+//  SOFTWARE.
+//
 
 #import "DGLocationManager.h"
+
+#define IS_OS_8_OR_LATER ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0)
 
 #pragma mark - Wrapper for delegate to keep it unretained
 
@@ -93,16 +95,25 @@
 + (void)startUpdatingLocation
 {
     DGLocationManager *instance = self.instance;
+    
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
     if ([instance->locationManager respondsToSelector:@selector(setPurpose:)])
     {
         instance->locationManager.purpose = instance->purpose;
     }
 #endif
+    
     if ([instance->locationManager respondsToSelector:@selector(setActivityType:)])
     {
         instance->locationManager.activityType = instance->activityType;
     }
+    
+    if (IS_OS_8_OR_LATER)
+    {
+        [instance->locationManager requestWhenInUseAuthorization];
+        [instance->locationManager requestAlwaysAuthorization];
+    }
+    
     [instance->locationManager startUpdatingLocation];
 }
 
@@ -146,6 +157,12 @@
     DGLocationManagerUnretainedWrapper *wrapper = [DGLocationManagerUnretainedWrapper wrapperForReference:delegate];
     if ([instance->locationDelegates containsObject:wrapper]) return;
     [instance->locationDelegates addObject:wrapper];
+    
+    if (IS_OS_8_OR_LATER)
+    {
+        [instance->locationManager requestWhenInUseAuthorization];
+        [instance->locationManager requestAlwaysAuthorization];
+    }
     
     [self startUpdatingLocation];
 }
