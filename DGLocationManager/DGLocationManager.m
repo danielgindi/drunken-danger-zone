@@ -309,17 +309,14 @@
     newLocation = theNewLocation;
     oldLocation = theOldLocation;
     
-    // NSMutableArray is NOT threadsafe! So only work with the delegates on main queue
-    dispatch_async(dispatch_get_main_queue(), ^{
-        for (DGLocationManagerUnretainedWrapper *delegateWrapper in locationDelegates)
+    for (DGLocationManagerUnretainedWrapper *delegateWrapper in locationDelegates)
+    {
+        id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
+        if ([delegate respondsToSelector:@selector(locationManagerDidUpdateToLocation:fromLocation:)])
         {
-            id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
-            if ([delegate respondsToSelector:@selector(locationManagerDidUpdateToLocation:fromLocation:)])
-            {
-                [delegate locationManagerDidUpdateToLocation:theNewLocation fromLocation:theOldLocation];
-            }
+            [delegate locationManagerDidUpdateToLocation:theNewLocation fromLocation:theOldLocation];
         }
-    });
+    }
 }
 
 - (void)locationManager:(CLLocationManager *)manager didUpdateHeading:(CLHeading *)newHeading
@@ -328,63 +325,54 @@
     trueHeading = newHeading.trueHeading;
     headingAccuracy = newHeading.headingAccuracy;
     
-    // NSMutableArray is NOT threadsafe! So only work with the delegates on main queue
-    dispatch_async(dispatch_get_main_queue(), ^{
-        for (DGLocationManagerUnretainedWrapper *delegateWrapper in headingDelegates)
+    for (DGLocationManagerUnretainedWrapper *delegateWrapper in headingDelegates)
+    {
+        id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
+        if ([delegate respondsToSelector:@selector(locationManagerDidUpdateHeading:)])
         {
-            id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
-            if ([delegate respondsToSelector:@selector(locationManagerDidUpdateHeading:)])
-            {
-                [delegate locationManagerDidUpdateHeading:newHeading];
-            }
+            [delegate locationManagerDidUpdateHeading:newHeading];
         }
-    });
+    }
 }
 
 - (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error
 {
-    // NSMutableArray is NOT threadsafe! So only work with the delegates on main queue
-    dispatch_async(dispatch_get_main_queue(), ^{
-        for (DGLocationManagerUnretainedWrapper *delegateWrapper in locationDelegates)
+    for (DGLocationManagerUnretainedWrapper *delegateWrapper in locationDelegates)
+    {
+        id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
+        if ([delegate respondsToSelector:@selector(locationManagerDidFailWithError:)])
         {
-            id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
-            if ([delegate respondsToSelector:@selector(locationManagerDidFailWithError:)])
-            {
-                [delegate locationManagerDidFailWithError:error];
-            }
+            [delegate locationManagerDidFailWithError:error];
         }
-        for (DGLocationManagerUnretainedWrapper *delegateWrapper in headingDelegates)
+    }
+    for (DGLocationManagerUnretainedWrapper *delegateWrapper in headingDelegates)
+    {
+        id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
+        if ([delegate respondsToSelector:@selector(locationManagerDidFailWithError:)])
         {
-            id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
-            if ([delegate respondsToSelector:@selector(locationManagerDidFailWithError:)])
-            {
-                [delegate locationManagerDidFailWithError:error];
-            }
+            [delegate locationManagerDidFailWithError:error];
         }
-    });
+    }
 }
 
 - (void)locationManager:(CLLocationManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status
 {
-    // NSMutableArray is NOT threadsafe! So only work with the delegates on main queue
-    dispatch_async(dispatch_get_main_queue(), ^{
-        for (DGLocationManagerUnretainedWrapper *delegateWrapper in locationDelegates)
+    for (DGLocationManagerUnretainedWrapper *delegateWrapper in locationDelegates)
+    {
+        id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
+        if ([delegate respondsToSelector:@selector(locationManagerDidChangeAuthorizationStatus:)])
         {
-            id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
-            if ([delegate respondsToSelector:@selector(locationManagerDidChangeAuthorizationStatus:)])
-            {
-                [delegate locationManagerDidChangeAuthorizationStatus:status];
-            }
+            [delegate locationManagerDidChangeAuthorizationStatus:status];
         }
-        for (DGLocationManagerUnretainedWrapper *delegateWrapper in headingDelegates)
+    }
+    for (DGLocationManagerUnretainedWrapper *delegateWrapper in headingDelegates)
+    {
+        id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
+        if ([delegate respondsToSelector:@selector(locationManagerDidChangeAuthorizationStatus:)])
         {
-            id<DGLocationManagerDelegate> delegate = delegateWrapper->reference;
-            if ([delegate respondsToSelector:@selector(locationManagerDidChangeAuthorizationStatus:)])
-            {
-                [delegate locationManagerDidChangeAuthorizationStatus:status];
-            }
+            [delegate locationManagerDidChangeAuthorizationStatus:status];
         }
-    });
+    }
 }
 
 @end
