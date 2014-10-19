@@ -11,6 +11,7 @@ I'm starting to move libraries from this repository to separate repositories, an
 * `DGBarcodeView` was moved to https://github.com/danielgindi/DGBarcodeView
 * `DGBorderedLabel` was moved to https://github.com/danielgindi/DGBorderedLabel
 * `DGToneGenerator` was moved to https://github.com/danielgindi/DGToneGenerator
+* `DGGrayScaleImage` was moved to https://github.com/danielgindi/DGGrayScaleImage
 
 ## Me
 * Hi! I am Daniel Cohen Gindi. Or in short- Daniel.
