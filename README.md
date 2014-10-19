@@ -18,6 +18,7 @@ I'm starting to move libraries from this repository to separate repositories, an
 * `DGTeaEncryptor` was moved to https://github.com/danielgindi/DGTeaEncryptor
 * `DGiTunesSearchApi` was moved to https://github.com/danielgindi/DGiTunesSearchApi
 * `DGCompatibleSegmentedControl` was moved to https://github.com/danielgindi/DGCompatibleSegmentedControl
+* `NSString+FastImageSize` was moved to https://github.com/danielgindi/DGFastImageSize
 
 ## Me
 * Hi! I am Daniel Cohen Gindi. Or in short- Daniel.
