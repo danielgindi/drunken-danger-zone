@@ -19,6 +19,12 @@ I'm starting to move libraries from this repository to separate repositories, an
 * `DGiTunesSearchApi` was moved to https://github.com/danielgindi/DGiTunesSearchApi
 * `DGCompatibleSegmentedControl` was moved to https://github.com/danielgindi/DGCompatibleSegmentedControl
 * `NSString+FastImageSize` was moved to https://github.com/danielgindi/DGFastImageSize
+* `NSLocale+RtlDetection` was moved to https://github.com/danielgindi/NSLocale-RtlDetection
+* `NSString+EmailValidation` was moved to https://github.com/danielgindi/NSString-EmailValidation
+* `NSString+Javascript` was moved to https://github.com/danielgindi/NSString-Javascript
+* `NSString+Trims` was moved to https://github.com/danielgindi/NSString-Trims
+* `NSUserDefaults+DefaultValues` was moved to https://github.com/danielgindi/NSUserDefaults-DefaultValues
+* `UIRefreshControl+UITableView` was moved to https://github.com/danielgindi/UIRefreshControl-UITableView
 
 ## Me
 * Hi! I am Daniel Cohen Gindi. Or in short- Daniel.
