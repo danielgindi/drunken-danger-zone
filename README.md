@@ -15,6 +15,7 @@ I'm starting to move libraries from this repository to separate repositories, an
 * `DGTintableImageView` was moved to https://github.com/danielgindi/DGTintableImageView
 * `DGGeocoding` was moved to https://github.com/danielgindi/DGGeocoding
 * `DGPhoneNumberFormatter` was moved to https://github.com/danielgindi/DGPhoneNumberFormatter
+* `DGTeaEncryptor` was moved to https://github.com/danielgindi/DGTeaEncryptor
 
 ## Me
 * Hi! I am Daniel Cohen Gindi. Or in short- Daniel.
