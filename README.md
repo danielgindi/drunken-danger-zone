@@ -12,6 +12,7 @@ I'm starting to move libraries from this repository to separate repositories, an
 * `DGBorderedLabel` was moved to https://github.com/danielgindi/DGBorderedLabel
 * `DGToneGenerator` was moved to https://github.com/danielgindi/DGToneGenerator
 * `DGGrayScaleImage` was moved to https://github.com/danielgindi/DGGrayScaleImage
+* `DGTintableImageView` was moved to https://github.com/danielgindi/DGTintableImageView
 
 ## Me
 * Hi! I am Daniel Cohen Gindi. Or in short- Daniel.
