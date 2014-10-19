@@ -9,6 +9,7 @@ I'm starting to move libraries from this repository to separate repositories, an
 
 * `DGSlideMenuViewController` was renamed to `DGSlideViewController`, refactored, and moved to https://github.com/danielgindi/DGSlideViewController/
 * `DGBarcodeView` was moved to https://github.com/danielgindi/DGBarcodeView
+* `DGBorderedLabel` was moved to https://github.com/danielgindi/DGBorderedLabel
 
 ## Me
 * Hi! I am Daniel Cohen Gindi. Or in short- Daniel.
