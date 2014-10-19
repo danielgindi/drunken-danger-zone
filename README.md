@@ -13,6 +13,7 @@ I'm starting to move libraries from this repository to separate repositories, an
 * `DGToneGenerator` was moved to https://github.com/danielgindi/DGToneGenerator
 * `DGGrayScaleImage` was moved to https://github.com/danielgindi/DGGrayScaleImage
 * `DGTintableImageView` was moved to https://github.com/danielgindi/DGTintableImageView
+* `DGGeocoding` was moved to https://github.com/danielgindi/DGGeocoding
 
 ## Me
 * Hi! I am Daniel Cohen Gindi. Or in short- Daniel.
