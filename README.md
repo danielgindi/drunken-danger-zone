@@ -12,6 +12,7 @@ I'm starting to move libraries from this repository to separate repositories, an
 * `DGBarcodeView` was moved to https://github.com/danielgindi/DGBarcodeView
 * `DGDownloadManager` was moved to https://github.com/danielgindi/DGDownloadManager
 * `DGButton` was moved to https://github.com/danielgindi/DGButton
+* `DGDropdownView` was moved to https://github.com/danielgindi/DGDropdownView
 * `DGBorderedLabel` was moved to https://github.com/danielgindi/DGBorderedLabel
 * `DGToneGenerator` was moved to https://github.com/danielgindi/DGToneGenerator
 * `DGGrayScaleImage` was moved to https://github.com/danielgindi/DGGrayScaleImage
