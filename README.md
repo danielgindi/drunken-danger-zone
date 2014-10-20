@@ -6,9 +6,10 @@ If you're wondering where did all these libraries go - well, I decided to move t
 
 ## Here they are!
 
-Sound
+### Sound
+* [DGToneGenerator](https://github.com/danielgindi/DGToneGenerator) - A DTMF tone generator
 
-UI
+### UI
 * [DGSlideViewController](https://github.com/danielgindi/DGSlideViewController/) - A sliding view controller for iOS
 * [DGImageLoaderView](https://github.com/danielgindi/DGImageLoaderView) - A bullet-proof high-performance image view that loads from your URLs (web & local!)
 * [DGKeyboardScrollHandler](https://github.com/danielgindi/DGKeyboardScrollHandler) - A helper to handle scrolling your UITableView or UIScrollView when the keyboard appears
@@ -30,19 +31,18 @@ UI
 * [DGCompatibleSegmentedControl](https://github.com/danielgindi/DGCompatibleSegmentedControl) - A subclass of UISegmentControl that will render on iOS 6.0 like it's iOS 7.0
 * [DGFocusImageGallery](https://github.com/danielgindi/DGFocusImageGallery) - An image gallery view controller
 
-General
+### General
 * [DGDownloadManager](https://github.com/danielgindi/DGDownloadManager) - A simple download manager
 * [DGLocationManager](https://github.com/danielgindi/DGLocationManager) - A singleton Location Manager as a replacement for CLLocationManager
 * [DGStateBroadcaster](https://github.com/danielgindi/DGStateBroadcaster) - A broadcaster for several sensors (Low battery, distance travelled, location accuracy, network reachability)
 * [DGSpreadSheetExport](https://github.com/danielgindi/DGSpreadSheetExport) - CSV or XMLSS (XML Spreadsheet) generation library for iOS / ObjC
-* [DGToneGenerator](https://github.com/danielgindi/DGToneGenerator) - A DTMF tone generator
 * [DGGeocoding](https://github.com/danielgindi/DGGeocoding) - A geocoding services API wrapper
 * [DGPhoneNumberFormatter](https://github.com/danielgindi/DGPhoneNumberFormatter) - An NSFormatter for phone numbers
 * [DGTeaEncryptor](https://github.com/danielgindi/DGTeaEncryptor) - A lightweight TEA (XXTEA) encryption library
 * [DGiTunesSearchApi](https://github.com/danielgindi/DGiTunesSearchApi) - A wrapper for iTunes' search API
 * [DGFastImageSize](https://github.com/danielgindi/DGFastImageSize) - Retrieve image dimensions in no-time at all. High performance image dimension reader
 
-Extension Categories
+### Extension Categories
 * [NSLocale+RtlDetection](https://github.com/danielgindi/NSLocale-RtlDetection) - An extension to NSLocale to easily determine if it's an RTL locale or not
 * [NSString+EmailValidation](https://github.com/danielgindi/NSString-EmailValidation) - An extension to NSString to for email address validation
 * [NSString+Javascript](https://github.com/danielgindi/NSString-Javascript) - An extension to NSString to simply encode strings for JavaScript
