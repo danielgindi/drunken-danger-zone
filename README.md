@@ -10,6 +10,7 @@ I'm starting to move libraries from this repository to separate repositories, an
 * `DGSlideMenuViewController` was renamed to `DGSlideViewController`, refactored, and moved to https://github.com/danielgindi/DGSlideViewController/
 * `DGImageLoaderView` was moved to https://github.com/danielgindi/DGImageLoaderView
 * `DGBarcodeView` was moved to https://github.com/danielgindi/DGBarcodeView
+* `DGDownloadManager` was moved to https://github.com/danielgindi/DGDownloadManager
 * `DGBorderedLabel` was moved to https://github.com/danielgindi/DGBorderedLabel
 * `DGToneGenerator` was moved to https://github.com/danielgindi/DGToneGenerator
 * `DGGrayScaleImage` was moved to https://github.com/danielgindi/DGGrayScaleImage
