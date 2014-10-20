@@ -1,90 +1,56 @@
 drunken-danger-zone
 ===================
 
-All kinds of ObjC helper classes. The name of the repository - was amazingly suggested by GitHub :-)
+Hi everyone!
+If you're wondering where did all these libraries go - well, I decided to move them all to separate repositories. I will keep maintaining this repository with just a map of my iOS/ObjC repositories, so you can have an easy index.
 
-## Moved libraries:
+## Here they are!
 
-I'm starting to move libraries from this repository to separate repositories, and will update here with the relevant urls.
+Sound
 
-* `DGSlideMenuViewController` was renamed to `DGSlideViewController`, refactored, and moved to https://github.com/danielgindi/DGSlideViewController/
-* `DGImageLoaderView` was moved to https://github.com/danielgindi/DGImageLoaderView
-* `DGBarcodeView` was moved to https://github.com/danielgindi/DGBarcodeView
-* `DGDownloadManager` was moved to https://github.com/danielgindi/DGDownloadManager
-* `DGButton` was moved to https://github.com/danielgindi/DGButton
-* `DGTextField` was moved to https://github.com/danielgindi/DGTextField
-* `DGDropdownView` was moved to https://github.com/danielgindi/DGDropdownView
-* `DGFocusImageGallery` was moved to https://github.com/danielgindi/DGFocusImageGallery
-* `DGInputAccessoryToolbar` was moved to https://github.com/danielgindi/DGInputAccessoryToolbar
-* `DGLocationManager` was moved to https://github.com/danielgindi/DGLocationManager
-* `DGStateBroadcaster` was moved to https://github.com/danielgindi/DGStateBroadcaster
-* `DGKeyboardScrollHandler` was moved to https://github.com/danielgindi/DGKeyboardScrollHandler
-* `DGNumberBadgeView` was moved to https://github.com/danielgindi/DGNumberBadgeView
-* `DGBorderedLabel` was moved to https://github.com/danielgindi/DGBorderedLabel
-* `DGPageControl` was moved to https://github.com/danielgindi/DGPageControl
-* `DGPickerButton` was moved to https://github.com/danielgindi/DGPickerButton
-* `DGTextFieldPickerView` was moved to https://github.com/danielgindi/DGTextFieldPickerView
-* `DGPopupView` was moved to https://github.com/danielgindi/DGPopupView
-* `DGSpreadSheetExport` was moved to https://github.com/danielgindi/DGSpreadSheetExport
-* `DGToneGenerator` was moved to https://github.com/danielgindi/DGToneGenerator
-* `DGGrayScaleImage` was moved to https://github.com/danielgindi/DGGrayScaleImage
-* `DGTintableImageView` was moved to https://github.com/danielgindi/DGTintableImageView
-* `DGGeocoding` was moved to https://github.com/danielgindi/DGGeocoding
-* `DGPhoneNumberFormatter` was moved to https://github.com/danielgindi/DGPhoneNumberFormatter
-* `DGLabelNumberAnimator` was moved to https://github.com/danielgindi/DGLabelNumberAnimator
-* `DGTwoSidedView` was moved to https://github.com/danielgindi/DGTwoSidedView
-* `DGTeaEncryptor` was moved to https://github.com/danielgindi/DGTeaEncryptor
-* `DGiTunesSearchApi` was moved to https://github.com/danielgindi/DGiTunesSearchApi
-* `DGCompatibleSegmentedControl` was moved to https://github.com/danielgindi/DGCompatibleSegmentedControl
-* `NSString+FastImageSize` was moved to https://github.com/danielgindi/DGFastImageSize
-* `NSLocale+RtlDetection` was moved to https://github.com/danielgindi/NSLocale-RtlDetection
-* `NSString+EmailValidation` was moved to https://github.com/danielgindi/NSString-EmailValidation
-* `NSString+Javascript` was moved to https://github.com/danielgindi/NSString-Javascript
-* `NSString+Trims` was moved to https://github.com/danielgindi/NSString-Trims
-* `NSUserDefaults+DefaultValues` was moved to https://github.com/danielgindi/NSUserDefaults-DefaultValues
-* `UIRefreshControl+UITableView` was moved to https://github.com/danielgindi/UIRefreshControl-UITableView
+UI
+* [DGSlideViewController](https://github.com/danielgindi/DGSlideViewController/) - A sliding view controller for iOS
+* [DGImageLoaderView](https://github.com/danielgindi/DGImageLoaderView) - A bullet-proof high-performance image view that loads from your URLs (web & local!)
+* [DGKeyboardScrollHandler](https://github.com/danielgindi/DGKeyboardScrollHandler) - A helper to handle scrolling your UITableView or UIScrollView when the keyboard appears
+* [DGBarcodeView](https://github.com/danielgindi/DGBarcodeView) - Barcode view with many encodings
+* [DGButton](https://github.com/danielgindi/DGButton) - A UIButton subclass with support for setting image on opposite side, and RTLing image position
+* [DGTextField](https://github.com/danielgindi/DGTextField) - A customizable UITextField subclass (change placeholder color, change content insets etc.)
+* [DGDropdownView](https://github.com/danielgindi/DGDropdownView) - A customizable "drop view" like the iOS Push Notification
+* [DGInputAccessoryToolbar](https://github.com/danielgindi/DGInputAccessoryToolbar) - A standard "prev/next/done" toolbar to put as inputAccessoryView for your keyboard
+* [DGNumberBadgeView](https://github.com/danielgindi/DGNumberBadgeView) - A number badge view, similar to iOS' push notification badge
+* [DGBorderedLabel](https://github.com/danielgindi/DGBorderedLabel) - An alternative to UILabel, with the option of a bordered text
+* [DGPageControl](https://github.com/danielgindi/DGPageControl) - A customizable paging control, compatible alternative to UIPageControl
+* [DGPickerButton](https://github.com/danielgindi/DGPickerButton) - A UIButton that can show a UIPickerView or UIDatePicker for options
+* [DGTextFieldPickerView](https://github.com/danielgindi/DGTextFieldPickerView) - A UITextField that can show a UIPickerView or UIDatePicker for options
+* [DGPopupView](https://github.com/danielgindi/DGPopupView) - A customizable popup view for iOS / ObjC
+* [DGGrayScaleImage](https://github.com/danielgindi/DGGrayScaleImage) - A UIImage that represents a grayscale version of another UIImage
+* [DGTintableImageView](https://github.com/danielgindi/DGTintableImageView) - A UIView that presents a UIImage with a tint to another color
+* [DGLabelNumberAnimator](https://github.com/danielgindi/DGLabelNumberAnimator) - A helper library that will animate labels between two numbers
+* [DGTwoSidedView](https://github.com/danielgindi/DGTwoSidedView) - A UIView subclass that has two sides, so you can flip it or move in 3d space
+* [DGCompatibleSegmentedControl](https://github.com/danielgindi/DGCompatibleSegmentedControl) - A subclass of UISegmentControl that will render on iOS 6.0 like it's iOS 7.0
+* [DGFocusImageGallery](https://github.com/danielgindi/DGFocusImageGallery) - An image gallery view controller
+
+General
+* [DGDownloadManager](https://github.com/danielgindi/DGDownloadManager) - A simple download manager
+* [DGLocationManager](https://github.com/danielgindi/DGLocationManager) - A singleton Location Manager as a replacement for CLLocationManager
+* [DGStateBroadcaster](https://github.com/danielgindi/DGStateBroadcaster) - A broadcaster for several sensors (Low battery, distance travelled, location accuracy, network reachability)
+* [DGSpreadSheetExport](https://github.com/danielgindi/DGSpreadSheetExport) - CSV or XMLSS (XML Spreadsheet) generation library for iOS / ObjC
+* [DGToneGenerator](https://github.com/danielgindi/DGToneGenerator) - A DTMF tone generator
+* [DGGeocoding](https://github.com/danielgindi/DGGeocoding) - A geocoding services API wrapper
+* [DGPhoneNumberFormatter](https://github.com/danielgindi/DGPhoneNumberFormatter) - An NSFormatter for phone numbers
+* [DGTeaEncryptor](https://github.com/danielgindi/DGTeaEncryptor) - A lightweight TEA (XXTEA) encryption library
+* [DGiTunesSearchApi](https://github.com/danielgindi/DGiTunesSearchApi) - A wrapper for iTunes' search API
+* [DGFastImageSize](https://github.com/danielgindi/DGFastImageSize) - Retrieve image dimensions in no-time at all. High performance image dimension reader
+
+Extension Categories
+* [NSLocale+RtlDetection](https://github.com/danielgindi/NSLocale-RtlDetection) - An extension to NSLocale to easily determine if it's an RTL locale or not
+* [NSString+EmailValidation](https://github.com/danielgindi/NSString-EmailValidation) - An extension to NSString to for email address validation
+* [NSString+Javascript](https://github.com/danielgindi/NSString-Javascript) - An extension to NSString to simply encode strings for JavaScript
+* [NSString+Trims](https://github.com/danielgindi/NSString-Trims) - An extension to NSString to easily trim whitespace
+* [NSUserDefaults+DefaultValues](https://github.com/danielgindi/NSUserDefaults-DefaultValues) - An extension to NSUserDefaults to retrieve values with an optional default value
+* [UIRefreshControl+UITableView](https://github.com/danielgindi/UIRefreshControl-UITableView) - An extension to UIRefreshControl to setup a UIRefreshControl with a UITableView (a bugfix)
 
 ## Me
 * Hi! I am Daniel Cohen Gindi. Or in short- Daniel.
 * danielgindi@gmail.com is my email address.
 * That's all you need to know.
-
-## Compilation
-* Everything should compile with no dependencies on other libraries. Specific iOS frameworks may be required, so just listen to your compiler. *You can take any single library here without the rest - they are all independent.*
-* Everything is ARC based. As we are moving forward to a world where iOS 5.x is deprecated - things will soon be iOS 6.x based. 
-* I have no intent to keep backwards compatibility for platforms which are used by less than 1.5% of the population.
-
-## Help
-
-If you like what you see here, and want to support the work being done in this repository, you could:
-* Actually code, and issue pull requests
-* Spread the word
-* 
-[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CHRDHZE79YTMQ)
-
-## License
-
-All the code here is under MIT license. Which means you could do virtually anything with the code.
-I will appreciate it very much if you keep an attribution where appropriate.
-
-    The MIT License (MIT)
-    
-    Copyright (c) 2013 Daniel Cohen Gindi (danielgindi@gmail.com)
-    
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-    
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-    
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
