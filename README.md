@@ -16,6 +16,7 @@ I'm starting to move libraries from this repository to separate repositories, an
 * `DGFocusImageGallery` was moved to https://github.com/danielgindi/DGFocusImageGallery
 * `DGInputAccessoryToolbar` was moved to https://github.com/danielgindi/DGInputAccessoryToolbar
 * `DGLocationManager` was moved to https://github.com/danielgindi/DGLocationManager
+* `DGStateBroadcaster` was moved to https://github.com/danielgindi/DGStateBroadcaster
 * `DGKeyboardScrollHandler` was moved to https://github.com/danielgindi/DGKeyboardScrollHandler
 * `DGNumberBadgeView` was moved to https://github.com/danielgindi/DGNumberBadgeView
 * `DGBorderedLabel` was moved to https://github.com/danielgindi/DGBorderedLabel
