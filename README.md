@@ -19,6 +19,7 @@ I'm starting to move libraries from this repository to separate repositories, an
 * `DGKeyboardScrollHandler` was moved to https://github.com/danielgindi/DGKeyboardScrollHandler
 * `DGNumberBadgeView` was moved to https://github.com/danielgindi/DGNumberBadgeView
 * `DGBorderedLabel` was moved to https://github.com/danielgindi/DGBorderedLabel
+* `DGPageControl` was moved to https://github.com/danielgindi/DGPageControl
 * `DGToneGenerator` was moved to https://github.com/danielgindi/DGToneGenerator
 * `DGGrayScaleImage` was moved to https://github.com/danielgindi/DGGrayScaleImage
 * `DGTintableImageView` was moved to https://github.com/danielgindi/DGTintableImageView
