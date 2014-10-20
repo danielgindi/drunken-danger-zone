@@ -8,6 +8,7 @@ All kinds of ObjC helper classes. The name of the repository - was amazingly sug
 I'm starting to move libraries from this repository to separate repositories, and will update here with the relevant urls.
 
 * `DGSlideMenuViewController` was renamed to `DGSlideViewController`, refactored, and moved to https://github.com/danielgindi/DGSlideViewController/
+* `DGImageLoaderView` was moved to https://github.com/danielgindi/DGImageLoaderView
 * `DGBarcodeView` was moved to https://github.com/danielgindi/DGBarcodeView
 * `DGBorderedLabel` was moved to https://github.com/danielgindi/DGBorderedLabel
 * `DGToneGenerator` was moved to https://github.com/danielgindi/DGToneGenerator
