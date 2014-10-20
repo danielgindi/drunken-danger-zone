@@ -21,6 +21,7 @@ I'm starting to move libraries from this repository to separate repositories, an
 * `DGBorderedLabel` was moved to https://github.com/danielgindi/DGBorderedLabel
 * `DGPageControl` was moved to https://github.com/danielgindi/DGPageControl
 * `DGPickerButton` was moved to https://github.com/danielgindi/DGPickerButton
+* `DGPopupView` was moved to https://github.com/danielgindi/DGPopupView
 * `DGToneGenerator` was moved to https://github.com/danielgindi/DGToneGenerator
 * `DGGrayScaleImage` was moved to https://github.com/danielgindi/DGGrayScaleImage
 * `DGTintableImageView` was moved to https://github.com/danielgindi/DGTintableImageView
