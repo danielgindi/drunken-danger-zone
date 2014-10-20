@@ -22,6 +22,7 @@ I'm starting to move libraries from this repository to separate repositories, an
 * `DGTintableImageView` was moved to https://github.com/danielgindi/DGTintableImageView
 * `DGGeocoding` was moved to https://github.com/danielgindi/DGGeocoding
 * `DGPhoneNumberFormatter` was moved to https://github.com/danielgindi/DGPhoneNumberFormatter
+* `DGLabelNumberAnimator` was moved to https://github.com/danielgindi/DGLabelNumberAnimator
 * `DGTeaEncryptor` was moved to https://github.com/danielgindi/DGTeaEncryptor
 * `DGiTunesSearchApi` was moved to https://github.com/danielgindi/DGiTunesSearchApi
 * `DGCompatibleSegmentedControl` was moved to https://github.com/danielgindi/DGCompatibleSegmentedControl
