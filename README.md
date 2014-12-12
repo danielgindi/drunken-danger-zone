@@ -10,6 +10,7 @@ If you're wondering where did all these libraries go - well, I decided to move t
 * [DGToneGenerator](https://github.com/danielgindi/DGToneGenerator) - A DTMF tone generator
 
 ### UI
+* [DGFlatProgressBarView](https://github.com/danielgindi/DGFlatProgressBarView) - A flat progress bar view, as an alternative to UIProgressView
 * [DGCurvedLabel](https://github.com/danielgindi/DGCurvedLabel) - A `UILabel` subclass that curves the text around an arc :-)
 * [DGSlideViewController](https://github.com/danielgindi/DGSlideViewController/) - A sliding view controller for iOS
 * [DGImageLoaderView](https://github.com/danielgindi/DGImageLoaderView) - A bullet-proof high-performance image view that loads from your URLs (web & local!)
