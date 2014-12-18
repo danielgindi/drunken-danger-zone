@@ -8,6 +8,7 @@ If you're wondering where did all these libraries go - well, I decided to move t
 
 ### Sound
 * [DGToneGenerator](https://github.com/danielgindi/DGToneGenerator) - A DTMF tone generator
+* [DGAudioTranscoder](https://github.com/danielgindi/DGAudioTranscoder) - An audio transcoding module - takes any source format, transcodes to any codec available on iOS/OSX.
 
 ### UI
 * [DGFlatProgressBarView](https://github.com/danielgindi/DGFlatProgressBarView) - A flat progress bar view, as an alternative to UIProgressView
