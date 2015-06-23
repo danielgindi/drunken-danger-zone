@@ -45,6 +45,7 @@ If you're wondering where did all these libraries go - well, I decided to move t
 * [DGTeaEncryptor](https://github.com/danielgindi/DGTeaEncryptor) - A lightweight TEA (XXTEA) encryption library
 * [DGiTunesSearchApi](https://github.com/danielgindi/DGiTunesSearchApi) - A wrapper for iTunes' search API
 * [DGFastImageSize](https://github.com/danielgindi/DGFastImageSize) - Retrieve image dimensions in no-time at all. High performance image dimension reader
+* [DGPingUtility](https://github.com/danielgindi/DGPingUtility) - A pinger class
 
 ### Extension Categories
 * [NSLocale+RtlDetection](https://github.com/danielgindi/NSLocale-RtlDetection) - An extension to NSLocale to easily determine if it's an RTL locale or not
