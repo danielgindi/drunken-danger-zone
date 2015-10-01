@@ -48,7 +48,6 @@ If you're wondering where did all these libraries go - well, I decided to move t
 * [DGPingUtility](https://github.com/danielgindi/DGPingUtility) - A pinger class
 
 ### Extension Categories
-* [NSLocale+RtlDetection](https://github.com/danielgindi/NSLocale-RtlDetection) - An extension to NSLocale to easily determine if it's an RTL locale or not
 * [NSString+EmailValidation](https://github.com/danielgindi/NSString-EmailValidation) - An extension to NSString to for email address validation
 * [NSString+Javascript](https://github.com/danielgindi/NSString-Javascript) - An extension to NSString to simply encode strings for JavaScript
 * [NSString+Trims](https://github.com/danielgindi/NSString-Trims) - An extension to NSString to easily trim whitespace
